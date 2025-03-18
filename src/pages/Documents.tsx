@@ -19,14 +19,36 @@ import {
   AlertCircle,
   Eye,
   PencilLine,
-  Share2
+  Share2,
+  SlidersHorizontal,
+  ChevronDown,
+  CalendarRange,
+  Tag,
+  X,
+  Plus
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import DocumentViewer from '@/components/documents/DocumentViewer';
+import { useToast } from '@/hooks/use-toast';
 
 const Documents = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [documentTags, setDocumentTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
+  const { toast } = useToast();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -60,6 +82,64 @@ const Documents = () => {
     }
   };
 
+  const handleOpenDocument = (id: string) => {
+    setSelectedDocument(id);
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !documentTags.includes(newTag.trim())) {
+      setDocumentTags([...documentTags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setDocumentTags(documentTags.filter(t => t !== tag));
+  };
+
+  const documents = [
+    { 
+      id: "DOC-2023-0156", 
+      name: "Bill of Lading - SHP-2023-0089", 
+      type: "Bill of Lading", 
+      date: "22/05/2023", 
+      client: "Tech Supplies Inc",
+      status: "Validé",
+      size: "240 Ko",
+      shipment: "SHP-2023-0089"
+    },
+    { 
+      id: "DOC-2023-0155", 
+      name: "Facture commerciale - SHP-2023-0088", 
+      type: "Facture commerciale", 
+      date: "21/05/2023", 
+      client: "Pharma Solutions",
+      status: "Validé",
+      size: "125 Ko",
+      shipment: "SHP-2023-0088"
+    },
+    { 
+      id: "DOC-2023-0154", 
+      name: "Certificat d'origine - SHP-2023-0087", 
+      type: "Certificat d'origine", 
+      date: "20/05/2023", 
+      client: "Global Imports Ltd",
+      status: "En attente",
+      size: "320 Ko",
+      shipment: "SHP-2023-0087"
+    },
+    { 
+      id: "DOC-2023-0153", 
+      name: "Listing colisage - SHP-2023-0086", 
+      type: "Listing colisage", 
+      date: "19/05/2023", 
+      client: "Eurotech GmbH",
+      status: "Rejeté",
+      size: "180 Ko",
+      shipment: "SHP-2023-0086"
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={toggleSidebar} />
@@ -77,7 +157,10 @@ const Documents = () => {
                 <Upload className="h-4 w-4" />
                 Importer
               </Button>
-              <Button className="gap-2">
+              <Button className="gap-2" onClick={() => toast({
+                title: "Fonction en développement",
+                description: "La création d'un nouveau document sera bientôt disponible.",
+              })}>
                 <FilePlus className="h-4 w-4" />
                 Nouveau Document
               </Button>
@@ -90,12 +173,119 @@ const Documents = () => {
               <Input placeholder="Rechercher par nom, type, expédition..." className="pl-10" />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
+              <Button 
+                variant={showAdvancedFilters ? "default" : "outline"} 
+                className="gap-2"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
                 <Filter className="h-4 w-4" />
                 Filtres
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Trier
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Trier par</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <CalendarRange className="mr-2 h-4 w-4" />
+                      <span>Date (plus récent)</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <CalendarRange className="mr-2 h-4 w-4" />
+                      <span>Date (plus ancien)</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Nom (A-Z)</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Tag className="mr-2 h-4 w-4" />
+                      <span>Type de document</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
+
+          {showAdvancedFilters && (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Statut</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="success" className="cursor-pointer">Validés</Badge>
+                      <Badge variant="warning" className="cursor-pointer">En attente</Badge>
+                      <Badge variant="destructive" className="cursor-pointer">Rejetés</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Type de document</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Bill of Lading</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">Certificats</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-amber-500">Factures</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Période</label>
+                    <div className="flex gap-2">
+                      <Input type="date" className="w-full" placeholder="Date début" />
+                      <Input type="date" className="w-full" placeholder="Date fin" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="text-sm font-medium mb-2 block">Tags</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {documentTags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="flex items-center gap-1">
+                        {tag}
+                        <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => handleRemoveTag(tag)} />
+                      </Badge>
+                    ))}
+                    {documentTags.length === 0 && (
+                      <span className="text-sm text-muted-foreground">Aucun tag sélectionné</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Ajouter un tag" 
+                      value={newTag} 
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      }}
+                    />
+                    <Button variant="outline" onClick={handleAddTag} disabled={!newTag.trim()}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" className="mr-2">Réinitialiser</Button>
+                  <Button>Appliquer</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
@@ -152,6 +342,17 @@ const Documents = () => {
                       <Badge variant="outline" className="ml-auto">3</Badge>
                     </Button>
                   </div>
+
+                  <h3 className="font-medium mt-6 mb-3">Tags populaires</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Maritime</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Export</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Conteneur</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Douane</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Urgent</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Shanghai</Badge>
+                    <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Aérien</Badge>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -166,49 +367,12 @@ const Documents = () => {
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-4">
-                  {[
-                    { 
-                      id: "DOC-2023-0156", 
-                      name: "Bill of Lading - SHP-2023-0089", 
-                      type: "Bill of Lading", 
-                      date: "22/05/2023", 
-                      client: "Tech Supplies Inc",
-                      status: "Validé",
-                      size: "240 Ko",
-                      shipment: "SHP-2023-0089"
-                    },
-                    { 
-                      id: "DOC-2023-0155", 
-                      name: "Facture commerciale - SHP-2023-0088", 
-                      type: "Facture commerciale", 
-                      date: "21/05/2023", 
-                      client: "Pharma Solutions",
-                      status: "Validé",
-                      size: "125 Ko",
-                      shipment: "SHP-2023-0088"
-                    },
-                    { 
-                      id: "DOC-2023-0154", 
-                      name: "Certificat d'origine - SHP-2023-0087", 
-                      type: "Certificat d'origine", 
-                      date: "20/05/2023", 
-                      client: "Global Imports Ltd",
-                      status: "En attente",
-                      size: "320 Ko",
-                      shipment: "SHP-2023-0087"
-                    },
-                    { 
-                      id: "DOC-2023-0153", 
-                      name: "Listing colisage - SHP-2023-0086", 
-                      type: "Listing colisage", 
-                      date: "19/05/2023", 
-                      client: "Eurotech GmbH",
-                      status: "Rejeté",
-                      size: "180 Ko",
-                      shipment: "SHP-2023-0086"
-                    },
-                  ].map((document) => (
-                    <Card key={document.id} className="hover:border-primary/50 transition-colors cursor-pointer">
+                  {documents.map((document) => (
+                    <Card 
+                      key={document.id} 
+                      className="hover:border-primary/50 transition-colors cursor-pointer"
+                      onClick={() => handleOpenDocument(document.id)}
+                    >
                       <CardContent className="p-0">
                         <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
                           <div className="flex items-start gap-3">
@@ -242,16 +406,53 @@ const Documents = () => {
                           </div>
                           
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDocument(document.id);
+                              }}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast({
+                                  title: "Téléchargement en cours",
+                                  description: `Le document ${document.id} est en cours de téléchargement.`,
+                                });
+                              }}
+                            >
                               <Download className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast({
+                                  title: "Lien de partage créé",
+                                  description: "Le lien de partage a été copié dans le presse-papier.",
+                                });
+                              }}
+                            >
                               <Share2 className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toast({
+                                  title: "Modification du document",
+                                  description: "L'édition du document sera bientôt disponible.",
+                                });
+                              }}
+                            >
                               <PencilLine className="h-4 w-4" />
                             </Button>
                           </div>
@@ -288,6 +489,13 @@ const Documents = () => {
           </div>
         </div>
       </main>
+      
+      {selectedDocument && (
+        <DocumentViewer
+          documentId={selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+        />
+      )}
     </div>
   );
 };
