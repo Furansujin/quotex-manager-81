@@ -33,6 +33,68 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// Types definitions
+type ShipmentType = 'maritime' | 'aérien' | 'routier' | 'ferroviaire' | 'multimodal';
+type ShipmentStatus = 'planifiée' | 'en cours' | 'terminée' | 'retardée';
+type StopStatus = 'completed' | 'current' | 'upcoming';
+type EventType = 'success' | 'warning' | 'info';
+
+interface Stop {
+  location: string;
+  date: string;
+  status: StopStatus;
+}
+
+interface Event {
+  date: string;
+  description: string;
+  type: EventType;
+}
+
+interface Document {
+  name: string;
+  status: string;
+  date: string;
+}
+
+interface Contact {
+  name: string;
+  role: string;
+  company: string;
+  email: string;
+  phone: string;
+}
+
+interface Comment {
+  user: string;
+  date: string;
+  text: string;
+}
+
+interface ShipmentData {
+  id: string;
+  client: string;
+  reference: string;
+  type: ShipmentType;
+  status: ShipmentStatus;
+  progress: number;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  estimatedArrival: string;
+  containers: string;
+  incoterm: string;
+  carrier: string;
+  trackingNumber: string;
+  weight: string;
+  volume: string;
+  stops: Stop[];
+  events: Event[];
+  documents: Document[];
+  contacts: Contact[];
+  comments: Comment[];
+}
+
 interface ShipmentDetailProps {
   shipmentId: string;
   onClose: () => void;
@@ -44,12 +106,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
   const [comment, setComment] = useState('');
   const { toast } = useToast();
 
-  const shipmentData = {
+  const shipmentData: ShipmentData = {
     id: shipmentId,
     client: "Tech Supplies Inc",
     reference: "PO-78945",
-    type: "maritime" as const,
-    status: "en cours" as const,
+    type: "maritime",
+    status: "en cours",
     progress: 65,
     origin: "Shanghai, CN",
     destination: "Paris, FR",
@@ -65,32 +127,32 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
       {
         location: "Port de Shanghai",
         date: "22/05/2023",
-        status: "completed" as const,
+        status: "completed",
       },
       {
         location: "Départ du navire",
         date: "24/05/2023",
-        status: "completed" as const,
+        status: "completed",
       },
       {
         location: "En transit (Mer de Chine méridionale)",
         date: "30/05/2023",
-        status: "current" as const,
+        status: "current",
       },
       {
         location: "Transit par Suez",
         date: "07/06/2023",
-        status: "upcoming" as const,
+        status: "upcoming",
       },
       {
         location: "Arrivée Port du Havre",
         date: "14/06/2023",
-        status: "upcoming" as const,
+        status: "upcoming",
       },
       {
         location: "Livraison Paris",
         date: "15/06/2023",
-        status: "upcoming" as const,
+        status: "upcoming",
       }
     ],
     events: [
@@ -188,11 +250,41 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     });
   };
 
-  const handleUpdateStatus = (status: string) => {
+  const handleUpdateStatus = (status: ShipmentStatus) => {
     toast({
       title: "Statut mis à jour",
       description: `Le statut de l'expédition a été changé en "${status}".`,
     });
+  };
+
+  // Helper function to get the appropriate icon based on shipment type
+  const getShipmentIcon = (type: ShipmentType) => {
+    switch (type) {
+      case 'maritime':
+        return <Ship className="h-5 w-5 text-blue-600" />;
+      case 'aérien':
+        return <PlaneTakeoff className="h-5 w-5 text-green-600" />;
+      case 'routier':
+        return <Truck className="h-5 w-5 text-amber-600" />;
+      default:
+        return <Ship className="h-5 w-5 text-primary" />;
+    }
+  };
+
+  // Helper function to determine badge variant based on shipment status
+  const getStatusVariant = (status: ShipmentStatus) => {
+    switch (status) {
+      case 'terminée':
+        return "success";
+      case 'en cours':
+        return "default";
+      case 'planifiée':
+        return "outline";
+      case 'retardée':
+        return "destructive";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -201,19 +293,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
         <div className="sticky top-0 z-10 bg-background p-4 border-b flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-md bg-primary/10">
-              {shipmentData.type === 'maritime' && <Ship className="h-5 w-5 text-blue-600" />}
-              {shipmentData.type === 'aérien' && <PlaneTakeoff className="h-5 w-5 text-green-600" />}
-              {shipmentData.type === 'routier' && <Truck className="h-5 w-5 text-amber-600" />}
+              {getShipmentIcon(shipmentData.type)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold">{shipmentData.id}</h2>
-                <Badge variant={
-                  shipmentData.status === "terminée" ? "success" : 
-                  shipmentData.status === "en cours" ? "default" :
-                  shipmentData.status === "planifiée" ? "outline" :
-                  "destructive"
-                }>
+                <Badge variant={getStatusVariant(shipmentData.status)}>
                   {shipmentData.status.charAt(0).toUpperCase() + shipmentData.status.slice(1)}
                 </Badge>
               </div>
@@ -288,9 +373,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                         </select>
                       ) : (
                         <div className="flex items-center gap-2">
-                          {shipmentData.type === 'maritime' && <Ship className="h-4 w-4 text-blue-600" />}
-                          {shipmentData.type === 'aérien' && <PlaneTakeoff className="h-4 w-4 text-green-600" />}
-                          {shipmentData.type === 'routier' && <Truck className="h-4 w-4 text-amber-600" />}
+                          {getShipmentIcon(shipmentData.type)}
                           <p className="font-medium capitalize">{shipmentData.type}</p>
                         </div>
                       )}
@@ -308,12 +391,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                           <option value="retardée">Retardée</option>
                         </select>
                       ) : (
-                        <Badge variant={
-                          shipmentData.status === "terminée" ? "success" : 
-                          shipmentData.status === "en cours" ? "default" :
-                          shipmentData.status === "planifiée" ? "outline" :
-                          "destructive"
-                        }>
+                        <Badge variant={getStatusVariant(shipmentData.status)}>
                           {shipmentData.status.charAt(0).toUpperCase() + shipmentData.status.slice(1)}
                         </Badge>
                       )}
@@ -490,11 +568,21 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                     <ArrowUpDown className="h-4 w-4" />
                     Changer le statut
                   </Button>
-                  <Button variant="outline" className="gap-2">
+                  <Button variant="outline" className="gap-2" onClick={() => {
+                    toast({
+                      title: "ETD mise à jour",
+                      description: "La date de départ estimée a été mise à jour.",
+                    });
+                  }}>
                     <Clock className="h-4 w-4" />
                     Mettre à jour l'ETD
                   </Button>
-                  <Button className="gap-2">
+                  <Button className="gap-2" onClick={() => {
+                    toast({
+                      title: "Signalement créé",
+                      description: "Un nouveau signalement a été créé pour cette expédition.",
+                    });
+                  }}>
                     <AlertCircle className="h-4 w-4" />
                     Signaler un problème
                   </Button>
@@ -520,7 +608,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
               <div className="bg-white p-6 rounded-lg border shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-medium">Documents associés</h3>
-                  <Button className="gap-2">
+                  <Button className="gap-2" onClick={() => {
+                    toast({
+                      title: "Document ajouté",
+                      description: "Un nouveau document a été ajouté à l'expédition.",
+                    });
+                  }}>
                     <Plus className="h-4 w-4" />
                     Ajouter un document
                   </Button>
@@ -542,7 +635,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                         <Badge variant={doc.status === "Validé" ? "success" : "warning"}>
                           {doc.status}
                         </Badge>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          toast({
+                            title: "Téléchargement du document",
+                            description: `Le document "${doc.name}" est en cours de téléchargement.`,
+                          });
+                        }}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -571,8 +669,13 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                       <Input type="file" />
                     </div>
                     <div className="flex items-end">
-                      <Button className="gap-2">
-                        <Upload className="h-4 w-4" />
+                      <Button className="gap-2" onClick={() => {
+                        toast({
+                          title: "Document téléchargé",
+                          description: "Le document a été téléchargé avec succès.",
+                        });
+                      }}>
+                        <Download className="h-4 w-4" />
                         Télécharger
                       </Button>
                     </div>
@@ -585,7 +688,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
               <div className="bg-white p-6 rounded-lg border shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-medium">Contacts associés</h3>
-                  <Button className="gap-2">
+                  <Button className="gap-2" onClick={() => {
+                    toast({
+                      title: "Ajout de contact",
+                      description: "Veuillez compléter les informations du nouveau contact.",
+                    });
+                  }}>
                     <Plus className="h-4 w-4" />
                     Ajouter un contact
                   </Button>
@@ -604,7 +712,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                               <p className="font-medium">{contact.name}</p>
                               <p className="text-sm text-muted-foreground">{contact.role} - {contact.company}</p>
                             </div>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" onClick={() => {
+                              toast({
+                                title: "Édition du contact",
+                                description: "Vous pouvez maintenant modifier les informations du contact.",
+                              });
+                            }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </div>
