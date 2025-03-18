@@ -90,7 +90,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="text-sm text-red-600 mt-2 flex items-center">
-                <span>2 urgents (< 24h)</span>
+                <span>2 urgents (&lt; 24h)</span>
               </div>
             </DashboardCard>
           </div>
