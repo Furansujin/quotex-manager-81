@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -785,4 +786,26 @@ const Settings = () => {
                               <span>Gérer les rôles</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Shield className="h-4 w
+                              <Shield className="h-4 w-4 text-red-600" />
+                              <span>Accès facturation</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Shield className="h-4 w-4 text-red-600" />
+                              <span>Éditer tous les documents</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Settings;
