@@ -266,7 +266,7 @@ const SuppliersList = () => {
               <SelectValue placeholder="Catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les catégories</SelectItem>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
               <SelectItem value="maritime">Maritime</SelectItem>
               <SelectItem value="aérien">Aérien</SelectItem>
               <SelectItem value="routier">Routier</SelectItem>
@@ -280,7 +280,7 @@ const SuppliersList = () => {
               <SelectValue placeholder="Statut" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tous les statuts</SelectItem>
+              <SelectItem value="all">Tous les statuts</SelectItem>
               <SelectItem value="actif">Actif</SelectItem>
               <SelectItem value="inactif">Inactif</SelectItem>
             </SelectContent>
