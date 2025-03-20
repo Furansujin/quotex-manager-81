@@ -1,67 +1,54 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Navbar from '@/components/layout/Navbar';
+import Sidebar from '@/components/layout/Sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import SuppliersList from '@/components/suppliers/SuppliersList';
 import SupplierPricing from '@/components/suppliers/SupplierPricing';
 import SupplierImport from '@/components/suppliers/SupplierImport';
 
 const Suppliers = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('suppliers');
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Fournisseurs</h1>
-      </div>
-      
-      <Tabs defaultValue="suppliers" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="suppliers">Liste des fournisseurs</TabsTrigger>
-          <TabsTrigger value="pricing">Tarifs</TabsTrigger>
-          <TabsTrigger value="import">Importer des tarifs</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="suppliers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Fournisseurs et transitaires</CardTitle>
-              <CardDescription>
-                Gérez vos partenaires logistiques et leurs informations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar toggleSidebar={toggleSidebar} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <main className="pt-16 md:pl-64">
+        <div className="container mx-auto p-4 md:p-6 animate-fade-in">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">Gestion des Fournisseurs</h1>
+            <p className="text-muted-foreground">Gérez vos fournisseurs et leurs tarifs</p>
+          </div>
+
+          <Tabs defaultValue="suppliers" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="suppliers">Fournisseurs</TabsTrigger>
+              <TabsTrigger value="pricing">Tarification</TabsTrigger>
+              <TabsTrigger value="import">Import Données</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="suppliers">
               <SuppliersList />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="pricing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des tarifs</CardTitle>
-              <CardDescription>
-                Consultez et modifiez les tarifs négociés avec vos fournisseurs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            </TabsContent>
+
+            <TabsContent value="pricing">
               <SupplierPricing />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="import" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Import de tarifs</CardTitle>
-              <CardDescription>
-                Importez des tarifs depuis des fichiers Excel ou CSV
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            </TabsContent>
+
+            <TabsContent value="import">
               <SupplierImport />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
     </div>
   );
 };

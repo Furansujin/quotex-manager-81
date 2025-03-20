@@ -1,61 +1,93 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import {
-  Home,
-  FileText,
-  TruckIcon,
-  Users,
-  Ship,
-  FileSpreadsheet,
-  UsersRound,
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Ship, 
+  Users, 
+  Truck,
+  DollarSign, 
+  FileCheck, 
+  UserCircle, 
   Settings,
-  LayoutDashboard,
-  BarChart3
-} from "lucide-react";
+  X,
+  LogOut
+} from 'lucide-react';
 
-const Sidebar = () => {
-  const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
 
-  const links = [
-    { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
-    { to: "/quotes", label: "Devis", icon: FileText },
-    { to: "/clients", label: "Clients", icon: Users },
-    { to: "/suppliers", label: "Fournisseurs", icon: Ship },
-    { to: "/shipments", label: "Expéditions", icon: TruckIcon },
-    { to: "/finance", label: "Finance", icon: BarChart3 },
-    { to: "/documents", label: "Documents", icon: FileSpreadsheet },
-    { to: "/team", label: "Équipe", icon: UsersRound },
-    { to: "/settings", label: "Paramètres", icon: Settings },
+const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
+  const menuItems = [
+    { icon: <LayoutDashboard className="mr-3 h-5 w-5" />, label: 'Tableau de Bord', path: '/' },
+    { icon: <FileText className="mr-3 h-5 w-5" />, label: 'Devis', path: '/quotes' },
+    { icon: <Ship className="mr-3 h-5 w-5" />, label: 'Expéditions', path: '/shipments' },
+    { icon: <Users className="mr-3 h-5 w-5" />, label: 'Clients', path: '/clients' },
+    { icon: <Truck className="mr-3 h-5 w-5" />, label: 'Fournisseurs', path: '/suppliers' },
+    { icon: <DollarSign className="mr-3 h-5 w-5" />, label: 'Finance', path: '/finance' },
+    { icon: <FileCheck className="mr-3 h-5 w-5" />, label: 'Documents', path: '/documents' },
+    { icon: <UserCircle className="mr-3 h-5 w-5" />, label: 'Équipe', path: '/team' },
+    { icon: <Settings className="mr-3 h-5 w-5" />, label: 'Paramètres', path: '/settings' },
   ];
 
   return (
-    <aside className="w-64 bg-background border-r border-border h-screen flex-shrink-0 hidden md:block">
-      <div className="h-16 flex items-center px-6 border-b">
-        <Link to="/" className="flex items-center gap-2">
-          <Ship className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">TransitEase</span>
-        </Link>
+    <>
+      {/* Mobile sidebar */}
+      <div className={`md:hidden fixed inset-0 z-50 ${isOpen ? 'block' : 'hidden'}`}>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed left-0 top-0 bottom-0 w-64 bg-background border-r p-4 shadow-lg">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">QuoteX</h2>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          <nav className="space-y-1">
+            {menuItems.map((item, index) => (
+              <Link 
+                key={index} 
+                to={item.path}
+                className="flex items-center py-2 px-3 text-base rounded-md hover:bg-muted transition-colors"
+                onClick={onClose}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          
+          <div className="fixed bottom-4 w-56">
+            <Button variant="outline" className="w-full justify-start">
+              <LogOut className="mr-3 h-5 w-5" />
+              Déconnexion
+            </Button>
+          </div>
+        </div>
       </div>
-      <nav className="px-3 py-6 space-y-1">
-        {links.map((link) => (
-          <Link
-            key={link.to}
-            to={link.to}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-              isActive(link.to)
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            <link.icon className="h-5 w-5" />
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-    </aside>
+      
+      {/* Desktop sidebar */}
+      <div className="hidden md:block fixed left-0 top-0 bottom-0 w-64 pt-16 bg-background border-r shadow-sm">
+        <div className="px-3 py-4">
+          <nav className="space-y-1">
+            {menuItems.map((item, index) => (
+              <Link 
+                key={index} 
+                to={item.path}
+                className="flex items-center py-2 px-3 text-base rounded-md hover:bg-muted transition-colors"
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </>
   );
 };
 
