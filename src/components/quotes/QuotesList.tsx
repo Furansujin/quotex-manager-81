@@ -1,11 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Copy, Download, ArrowRight } from 'lucide-react';
+import { Edit, Copy, Download, ArrowRight, MoreHorizontal } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface QuotesListProps {
   quotes: Quote[];
@@ -16,6 +27,8 @@ interface QuotesListProps {
 }
 
 const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, onDownload, renderFollowUpButton }) => {
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+
   // Helper function to get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -74,7 +87,13 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
           </TableHeader>
           <TableBody>
             {quotes.map((quote) => (
-              <TableRow key={quote.id}>
+              <TableRow 
+                key={quote.id}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => onEdit(quote.id)}
+                onMouseEnter={() => setHoveredRow(quote.id)}
+                onMouseLeave={() => setHoveredRow(null)}
+              >
                 <TableCell className="font-medium">{quote.id}</TableCell>
                 <TableCell>{quote.client}</TableCell>
                 <TableCell>{quote.date}</TableCell>
@@ -83,20 +102,53 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
                 <TableCell>{quote.amount}</TableCell>
                 <TableCell>{getStatusBadge(quote.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end space-x-1">
-                    {renderFollowUpButton && renderFollowUpButton(quote)}
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(quote.id)} className="h-8 px-2">
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Modifier</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDuplicate(quote.id)} className="h-8 px-2">
-                      <Copy className="h-4 w-4" />
-                      <span className="sr-only">Dupliquer</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDownload(quote.id)} className="h-8 px-2">
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only">Télécharger</span>
-                    </Button>
+                  <div className="flex justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
+                    {quote.status === 'pending' && renderFollowUpButton && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={`h-8 px-2 transition-opacity ${hoveredRow === quote.id ? 'opacity-100' : 'opacity-70'}`}
+                          >
+                            <ArrowRight className="h-4 w-4" />
+                            <span className="sr-only">Relancer</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <div className="p-2">
+                            {renderFollowUpButton(quote)}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className={`h-8 px-2 transition-opacity ${hoveredRow === quote.id ? 'opacity-100' : 'opacity-70'}`}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={() => onEdit(quote.id)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Modifier</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDuplicate(quote.id)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          <span>Dupliquer</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDownload(quote.id)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          <span>Télécharger</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
