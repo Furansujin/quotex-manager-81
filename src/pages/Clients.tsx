@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -9,30 +8,13 @@ import {
   Search, 
   Filter, 
   X,
-  UserCircle,
-  Building,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  FileText,
-  Tag,
-  Edit,
-  Trash2,
-  ChevronDown,
-  ArrowUpDown,
-  CheckCircle2,
-  Clock
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import ClientSelector from '@/components/quotes/ClientSelector';
 import ClientForm from '@/components/clients/ClientForm';
 import ClientsList from '@/components/clients/ClientsList';
-import ClientFilters from '@/components/clients/ClientFilters';
 
 const Clients = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -223,10 +205,8 @@ const Clients = () => {
 
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Rechercher par nom, contact, email, tag..." 
-                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -243,35 +223,86 @@ const Clients = () => {
             </div>
             <div className="flex gap-2">
               <Button 
-                variant={showAdvancedFilters || activeFilters ? "default" : "outline"} 
+                variant={showAdvancedFilters ? "default" : "outline"} 
                 className="gap-2"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               >
                 <Filter className="h-4 w-4" />
-                {activeFilters ? "Filtres actifs" : "Filtres"}
-                {activeFilters && <Badge variant="outline" className="ml-1 text-xs">3</Badge>}
+                Filtres
               </Button>
-              
-              {activeFilters && (
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={clearAllFilters}
-                >
-                  <X className="h-4 w-4" />
-                  Effacer
-                </Button>
-              )}
-              
-              {showAdvancedFilters && (
-                <ClientFilters 
-                  show={showAdvancedFilters} 
-                  onClose={() => setShowAdvancedFilters(false)}
-                  onApplyFilters={(filters) => setActiveFilters(filters)}
-                />
-              )}
             </div>
           </div>
+
+          {/* Advanced filters panel - similar to Shipments */}
+          {showAdvancedFilters && (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Statut</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="default" className="cursor-pointer">Actif</Badge>
+                      <Badge variant="secondary" className="cursor-pointer">Inactif</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Type de client</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Entreprise</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">PME</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-amber-500">Particulier</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Dernière activité</label>
+                    <div className="flex gap-2">
+                      <Input type="date" className="w-full" placeholder="Date début" />
+                      <Input type="date" className="w-full" placeholder="Date fin" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Nombre min. de devis</label>
+                    <Input placeholder="Minimum" type="number" min="0" />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Nombre max. de devis</label>
+                    <Input placeholder="Maximum" type="number" min="0" />
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="text-sm font-medium mb-2 block">Tags</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['VIP', 'International', 'Healthcare', 'Import', 'Tech', 'EU', 'Food'].map((tag) => (
+                      <Badge 
+                        key={tag} 
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary/10"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" className="mr-2" onClick={clearAllFilters}>Réinitialiser</Button>
+                  <Button onClick={() => {
+                    // Logique simplifiée pour appliquer les filtres
+                    setShowAdvancedFilters(false);
+                  }}>Appliquer</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Tabs defaultValue="all" className="w-full" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">

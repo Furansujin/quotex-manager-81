@@ -10,6 +10,11 @@ import { useQuotesData } from '@/hooks/useQuotesData';
 import { useQuoteActions } from '@/hooks/useQuoteActions';
 import QuotesHeader from '@/components/quotes/QuotesHeader';
 import QuotesSearchAndFilter from '@/components/quotes/QuotesSearchAndFilter';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Filter, X, Calendar } from 'lucide-react';
 
 const Quotes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,7 +43,8 @@ const Quotes = () => {
     handleDuplicateQuote,
     handleDownloadQuote,
     handleClientSelect,
-    setShowQuoteEditor
+    setShowQuoteEditor,
+    setShowClientSelector
   } = useQuoteActions();
 
   const toggleSidebar = () => {
@@ -60,16 +66,105 @@ const Quotes = () => {
           {/* Header with title and new quote button */}
           <QuotesHeader onNewQuote={handleNewQuote} />
 
-          {/* Search and filter components */}
-          <QuotesSearchAndFilter 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            showAdvancedFilters={showAdvancedFilters}
-            setShowAdvancedFilters={setShowAdvancedFilters}
-            activeFilters={activeFilters}
-            onApplyFilters={handleApplyFilters}
-            clearAllFilters={clearAllFilters}
-          />
+          {/* Search and filter components - modified to match Shipments style */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Input 
+                placeholder="Rechercher par client, n° devis, destination..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant={showAdvancedFilters ? "default" : "outline"} 
+                className="gap-2"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                <Filter className="h-4 w-4" />
+                Filtres
+              </Button>
+            </div>
+          </div>
+
+          {/* Advanced filters panel - similar to Shipments */}
+          {showAdvancedFilters && (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Statut</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="warning" className="cursor-pointer">En attente</Badge>
+                      <Badge variant="success" className="cursor-pointer">Approuvés</Badge>
+                      <Badge variant="destructive" className="cursor-pointer">Rejetés</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Expirés</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Type de transport</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Maritime</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">Aérien</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-amber-500">Routier</Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Période</label>
+                    <div className="flex gap-2">
+                      <Input type="date" className="w-full" placeholder="Date début" />
+                      <Input type="date" className="w-full" placeholder="Date fin" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Commercial</label>
+                    <Input placeholder="Nom du commercial" />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Montant min</label>
+                    <Input placeholder="Montant minimum (€)" type="number" />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Montant max</label>
+                    <Input placeholder="Montant maximum (€)" type="number" />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" className="mr-2" onClick={clearAllFilters}>Réinitialiser</Button>
+                  <Button onClick={() => {
+                    // Logique simplifiée pour appliquer les filtres
+                    handleApplyFilters({
+                      status: [],
+                      types: [],
+                      startDate: undefined,
+                      endDate: undefined
+                    });
+                    setShowAdvancedFilters(false);
+                  }}>Appliquer</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Tabs defaultValue="all" className="w-full" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
