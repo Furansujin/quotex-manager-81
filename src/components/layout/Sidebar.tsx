@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -14,7 +13,8 @@ import {
   DollarSign, 
   Settings, 
   ChevronLeft, 
-  ChevronRight
+  ChevronRight,
+  Building
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -37,6 +37,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: FileText, label: 'Quotes', path: '/quotes' },
+    { icon: Building, label: 'Clients', path: '/clients' },
     { icon: Ship, label: 'Shipments', path: '/shipments' },
     { icon: FileStack, label: 'Documents', path: '/documents' },
     { icon: UsersRound, label: 'Team', path: '/team' },
