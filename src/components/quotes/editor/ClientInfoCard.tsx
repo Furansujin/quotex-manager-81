@@ -50,8 +50,8 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium flex items-center justify-between">
-        <span>Client *</span>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">Client *</label>
         {clientDetails && (
           <Button 
             variant="ghost" 
@@ -60,10 +60,11 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
             onClick={() => setShowClientInfo(!showClientInfo)}
           >
             <Info className="h-3 w-3" />
-            {showClientInfo ? 'Masquer détails' : 'Voir détails'}
+            {showClientInfo ? 'Masquer infos' : 'Voir infos'}
           </Button>
         )}
-      </label>
+      </div>
+      
       <Input 
         placeholder="Nom du client" 
         value={client} 
@@ -73,36 +74,39 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
       />
       
       {showClientInfo && clientDetails && (
-        <Card className="mt-2 border border-muted">
+        <Card className="mt-2 border border-muted bg-muted/30">
           <CardContent className="p-3 text-sm space-y-1">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span>{clientDetails.contact}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{clientDetails.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{clientDetails.phone}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{clientDetails.address}</span>
-            </div>
-            {clientDetails.preferredShipping && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-muted-foreground" />
-                <span>Transport préféré: {clientDetails.preferredShipping}</span>
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>{clientDetails.contact}</span>
               </div>
-            )}
-            {clientDetails.quoteCount !== undefined && (
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Devis précédents: {clientDetails.quoteCount}</span>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{clientDetails.email}</span>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{clientDetails.phone}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{clientDetails.address}</span>
+              </div>
+              {clientDetails.preferredShipping && (
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <span>Transport préféré: {clientDetails.preferredShipping}</span>
+                </div>
+              )}
+              {clientDetails.quoteCount !== undefined && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>Devis précédents: {clientDetails.quoteCount}</span>
+                </div>
+              )}
+            </div>
+            
             {clientDetails.tags && clientDetails.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {clientDetails.tags.map(tag => (

@@ -8,7 +8,6 @@ import QuoteEditorLayout from './editor/QuoteEditorLayout';
 import ClientInfoCard from './editor/ClientInfoCard';
 import LocationFields from './editor/LocationFields';
 import QuoteOptions from './editor/QuoteOptions';
-import QuoteInfoCard from './editor/QuoteInfoCard';
 import QuoteItemsTable from './editor/QuoteItemsTable';
 import QuoteActionButtons from './editor/QuoteActionButtons';
 import SupplierPricing from './editor/SupplierPricing';
@@ -338,21 +337,42 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       onClose={onClose}
     >
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Informations générales</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ClientInfoCard 
-                client={client}
-                setClient={setClient}
-                clientDetails={clientDetails}
-                showClientInfo={showClientInfo}
-                setShowClientInfo={setShowClientInfo}
-                clientId={clientId}
-                initialClientName={selectedClientName}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <ClientInfoCard 
+                    client={client}
+                    setClient={setClient}
+                    clientDetails={clientDetails}
+                    showClientInfo={showClientInfo}
+                    setShowClientInfo={setShowClientInfo}
+                    clientId={clientId}
+                    initialClientName={selectedClientName}
+                  />
+                </div>
+                <div>
+                  <QuoteOptions 
+                    type={type}
+                    setType={setType}
+                    validUntil={validUntil}
+                    setValidUntil={setValidUntil}
+                    incoterm={incoterm}
+                    setIncoterm={setIncoterm}
+                    currency={currency}
+                    setCurrency={setCurrency}
+                    notes={notes}
+                    setNotes={setNotes}
+                    items={items}
+                    addItem={addItem}
+                    suggestedItems={suggestedItems}
+                  />
+                </div>
+              </div>
               
               <LocationFields 
                 origin={origin}
@@ -362,81 +382,51 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                 originSuggestions={originSuggestions}
                 destinationSuggestions={destinationSuggestions}
               />
-              
-              <QuoteOptions 
-                type={type}
-                setType={setType}
-                validUntil={validUntil}
-                setValidUntil={setValidUntil}
-                incoterm={incoterm}
-                setIncoterm={setIncoterm}
-                currency={currency}
-                setCurrency={setCurrency}
-                notes={notes}
-                setNotes={setNotes}
+            </CardContent>
+          </Card>
+          
+          {showSupplierPricing && (
+            <SupplierPricing
+              origin={origin}
+              destination={destination}
+              type={type}
+              currency={currency}
+              onPriceSelect={addItem}
+            />
+          )}
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Services et produits</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuoteItemsTable 
                 items={items}
+                updateItem={updateItem}
+                removeItem={removeItem}
                 addItem={addItem}
-                suggestedItems={suggestedItems}
+                calculateSubtotal={calculateSubtotal}
+                calculateTaxAmount={calculateTaxAmount}
+                calculateTotal={calculateTotal}
+                currency={currency}
+                suggestedItems={type ? suggestedItems[type] : []}
+                type={type}
               />
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations du devis</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <QuoteInfoCard 
-                isEditing={isEditing}
-                type={type}
-                suggestedItems={suggestedItems}
-                currency={currency}
-                addItem={addItem}
-              />
-            </CardContent>
-          </Card>
-        </div>
-        
-        {showSupplierPricing && (
-          <SupplierPricing
-            origin={origin}
-            destination={destination}
-            type={type}
-            currency={currency}
-            onPriceSelect={addItem}
+          <QuoteActionButtons 
+            onClose={onClose}
+            handleGeneratePdf={handleGeneratePdf}
+            handlePrint={handlePrint}
+            handleSend={handleSend}
+            handleSave={handleSave}
+            isGeneratingPdf={isGeneratingPdf}
+            isPrinting={isPrinting}
+            isSaving={isSaving}
+            itemsExist={items.length > 0}
           />
-        )}
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Services et produits</CardTitle>
-            <CardContent>Ajoutez les services et produits pour ce devis</CardContent>
-          </CardHeader>
-          <CardContent>
-            <QuoteItemsTable 
-              items={items}
-              updateItem={updateItem}
-              removeItem={removeItem}
-              addItem={() => addItem()}
-              calculateSubtotal={calculateSubtotal}
-              calculateTaxAmount={calculateTaxAmount}
-              calculateTotal={calculateTotal}
-              currency={currency}
-            />
-          </CardContent>
-        </Card>
-        
-        <QuoteActionButtons 
-          onClose={onClose}
-          handleGeneratePdf={handleGeneratePdf}
-          handlePrint={handlePrint}
-          handleSend={handleSend}
-          handleSave={handleSave}
-          isGeneratingPdf={isGeneratingPdf}
-          isPrinting={isPrinting}
-          isSaving={isSaving}
-          itemsExist={items.length > 0}
-        />
+        </div>
       </div>
     </QuoteEditorLayout>
   );

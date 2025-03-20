@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface QuoteOptionsProps {
   type: string;
@@ -16,8 +17,8 @@ interface QuoteOptionsProps {
   notes: string;
   setNotes: (value: string) => void;
   items: any[];
-  addItem: (item?: any) => void;
-  suggestedItems: Record<string, any[]>;
+  addItem: (item?: {description: string; unitPrice: number}) => void;
+  suggestedItems: any;
 }
 
 const QuoteOptions: React.FC<QuoteOptionsProps> = ({
@@ -30,30 +31,15 @@ const QuoteOptions: React.FC<QuoteOptionsProps> = ({
   currency,
   setCurrency,
   notes,
-  setNotes,
-  items,
-  addItem,
-  suggestedItems
+  setNotes
 }) => {
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Type de transport *</label>
-          <Select 
-            value={type}
-            onValueChange={(value) => {
-              setType(value);
-              // Auto-suggest services when type changes
-              if (items.length === 0) {
-                const serviceType = value as keyof typeof suggestedItems;
-                if (suggestedItems[serviceType]?.[0]) {
-                  addItem(suggestedItems[serviceType][0]);
-                }
-              }
-            }}
-          >
-            <SelectTrigger>
+          <Label htmlFor="type">Type de transport</Label>
+          <Select value={type} onValueChange={setType}>
+            <SelectTrigger id="type">
               <SelectValue placeholder="Sélectionner un type" />
             </SelectTrigger>
             <SelectContent>
@@ -65,65 +51,62 @@ const QuoteOptions: React.FC<QuoteOptionsProps> = ({
             </SelectContent>
           </Select>
         </div>
+        
         <div className="space-y-2">
-          <label className="text-sm font-medium">Valide jusqu'au *</label>
-          <Input 
-            type="date" 
-            value={validUntil} 
-            onChange={(e) => setValidUntil(e.target.value)} 
+          <Label htmlFor="validUntil">Validité</Label>
+          <Input
+            id="validUntil"
+            type="date"
+            value={validUntil}
+            onChange={(e) => setValidUntil(e.target.value)}
           />
         </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
+        
         <div className="space-y-2">
-          <label className="text-sm font-medium">Incoterm</label>
-          <Select 
-            value={incoterm}
-            onValueChange={setIncoterm}
-          >
-            <SelectTrigger>
+          <Label htmlFor="incoterm">Incoterm</Label>
+          <Select value={incoterm} onValueChange={setIncoterm}>
+            <SelectTrigger id="incoterm">
               <SelectValue placeholder="Sélectionner un incoterm" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EXW">EXW - Ex Works</SelectItem>
-              <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
-              <SelectItem value="FOB">FOB - Free On Board</SelectItem>
-              <SelectItem value="CIF">CIF - Cost, Insurance & Freight</SelectItem>
-              <SelectItem value="DAP">DAP - Delivered At Place</SelectItem>
-              <SelectItem value="DDP">DDP - Delivered Duty Paid</SelectItem>
+              <SelectItem value="EXW">EXW (Ex Works)</SelectItem>
+              <SelectItem value="FCA">FCA (Free Carrier)</SelectItem>
+              <SelectItem value="FOB">FOB (Free On Board)</SelectItem>
+              <SelectItem value="CIF">CIF (Cost, Insurance & Freight)</SelectItem>
+              <SelectItem value="DAP">DAP (Delivered At Place)</SelectItem>
+              <SelectItem value="DDP">DDP (Delivered Duty Paid)</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        
         <div className="space-y-2">
-          <label className="text-sm font-medium">Devise</label>
-          <Select 
-            value={currency}
-            onValueChange={setCurrency}
-          >
-            <SelectTrigger>
+          <Label htmlFor="currency">Devise</Label>
+          <Select value={currency} onValueChange={setCurrency}>
+            <SelectTrigger id="currency">
               <SelectValue placeholder="Sélectionner une devise" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EUR">EUR - Euro</SelectItem>
-              <SelectItem value="USD">USD - Dollar américain</SelectItem>
-              <SelectItem value="GBP">GBP - Livre sterling</SelectItem>
-              <SelectItem value="JPY">JPY - Yen japonais</SelectItem>
-              <SelectItem value="CNY">CNY - Yuan chinois</SelectItem>
+              <SelectItem value="EUR">EUR (€)</SelectItem>
+              <SelectItem value="USD">USD ($)</SelectItem>
+              <SelectItem value="GBP">GBP (£)</SelectItem>
+              <SelectItem value="JPY">JPY (¥)</SelectItem>
+              <SelectItem value="CNY">CNY (¥)</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       
       <div className="space-y-2">
-        <label className="text-sm font-medium">Notes</label>
-        <Textarea 
-          placeholder="Informations complémentaires, conditions spéciales, etc." 
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          placeholder="Notes ou instructions particulières pour ce devis"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          rows={3}
         />
       </div>
-    </>
+    </div>
   );
 };
 
