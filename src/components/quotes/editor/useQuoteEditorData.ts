@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface QuoteItem {
@@ -195,6 +194,18 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
       : []
   );
 
+  // Cargo details state
+  const [cargoDescription, setCargoDescription] = useState('');
+  const [cargoType, setCargoType] = useState('goods');
+  const [cargoNature, setCargoNature] = useState('standard');
+  const [cargoLength, setCargoLength] = useState('');
+  const [cargoWidth, setCargoWidth] = useState('');
+  const [cargoHeight, setCargoHeight] = useState('');
+  const [cargoWeight, setCargoWeight] = useState('');
+  const [cargoVolume, setCargoVolume] = useState('');
+  const [cargoPackaging, setCargoPackaging] = useState('packages');
+  const [cargoPackageCount, setCargoPackageCount] = useState('');
+
   // Load quote data if editing
   useEffect(() => {
     if (isEditing && quoteId) {
@@ -205,7 +216,7 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
         setDestination(quoteData.destination);
         setType(quoteData.type);
         setNotes(quoteData.notes || '');
-        // In a real app, you would load the items as well
+        // In a real app, you would load the items and cargo details as well
       }
     }
   }, [isEditing, quoteId, quotes]);
@@ -227,6 +238,21 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
       console.log("No selected client found with ID:", clientId);
     }
   }, [selectedClient, clientId]);
+
+  // Calculate volume based on dimensions if they all exist and volume isn't set
+  useEffect(() => {
+    if (cargoLength && cargoWidth && cargoHeight && !cargoVolume) {
+      const length = parseFloat(cargoLength);
+      const width = parseFloat(cargoWidth);
+      const height = parseFloat(cargoHeight);
+      
+      if (!isNaN(length) && !isNaN(width) && !isNaN(height)) {
+        // Convert from cm³ to m³ (divide by 1,000,000)
+        const volumeInCubicMeters = (length * width * height) / 1000000;
+        setCargoVolume(volumeInCubicMeters.toFixed(3));
+      }
+    }
+  }, [cargoLength, cargoWidth, cargoHeight, cargoVolume]);
 
   // Item management functions
   const addItem = (predefinedItem?: {description: string, unitPrice: number, supplier?: string, margin?: number, basePrice?: number}) => {
@@ -380,6 +406,28 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
     setShowClientInfo,
     items,
     setItems,
+    
+    // Cargo details
+    cargoDescription,
+    setCargoDescription,
+    cargoType,
+    setCargoType,
+    cargoNature,
+    setCargoNature,
+    cargoLength,
+    setCargoLength,
+    cargoWidth,
+    setCargoWidth,
+    cargoHeight,
+    setCargoHeight,
+    cargoWeight,
+    setCargoWeight,
+    cargoVolume,
+    setCargoVolume,
+    cargoPackaging,
+    setCargoPackaging,
+    cargoPackageCount,
+    setCargoPackageCount,
     
     // Functions
     addItem,

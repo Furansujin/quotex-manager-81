@@ -14,6 +14,7 @@ import QuoteActionButtons from './editor/QuoteActionButtons';
 import SupplierPricing from './editor/SupplierPricing';
 import FollowUpReminder from './followup/FollowUpReminder';
 import FollowUpHistory from './followup/FollowUpHistory';
+import CargoDetails from './editor/CargoDetails';
 
 interface QuoteEditorProps {
   quoteId?: string;
@@ -61,6 +62,27 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     suggestedItems,
     originSuggestions,
     destinationSuggestions,
+    // Nouvelles propriétés pour les détails de marchandise
+    cargoDescription,
+    setCargoDescription,
+    cargoType,
+    setCargoType,
+    cargoNature,
+    setCargoNature,
+    cargoLength,
+    setCargoLength,
+    cargoWidth,
+    setCargoWidth,
+    cargoHeight,
+    setCargoHeight,
+    cargoWeight,
+    setCargoWeight,
+    cargoVolume,
+    setCargoVolume,
+    cargoPackaging,
+    setCargoPackaging,
+    cargoPackageCount,
+    setCargoPackageCount,
   } = useQuoteEditorData(quoteId, clientId, quotes);
 
   // Add follow-up functionality
@@ -86,6 +108,13 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       setShowSupplierPricing(true);
     }
   }, [origin, destination]);
+
+  // Fonction pour vérifier si les détails de marchandise sont remplis
+  const hasCargoDetails = () => {
+    return !!(cargoDescription && cargoType && cargoNature && 
+             (cargoWeight || (cargoLength && cargoWidth && cargoHeight)) && 
+             cargoPackaging && cargoPackageCount);
+  };
 
   const handleSave = async () => {
     // Validation simple
@@ -141,6 +170,21 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
           year: 'numeric'
         }),
         notes,
+        // Ajout des détails de marchandise
+        cargoDetails: {
+          description: cargoDescription,
+          type: cargoType,
+          nature: cargoNature,
+          dimensions: {
+            length: cargoLength,
+            width: cargoWidth,
+            height: cargoHeight,
+            weight: cargoWeight,
+            volume: cargoVolume
+          },
+          packaging: cargoPackaging,
+          packageCount: cargoPackageCount
+        }
         // In a real app, you would include the items as well
       };
       
@@ -196,7 +240,21 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
           month: '2-digit',
           year: 'numeric'
         }),
-        notes
+        notes,
+        cargoDetails: {
+          description: cargoDescription,
+          type: cargoType,
+          nature: cargoNature,
+          dimensions: {
+            length: cargoLength,
+            width: cargoWidth,
+            height: cargoHeight,
+            weight: cargoWeight,
+            volume: cargoVolume
+          },
+          packaging: cargoPackaging,
+          packageCount: cargoPackageCount
+        }
       };
       
       // Save the quote
@@ -258,7 +316,21 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             month: '2-digit',
             year: 'numeric'
           }),
-          notes
+          notes,
+          cargoDetails: {
+            description: cargoDescription,
+            type: cargoType,
+            nature: cargoNature,
+            dimensions: {
+              length: cargoLength,
+              width: cargoWidth,
+              height: cargoHeight,
+              weight: cargoWeight,
+              volume: cargoVolume
+            },
+            packaging: cargoPackaging,
+            packageCount: cargoPackageCount
+          }
         };
         
         // Save the quote
@@ -323,7 +395,21 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             month: '2-digit',
             year: 'numeric'
           }),
-          notes
+          notes,
+          cargoDetails: {
+            description: cargoDescription,
+            type: cargoType,
+            nature: cargoNature,
+            dimensions: {
+              length: cargoLength,
+              width: cargoWidth,
+              height: cargoHeight,
+              weight: cargoWeight,
+              volume: cargoVolume
+            },
+            packaging: cargoPackaging,
+            packageCount: cargoPackageCount
+          }
         };
         
         // Save the quote
@@ -417,6 +503,30 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             </CardContent>
           </Card>
           
+          {/* Add the new Cargo Details component */}
+          <CargoDetails
+            description={cargoDescription}
+            setDescription={setCargoDescription}
+            cargoType={cargoType}
+            setCargoType={setCargoType}
+            cargoNature={cargoNature}
+            setCargoNature={setCargoNature}
+            length={cargoLength}
+            setLength={setCargoLength}
+            width={cargoWidth}
+            setWidth={setCargoWidth}
+            height={cargoHeight}
+            setHeight={setCargoHeight}
+            weight={cargoWeight}
+            setWeight={setCargoWeight}
+            volume={cargoVolume}
+            setVolume={setCargoVolume}
+            packaging={cargoPackaging}
+            setPackaging={setCargoPackaging}
+            packageCount={cargoPackageCount}
+            setPackageCount={setCargoPackageCount}
+          />
+          
           {showSupplierPricing && (
             <SupplierPricing
               origin={origin}
@@ -459,6 +569,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             isSaving={isSaving}
             itemsExist={items.length > 0}
             showFollowUp={isEditing && quoteId !== undefined}
+            hasCargoDetails={hasCargoDetails()}
           />
         </div>
       </div>

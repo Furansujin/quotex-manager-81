@@ -3,6 +3,23 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { QuoteFilterValues } from '@/components/quotes/QuoteFilters';
 
+export interface CargoDimensions {
+  length?: string;
+  width?: string;
+  height?: string;
+  weight?: string;
+  volume?: string;
+}
+
+export interface CargoDetails {
+  description?: string;
+  type?: string;
+  nature?: string;
+  dimensions?: CargoDimensions;
+  packaging?: string;
+  packageCount?: string;
+}
+
 export interface Quote {
   id: string;
   client: string;
@@ -17,6 +34,7 @@ export interface Quote {
   lastModified?: string;
   validUntil?: string;
   notes?: string;
+  cargoDetails?: CargoDetails;
 }
 
 export const useQuotesData = () => {

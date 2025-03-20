@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Quote } from '@/hooks/useQuotesData';
+import { Quote, CargoDetails } from '@/hooks/useQuotesData';
 
 export const useQuoteActions = () => {
   const [showQuoteEditor, setShowQuoteEditor] = useState(false);
@@ -80,7 +80,8 @@ export const useQuoteActions = () => {
             year: 'numeric'
           }),
           validUntil: quoteData.validUntil || "",
-          notes: quoteData.notes || ""
+          notes: quoteData.notes || "",
+          cargoDetails: quoteData.cargoDetails
         };
         
         toast({

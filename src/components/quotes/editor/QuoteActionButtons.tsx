@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, SendHorizontal, Printer, FileText, ArrowRight } from 'lucide-react';
+import { Save, SendHorizontal, Printer, FileText, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface QuoteActionButtonsProps {
   onClose: () => void;
@@ -15,6 +15,7 @@ interface QuoteActionButtonsProps {
   isSaving: boolean;
   itemsExist: boolean;
   showFollowUp?: boolean;
+  hasCargoDetails?: boolean;
 }
 
 const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
@@ -28,7 +29,8 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
   isPrinting,
   isSaving,
   itemsExist,
-  showFollowUp = false
+  showFollowUp = false,
+  hasCargoDetails = false
 }) => {
   return (
     <div className="flex justify-between">
@@ -48,6 +50,13 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
         )}
       </div>
       <div className="flex gap-2">
+        {!hasCargoDetails && (
+          <div className="flex items-center text-yellow-600 text-sm mr-2">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            <span className="hidden md:inline">Détails marchandise non complétés</span>
+          </div>
+        )}
+        
         <Button 
           variant="outline" 
           onClick={handleGeneratePdf}
