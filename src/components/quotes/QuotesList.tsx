@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Copy, Download, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Edit, Copy, Download, MapPin, Calendar, DollarSign, Layers } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
+import { Progress } from '@/components/ui/progress';
 
 interface QuotesListProps {
   quotes: Quote[];
@@ -48,6 +48,38 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
     }
   };
 
+  // Helper function to get icon based on transport type
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'Maritime':
+        return <div className="p-2 rounded-md bg-blue-100"><Layers className="h-5 w-5 text-blue-600" /></div>;
+      case 'Aérien':
+        return <div className="p-2 rounded-md bg-sky-100"><Layers className="h-5 w-5 text-sky-600" /></div>;
+      case 'Routier':
+        return <div className="p-2 rounded-md bg-amber-100"><Layers className="h-5 w-5 text-amber-600" /></div>;
+      case 'Multimodal':
+        return <div className="p-2 rounded-md bg-purple-100"><Layers className="h-5 w-5 text-purple-600" /></div>;
+      default:
+        return <div className="p-2 rounded-md bg-gray-100"><Layers className="h-5 w-5 text-gray-600" /></div>;
+    }
+  };
+
+  // Helper function to get progress value based on status
+  const getProgressValue = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 40;
+      case 'approved':
+        return 100;
+      case 'rejected':
+        return 100;
+      case 'expired':
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
   if (quotes.length === 0) {
     return (
       <Card className="p-6 text-center text-muted-foreground">
@@ -57,54 +89,84 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
   }
 
   return (
-    <Card>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>N° Devis</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Montant</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quotes.map((quote) => (
-              <TableRow key={quote.id}>
-                <TableCell className="font-medium">{quote.id}</TableCell>
-                <TableCell>{quote.client}</TableCell>
-                <TableCell>{quote.date}</TableCell>
-                <TableCell>{getTypeBadge(quote.type)}</TableCell>
-                <TableCell>{quote.destination}</TableCell>
-                <TableCell>{quote.amount}</TableCell>
-                <TableCell>{getStatusBadge(quote.status)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end space-x-1">
-                    {renderFollowUpButton && renderFollowUpButton(quote)}
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(quote.id)} className="h-8 px-2">
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Modifier</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDuplicate(quote.id)} className="h-8 px-2">
-                      <Copy className="h-4 w-4" />
-                      <span className="sr-only">Dupliquer</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDownload(quote.id)} className="h-8 px-2">
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only">Télécharger</span>
-                    </Button>
+    <div className="space-y-4">
+      {quotes.map((quote) => (
+        <Card 
+          key={quote.id} 
+          className="hover:border-primary/50 transition-colors cursor-pointer"
+          onClick={(e) => {
+            // Prevent click when action buttons are clicked
+            if ((e.target as HTMLElement).closest('button')) return;
+            onEdit(quote.id);
+          }}
+        >
+          <CardContent className="p-0">
+            <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
+              <div className="flex items-start gap-3">
+                {getTypeIcon(quote.type)}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">{quote.id}</h3>
+                    {getStatusBadge(quote.status)}
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </Card>
+                  <p className="text-sm text-muted-foreground">{quote.client}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm flex-1">
+                <div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <p>Trajet</p>
+                  </div>
+                  <p className="font-medium">{quote.origin} → {quote.destination}</p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <p>Date</p>
+                  </div>
+                  <p className="font-medium">{quote.date} {quote.validUntil ? `(valide jusqu'au ${quote.validUntil})` : ''}</p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <DollarSign className="h-3 w-3" />
+                    <p>Montant</p>
+                  </div>
+                  <p className="font-medium">{quote.amount}</p>
+                </div>
+              </div>
+              
+              <div className="w-full md:w-32">
+                <div className="flex justify-between text-xs mb-1">
+                  <span>Statut</span>
+                  <span>{quote.status === 'pending' ? 'En attente' : 
+                         quote.status === 'approved' ? 'Approuvé' : 
+                         quote.status === 'rejected' ? 'Rejeté' : 'Expiré'}</span>
+                </div>
+                <Progress value={getProgressValue(quote.status)} className="h-2" />
+              </div>
+              
+              <div className="flex items-center justify-end space-x-1">
+                {renderFollowUpButton && renderFollowUpButton(quote)}
+                <Button variant="ghost" size="sm" onClick={() => onEdit(quote.id)} className="h-8 px-2">
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Modifier</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDuplicate(quote.id)} className="h-8 px-2">
+                  <Copy className="h-4 w-4" />
+                  <span className="sr-only">Dupliquer</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDownload(quote.id)} className="h-8 px-2">
+                  <Download className="h-4 w-4" />
+                  <span className="sr-only">Télécharger</span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 
