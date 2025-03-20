@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +29,7 @@ interface ClientInfoCardProps {
   showClientInfo: boolean;
   setShowClientInfo: (value: boolean) => void;
   clientId?: string;
+  initialClientName?: string | null;
 }
 
 const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
@@ -37,8 +38,16 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
   clientDetails,
   showClientInfo,
   setShowClientInfo,
-  clientId
+  clientId,
+  initialClientName
 }) => {
+  // Set the client name from initialClientName if it's provided
+  useEffect(() => {
+    if (initialClientName && !client) {
+      setClient(initialClientName);
+    }
+  }, [initialClientName, client, setClient]);
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium flex items-center justify-between">

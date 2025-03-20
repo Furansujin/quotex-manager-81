@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface QuoteItem {
@@ -201,6 +200,7 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
   // Handle client selection
   useEffect(() => {
     if (selectedClient) {
+      console.log("Selected client found:", selectedClient.name);
       setClient(selectedClient.name);
       setClientDetails(selectedClient);
       setType(selectedClient.preferredShipping || 'Maritime');
@@ -210,8 +210,10 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
         setOrigin('Shanghai, CN');
         setDestination('Paris, FR');
       }
+    } else {
+      console.log("No selected client found with ID:", clientId);
     }
-  }, [selectedClient]);
+  }, [selectedClient, clientId]);
 
   // Item management functions
   const addItem = (predefinedItem?: {description: string, unitPrice: number}) => {

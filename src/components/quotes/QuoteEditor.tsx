@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useQuoteActions } from '@/hooks/useQuoteActions';
@@ -21,7 +20,7 @@ interface QuoteEditorProps {
 
 const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose }) => {
   const { toast } = useToast();
-  const { saveQuote, generatePdf, printQuote } = useQuoteActions();
+  const { saveQuote, generatePdf, printQuote, selectedClientName } = useQuoteActions();
   const { quotes } = useQuotesData();
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -59,6 +58,13 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     originSuggestions,
     destinationSuggestions,
   } = useQuoteEditorData(quoteId, clientId, quotes);
+
+  // Set the client name when the component mounts or when selectedClientName changes
+  useEffect(() => {
+    if (selectedClientName && !client) {
+      setClient(selectedClientName);
+    }
+  }, [selectedClientName, client, setClient]);
 
   const handleSave = async () => {
     // Validation simple
@@ -336,6 +342,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                 showClientInfo={showClientInfo}
                 setShowClientInfo={setShowClientInfo}
                 clientId={clientId}
+                initialClientName={selectedClientName}
               />
               
               <LocationFields 
