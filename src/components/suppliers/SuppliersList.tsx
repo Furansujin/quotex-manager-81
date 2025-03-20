@@ -103,7 +103,12 @@ const SuppliersList = () => {
   const handleAddSupplier = (values: z.infer<typeof supplierFormSchema>) => {
     const newSupplier: Supplier = {
       id: (suppliers.length + 1).toString(),
-      ...values
+      name: values.name,
+      category: values.category,
+      contactName: values.contactName,
+      email: values.email,
+      phone: values.phone,
+      status: values.status
     };
     
     setSuppliers([...suppliers, newSupplier]);
@@ -121,7 +126,15 @@ const SuppliersList = () => {
     if (!editingSupplier) return;
     
     const updatedSuppliers = suppliers.map(supplier => 
-      supplier.id === editingSupplier.id ? { ...supplier, ...values } : supplier
+      supplier.id === editingSupplier.id ? { 
+        ...supplier, 
+        name: values.name,
+        category: values.category,
+        contactName: values.contactName,
+        email: values.email,
+        phone: values.phone,
+        status: values.status
+      } : supplier
     );
     
     setSuppliers(updatedSuppliers);

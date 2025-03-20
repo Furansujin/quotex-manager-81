@@ -156,7 +156,7 @@ const SupplierImport = () => {
               )}
               
               {importStatus !== 'idle' && (
-                <Alert variant={importStatus === 'error' ? 'destructive' : importStatus === 'warning' ? 'default' : 'success'}>
+                <Alert variant={importStatus === 'error' ? 'destructive' : 'default'}>
                   {importStatus === 'error' && <AlertCircle className="h-4 w-4" />}
                   {importStatus === 'warning' && <Info className="h-4 w-4" />}
                   {importStatus === 'success' && <CheckCircle2 className="h-4 w-4" />}

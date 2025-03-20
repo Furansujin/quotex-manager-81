@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -161,8 +160,17 @@ const SupplierPricing = () => {
   const handleAddPrice = (values: z.infer<typeof priceFormSchema>) => {
     const newPrice: SupplierPrice = {
       id: (prices.length + 1).toString(),
-      ...values,
-      validUntil: values.validUntil
+      supplier: values.supplier,
+      origin: values.origin,
+      destination: values.destination,
+      transportType: values.transportType,
+      price: values.price,
+      currency: values.currency,
+      transitTime: values.transitTime,
+      validUntil: values.validUntil,
+      serviceLevel: values.serviceLevel,
+      notes: values.notes,
+      contractRef: values.contractRef
     };
     
     setPrices([...prices, newPrice]);
@@ -180,7 +188,20 @@ const SupplierPricing = () => {
     if (!editingPrice) return;
     
     const updatedPrices = prices.map(price => 
-      price.id === editingPrice.id ? { ...price, ...values } : price
+      price.id === editingPrice.id ? { 
+        ...price, 
+        supplier: values.supplier,
+        origin: values.origin,
+        destination: values.destination,
+        transportType: values.transportType,
+        price: values.price,
+        currency: values.currency,
+        transitTime: values.transitTime,
+        validUntil: values.validUntil,
+        serviceLevel: values.serviceLevel,
+        notes: values.notes,
+        contractRef: values.contractRef
+      } : price
     );
     
     setPrices(updatedPrices);
