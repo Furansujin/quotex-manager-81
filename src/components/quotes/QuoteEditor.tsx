@@ -30,14 +30,15 @@ interface QuoteItem {
 
 interface QuoteEditorProps {
   quoteId?: string;
+  clientId?: string;  // Ajout de la propriété clientId optionnelle
   onClose: () => void;
 }
 
-const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, onClose }) => {
+const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose }) => {
   const { toast } = useToast();
   const isEditing = !!quoteId;
   
-  const [client, setClient] = useState(isEditing ? 'Tech Supplies Inc' : '');
+  const [client, setClient] = useState(isEditing ? 'Tech Supplies Inc' : clientId ? 'Client sélectionné' : '');
   const [origin, setOrigin] = useState(isEditing ? 'Shanghai, CN' : '');
   const [destination, setDestination] = useState(isEditing ? 'Paris, FR' : '');
   const [validUntil, setValidUntil] = useState(isEditing ? '2023-07-31' : '');
