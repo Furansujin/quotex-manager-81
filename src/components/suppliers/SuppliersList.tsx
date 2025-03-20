@@ -6,7 +6,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,6 +24,8 @@ interface Supplier {
   email: string;
   phone: string;
   status: 'actif' | 'inactif';
+  lastOrder?: string;
+  notes?: string;
 }
 
 // Données de démonstration
@@ -32,7 +37,9 @@ const mockSuppliers: Supplier[] = [
     contactName: 'Jean Dupont',
     email: 'jean.dupont@maersk.com',
     phone: '+33 1 23 45 67 89',
-    status: 'actif'
+    status: 'actif',
+    lastOrder: '2023-12-01',
+    notes: 'Partenaire principal pour les routes transatlantiques'
   },
   {
     id: '2',
@@ -41,7 +48,9 @@ const mockSuppliers: Supplier[] = [
     contactName: 'Marie Martin',
     email: 'marie.martin@cma-cgm.com',
     phone: '+33 1 23 45 67 90',
-    status: 'actif'
+    status: 'actif',
+    lastOrder: '2023-11-15',
+    notes: 'Contrat préférentiel sur les routes Asie-Europe'
   },
   {
     id: '3',
@@ -50,7 +59,8 @@ const mockSuppliers: Supplier[] = [
     contactName: 'Pierre Lefebvre',
     email: 'pierre.lefebvre@airfrance.fr',
     phone: '+33 1 23 45 67 91',
-    status: 'actif'
+    status: 'actif',
+    lastOrder: '2023-12-10'
   },
   {
     id: '4',
@@ -70,7 +80,9 @@ const supplierFormSchema = z.object({
   contactName: z.string().min(2, { message: "Le nom du contact doit contenir au moins 2 caractères" }),
   email: z.string().email({ message: "Email invalide" }),
   phone: z.string().min(5, { message: "Numéro de téléphone invalide" }),
-  status: z.enum(['actif', 'inactif'])
+  status: z.enum(['actif', 'inactif']),
+  lastOrder: z.string().optional(),
+  notes: z.string().optional()
 });
 
 const SuppliersList = () => {
@@ -78,6 +90,11 @@ const SuppliersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof supplierFormSchema>>({
@@ -88,16 +105,24 @@ const SuppliersList = () => {
       contactName: '',
       email: '',
       phone: '',
-      status: 'actif'
+      status: 'actif',
+      lastOrder: '',
+      notes: ''
     }
   });
 
-  // Filtrer les fournisseurs en fonction du terme de recherche
-  const filteredSuppliers = suppliers.filter(supplier => 
-    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrer les fournisseurs en fonction des critères
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const matchesSearch = 
+      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || supplier.category === selectedCategory;
+    const matchesStatus = !selectedStatus || supplier.status === selectedStatus;
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   // Gérer l'ajout d'un fournisseur
   const handleAddSupplier = (values: z.infer<typeof supplierFormSchema>) => {
@@ -108,7 +133,9 @@ const SuppliersList = () => {
       contactName: values.contactName,
       email: values.email,
       phone: values.phone,
-      status: values.status
+      status: values.status,
+      lastOrder: values.lastOrder,
+      notes: values.notes
     };
     
     setSuppliers([...suppliers, newSupplier]);
@@ -133,7 +160,9 @@ const SuppliersList = () => {
         contactName: values.contactName,
         email: values.email,
         phone: values.phone,
-        status: values.status
+        status: values.status,
+        lastOrder: values.lastOrder,
+        notes: values.notes
       } : supplier
     );
     
@@ -148,11 +177,11 @@ const SuppliersList = () => {
   };
 
   // Gérer la suppression d'un fournisseur
-  const handleDeleteSupplier = (id: string) => {
-    const supplierToDelete = suppliers.find(supplier => supplier.id === id);
+  const handleDeleteSupplier = () => {
     if (!supplierToDelete) return;
     
-    setSuppliers(suppliers.filter(supplier => supplier.id !== id));
+    setSuppliers(suppliers.filter(supplier => supplier.id !== supplierToDelete.id));
+    setSupplierToDelete(null);
     
     toast({
       title: "Fournisseur supprimé",
@@ -169,7 +198,30 @@ const SuppliersList = () => {
       contactName: supplier.contactName,
       email: supplier.email,
       phone: supplier.phone,
-      status: supplier.status
+      status: supplier.status,
+      lastOrder: supplier.lastOrder || '',
+      notes: supplier.notes || ''
+    });
+  };
+
+  // Gérer l'ouverture du dialogue de détails
+  const handleOpenDetailDialog = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setIsDetailDialogOpen(true);
+  };
+
+  // Changer le statut d'un fournisseur rapidement
+  const handleToggleStatus = (supplier: Supplier) => {
+    const newStatus = supplier.status === 'actif' ? 'inactif' : 'actif';
+    const updatedSuppliers = suppliers.map(s => 
+      s.id === supplier.id ? { ...s, status: newStatus } : s
+    );
+    
+    setSuppliers(updatedSuppliers);
+    
+    toast({
+      title: "Statut modifié",
+      description: `${supplier.name} est maintenant ${newStatus}.`
     });
   };
 
@@ -184,28 +236,66 @@ const SuppliersList = () => {
     };
     return categories[category] || category;
   };
+  
+  // Formater une date
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="relative w-64">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex flex-col md:flex-row gap-2">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full md:w-44">
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Toutes les catégories</SelectItem>
+              <SelectItem value="maritime">Maritime</SelectItem>
+              <SelectItem value="aérien">Aérien</SelectItem>
+              <SelectItem value="routier">Routier</SelectItem>
+              <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
+              <SelectItem value="multimodal">Multimodal</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-full md:w-44">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Tous les statuts</SelectItem>
+              <SelectItem value="actif">Actif</SelectItem>
+              <SelectItem value="inactif">Inactif</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 whitespace-nowrap">
               <Plus className="h-4 w-4" />
               Ajouter un fournisseur
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Ajouter un fournisseur</DialogTitle>
               <DialogDescription>
@@ -214,99 +304,114 @@ const SuppliersList = () => {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleAddSupplier)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nom du fournisseur" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Catégorie</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une catégorie" />
-                          </SelectTrigger>
+                          <Input placeholder="Nom du fournisseur" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="maritime">Maritime</SelectItem>
-                          <SelectItem value="aérien">Aérien</SelectItem>
-                          <SelectItem value="routier">Routier</SelectItem>
-                          <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
-                          <SelectItem value="multimodal">Multimodal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contactName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom du contact</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nom du contact" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Email du contact" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Numéro de téléphone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Statut</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catégorie</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez une catégorie" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="maritime">Maritime</SelectItem>
+                            <SelectItem value="aérien">Aérien</SelectItem>
+                            <SelectItem value="routier">Routier</SelectItem>
+                            <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
+                            <SelectItem value="multimodal">Multimodal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contactName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom du contact</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez un statut" />
-                          </SelectTrigger>
+                          <Input placeholder="Nom du contact" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="actif">Actif</SelectItem>
-                          <SelectItem value="inactif">Inactif</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Email du contact" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Téléphone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Numéro de téléphone" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Statut</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez un statut" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="actif">Actif</SelectItem>
+                            <SelectItem value="inactif">Inactif</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Notes additionnelles" {...field} value={field.value || ''} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -320,7 +425,7 @@ const SuppliersList = () => {
         </Dialog>
         
         <Dialog open={!!editingSupplier} onOpenChange={(open) => !open && setEditingSupplier(null)}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Modifier un fournisseur</DialogTitle>
               <DialogDescription>
@@ -329,99 +434,114 @@ const SuppliersList = () => {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleEditSupplier)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nom du fournisseur" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Catégorie</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une catégorie" />
-                          </SelectTrigger>
+                          <Input placeholder="Nom du fournisseur" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="maritime">Maritime</SelectItem>
-                          <SelectItem value="aérien">Aérien</SelectItem>
-                          <SelectItem value="routier">Routier</SelectItem>
-                          <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
-                          <SelectItem value="multimodal">Multimodal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contactName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom du contact</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nom du contact" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Email du contact" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Numéro de téléphone" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Statut</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Catégorie</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez une catégorie" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="maritime">Maritime</SelectItem>
+                            <SelectItem value="aérien">Aérien</SelectItem>
+                            <SelectItem value="routier">Routier</SelectItem>
+                            <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
+                            <SelectItem value="multimodal">Multimodal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contactName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom du contact</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez un statut" />
-                          </SelectTrigger>
+                          <Input placeholder="Nom du contact" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="actif">Actif</SelectItem>
-                          <SelectItem value="inactif">Inactif</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Email du contact" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Téléphone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Numéro de téléphone" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Statut</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez un statut" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="actif">Actif</SelectItem>
+                            <SelectItem value="inactif">Inactif</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (optionnel)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Notes additionnelles" {...field} value={field.value || ''} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -433,17 +553,94 @@ const SuppliersList = () => {
             </Form>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            {selectedSupplier && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    {selectedSupplier.name}
+                    <Badge variant={selectedSupplier.status === 'actif' ? 'default' : 'outline'}>
+                      {selectedSupplier.status === 'actif' ? 'Actif' : 'Inactif'}
+                    </Badge>
+                  </DialogTitle>
+                  <DialogDescription>
+                    Détails du fournisseur
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Catégorie</h4>
+                      <p>{getCategoryLabel(selectedSupplier.category)}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Contact</h4>
+                      <p>{selectedSupplier.contactName}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Email</h4>
+                      <p>{selectedSupplier.email}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Téléphone</h4>
+                      <p>{selectedSupplier.phone}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Dernière commande</h4>
+                      <p>{formatDate(selectedSupplier.lastOrder)}</p>
+                    </div>
+                  </div>
+                  
+                  {selectedSupplier.notes && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">Notes</h4>
+                      <p>{selectedSupplier.notes}</p>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => handleOpenEditDialog(selectedSupplier)}>
+                    <Edit className="mr-2 h-4 w-4" /> Modifier
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog 
+          open={!!supplierToDelete} 
+          onOpenChange={(open) => !open && setSupplierToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action ne peut pas être annulée. Cela supprimera définitivement le fournisseur
+                {supplierToDelete?.name && <span className="font-semibold"> {supplierToDelete.name}</span>}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteSupplier} className="bg-destructive text-destructive-foreground">
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Nom</TableHead>
               <TableHead>Catégorie</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Téléphone</TableHead>
+              <TableHead className="hidden md:table-cell">Email</TableHead>
+              <TableHead className="hidden md:table-cell">Téléphone</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -451,35 +648,85 @@ const SuppliersList = () => {
           <TableBody>
             {filteredSuppliers.length > 0 ? (
               filteredSuppliers.map((supplier) => (
-                <TableRow key={supplier.id}>
+                <TableRow key={supplier.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => handleOpenDetailDialog(supplier)}>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell>{getCategoryLabel(supplier.category)}</TableCell>
                   <TableCell>{supplier.contactName}</TableCell>
-                  <TableCell>{supplier.email}</TableCell>
-                  <TableCell>{supplier.phone}</TableCell>
+                  <TableCell className="hidden md:table-cell">{supplier.email}</TableCell>
+                  <TableCell className="hidden md:table-cell">{supplier.phone}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      supplier.status === 'actif' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <Badge 
+                      variant={supplier.status === 'actif' ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleStatus(supplier);
+                      }}
+                    >
                       {supplier.status === 'actif' ? 'Actif' : 'Inactif'}
-                    </span>
+                    </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEditDialog(supplier)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteSupplier(supplier.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDetailDialog(supplier);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Voir les détails</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditDialog(supplier);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Modifier</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSupplierToDelete(supplier);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Supprimer</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -494,6 +741,17 @@ const SuppliersList = () => {
           </TableBody>
         </Table>
       </div>
+
+      {filteredSuppliers.length > 0 && (
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <div>
+            Affichage de {filteredSuppliers.length} fournisseur{filteredSuppliers.length > 1 ? 's' : ''}
+          </div>
+          <div className="flex items-center gap-1">
+            <RefreshCw className="h-3 w-3" /> Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

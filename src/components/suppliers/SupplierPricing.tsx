@@ -1,16 +1,18 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Search, Plus, Edit, Trash2, Calendar, ArrowUpDown, Tag, Euro, CalendarDays } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Calendar, ArrowUpDown, Tag, Euro, CalendarDays, Eye, Info, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
@@ -109,9 +111,12 @@ const SupplierPricing = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPrice, setEditingPrice] = useState<SupplierPrice | null>(null);
+  const [priceToDelete, setPriceToDelete] = useState<SupplierPrice | null>(null);
   const [selectedOrigin, setSelectedOrigin] = useState<string>('');
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('');
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState<SupplierPrice | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof priceFormSchema>>({
@@ -215,11 +220,11 @@ const SupplierPricing = () => {
   };
 
   // Gestion de la suppression d'un tarif
-  const handleDeletePrice = (id: string) => {
-    const priceToDelete = prices.find(price => price.id === id);
+  const handleDeletePrice = () => {
     if (!priceToDelete) return;
     
-    setPrices(prices.filter(price => price.id !== id));
+    setPrices(prices.filter(price => price.id !== priceToDelete.id));
+    setPriceToDelete(null);
     
     toast({
       title: "Tarif supprimé",
@@ -245,6 +250,12 @@ const SupplierPricing = () => {
     });
   };
 
+  // Ouvrir le dialogue de détails
+  const handleOpenDetailDialog = (price: SupplierPrice) => {
+    setSelectedPrice(price);
+    setIsDetailDialogOpen(true);
+  };
+
   // Récupérer le badge pour le niveau de service
   const getServiceLevelBadge = (level: string) => {
     switch (level) {
@@ -266,6 +277,16 @@ const SupplierPricing = () => {
       return format(date, 'dd/MM/yyyy', { locale: fr });
     } catch (error) {
       return 'Date invalide';
+    }
+  };
+
+  // Vérifier si un tarif est expiré
+  const isPriceExpired = (dateString: string | Date) => {
+    try {
+      const validUntil = typeof dateString === 'string' ? new Date(dateString) : dateString;
+      return validUntil < new Date();
+    } catch {
+      return false;
     }
   };
 
@@ -554,7 +575,7 @@ const SupplierPricing = () => {
         </div>
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -562,17 +583,21 @@ const SupplierPricing = () => {
               <TableHead>Route</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Prix</TableHead>
-              <TableHead>Transit</TableHead>
-              <TableHead>Service</TableHead>
+              <TableHead className="hidden md:table-cell">Transit</TableHead>
+              <TableHead className="hidden md:table-cell">Service</TableHead>
               <TableHead>Validité</TableHead>
-              <TableHead>Référence</TableHead>
+              <TableHead className="hidden md:table-cell">Référence</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredPrices.length > 0 ? (
               filteredPrices.map((price) => (
-                <TableRow key={price.id}>
+                <TableRow 
+                  key={price.id} 
+                  className={`hover:bg-muted/50 cursor-pointer ${isPriceExpired(price.validUntil) ? 'bg-red-50 dark:bg-red-950/10' : ''}`}
+                  onClick={() => handleOpenDetailDialog(price)}
+                >
                   <TableCell className="font-medium">{price.supplier}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
@@ -584,26 +609,87 @@ const SupplierPricing = () => {
                   </TableCell>
                   <TableCell>{getTransportTypeLabel(price.transportType)}</TableCell>
                   <TableCell>{price.price.toFixed(2)} {price.currency}</TableCell>
-                  <TableCell>{price.transitTime}</TableCell>
-                  <TableCell>{getServiceLevelBadge(price.serviceLevel)}</TableCell>
-                  <TableCell>{formatDate(price.validUntil)}</TableCell>
-                  <TableCell>{price.contractRef || '-'}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden md:table-cell">{price.transitTime}</TableCell>
+                  <TableCell className="hidden md:table-cell">{getServiceLevelBadge(price.serviceLevel)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {formatDate(price.validUntil)}
+                      {isPriceExpired(price.validUntil) && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Tarif expiré</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">{price.contractRef || '-'}</TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEditDialog(price)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeletePrice(price.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDetailDialog(price);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Voir les détails</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditDialog(price);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Modifier</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPriceToDelete(price);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Supprimer</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -618,6 +704,111 @@ const SupplierPricing = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          {selectedPrice && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Tarif {selectedPrice.supplier}
+                  {getServiceLevelBadge(selectedPrice.serviceLevel)}
+                </DialogTitle>
+                <DialogDescription>
+                  Détails du tarif de transport
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="flex justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium">Origine</h4>
+                      <p className="text-lg">{selectedPrice.origin}</p>
+                    </div>
+                    <div className="flex items-center">
+                      <ArrowUpDown className="mx-2 text-muted-foreground" />
+                    </div>
+                    <div className="text-right">
+                      <h4 className="text-sm font-medium">Destination</h4>
+                      <p className="text-lg">{selectedPrice.destination}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Type de transport</h4>
+                    <p>{getTransportTypeLabel(selectedPrice.transportType)}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Prix</h4>
+                    <p className="text-lg font-semibold">{selectedPrice.price.toFixed(2)} {selectedPrice.currency}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Temps de transit</h4>
+                    <p>{selectedPrice.transitTime}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Validité</h4>
+                    <p className={isPriceExpired(selectedPrice.validUntil) ? 'text-red-500' : ''}>
+                      {formatDate(selectedPrice.validUntil)}
+                      {isPriceExpired(selectedPrice.validUntil) && ' (Expiré)'}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Référence contrat</h4>
+                    <p>{selectedPrice.contractRef || 'Non spécifié'}</p>
+                  </div>
+                </div>
+                
+                {selectedPrice.notes && (
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Notes</h4>
+                    <p className="text-sm">{selectedPrice.notes}</p>
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => handleOpenEditDialog(selectedPrice)}>
+                  <Edit className="mr-2 h-4 w-4" /> Modifier
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog 
+        open={!!priceToDelete} 
+        onOpenChange={(open) => !open && setPriceToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action ne peut pas être annulée. Cela supprimera définitivement le tarif
+              {priceToDelete && <span className="font-semibold"> {priceToDelete.origin} → {priceToDelete.destination}</span>}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePrice} className="bg-destructive text-destructive-foreground">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {filteredPrices.length > 0 && (
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <div>
+            Affichage de {filteredPrices.length} tarif{filteredPrices.length > 1 ? 's' : ''}
+          </div>
+          <div className="flex items-center gap-1">
+            <RefreshCw className="h-3 w-3" /> Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
