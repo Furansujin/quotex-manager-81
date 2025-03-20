@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, SendHorizontal, Printer, FileText } from 'lucide-react';
+import { Save, SendHorizontal, Printer, FileText, ArrowRight } from 'lucide-react';
 
 interface QuoteActionButtonsProps {
   onClose: () => void;
@@ -9,10 +9,12 @@ interface QuoteActionButtonsProps {
   handlePrint: () => Promise<void>;
   handleSend: () => Promise<void>;
   handleSave: () => Promise<void>;
+  handleFollowUp?: () => void;
   isGeneratingPdf: boolean;
   isPrinting: boolean;
   isSaving: boolean;
   itemsExist: boolean;
+  showFollowUp?: boolean;
 }
 
 const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
@@ -21,10 +23,12 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
   handlePrint,
   handleSend,
   handleSave,
+  handleFollowUp,
   isGeneratingPdf,
   isPrinting,
   isSaving,
-  itemsExist
+  itemsExist,
+  showFollowUp = false
 }) => {
   return (
     <div className="flex justify-between">
@@ -32,6 +36,16 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
         <Button variant="outline" onClick={onClose}>
           Annuler
         </Button>
+        {showFollowUp && handleFollowUp && (
+          <Button 
+            variant="outline" 
+            onClick={handleFollowUp}
+            className="gap-2"
+          >
+            <ArrowRight className="h-4 w-4" />
+            Relancer
+          </Button>
+        )}
       </div>
       <div className="flex gap-2">
         <Button 

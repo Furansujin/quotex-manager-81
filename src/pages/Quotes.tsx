@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Filter, X, Calendar } from 'lucide-react';
+import QuoteFollowUpButton from '@/components/quotes/QuoteFollowUpButton';
+import { useToast } from '@/hooks/use-toast';
 
 const Quotes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -80,6 +82,47 @@ const Quotes = () => {
       // No need to cleanup as we're not modifying prototypes
     };
   }, [saveQuote, addQuote]);
+  
+  const { toast } = useToast();
+
+  // Check for quotes that need reminders
+  useEffect(() => {
+    // Check if we've already shown reminders today
+    const lastReminderCheck = localStorage.getItem('lastReminderCheck');
+    const today = new Date().toDateString();
+    
+    if (lastReminderCheck !== today) {
+      // Find quotes that are pending and older than 7 days
+      const pendingQuotes = filteredQuotes.filter(quote => {
+        if (quote.status !== 'pending') return false;
+        
+        // Convert date from DD/MM/YYYY to a Date object
+        const parts = quote.date.split('/');
+        const quoteDate = new Date(
+          parseInt(parts[2]), // year
+          parseInt(parts[1]) - 1, // month (0-indexed)
+          parseInt(parts[0]) // day
+        );
+        
+        // Check if quote is older than 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        return quoteDate < sevenDaysAgo;
+      });
+      
+      // Show notification if there are pending quotes to follow up
+      if (pendingQuotes.length > 0) {
+        toast({
+          title: "Relances recommandées",
+          description: `${pendingQuotes.length} devis en attente depuis plus de 7 jours.`,
+        });
+      }
+      
+      // Update the last check date
+      localStorage.setItem('lastReminderCheck', today);
+    }
+  }, [filteredQuotes, toast]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -207,6 +250,9 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
               />
             </TabsContent>
             
@@ -216,6 +262,7 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => <QuoteFollowUpButton quote={quote} />}
               />
             </TabsContent>
             
@@ -225,6 +272,9 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
               />
             </TabsContent>
             
@@ -234,6 +284,9 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
               />
             </TabsContent>
             
@@ -243,6 +296,9 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
               />
             </TabsContent>
           </Tabs>

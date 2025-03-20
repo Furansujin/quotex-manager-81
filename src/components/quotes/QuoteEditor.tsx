@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuoteActions } from '@/hooks/useQuoteActions';
 import { useQuotesData } from '@/hooks/useQuotesData';
 import { useQuoteEditorData } from './editor/useQuoteEditorData';
+import { useQuoteFollowUps } from '@/hooks/useQuoteFollowUps';
 import QuoteEditorLayout from './editor/QuoteEditorLayout';
 import ClientInfoCard from './editor/ClientInfoCard';
 import LocationFields from './editor/LocationFields';
@@ -11,6 +12,8 @@ import QuoteOptions from './editor/QuoteOptions';
 import QuoteItemsTable from './editor/QuoteItemsTable';
 import QuoteActionButtons from './editor/QuoteActionButtons';
 import SupplierPricing from './editor/SupplierPricing';
+import FollowUpReminder from './followup/FollowUpReminder';
+import FollowUpHistory from './followup/FollowUpHistory';
 
 interface QuoteEditorProps {
   quoteId?: string;
@@ -59,6 +62,16 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     originSuggestions,
     destinationSuggestions,
   } = useQuoteEditorData(quoteId, clientId, quotes);
+
+  // Add follow-up functionality
+  const {
+    followUps,
+    showFollowUpReminder,
+    showFollowUpHistory,
+    setShowFollowUpReminder,
+    toggleFollowUpHistory,
+    addFollowUp
+  } = useQuoteFollowUps(quoteId);
 
   // Set the client name when the component mounts or when selectedClientName changes
   useEffect(() => {
@@ -331,6 +344,14 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     }
   };
 
+  const handleFollowUp = () => {
+    setShowFollowUpReminder(true);
+  };
+
+  const handleFollowUpSent = (method: string, message: string) => {
+    addFollowUp(method, message);
+  };
+
   return (
     <QuoteEditorLayout 
       title={isEditing ? 'Modifier le devis' : 'Nouveau devis'} 
@@ -382,6 +403,17 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                 originSuggestions={originSuggestions}
                 destinationSuggestions={destinationSuggestions}
               />
+
+              {/* Add follow-up history component if there are follow-ups */}
+              {quoteId && followUps.length > 0 && (
+                <div className="mt-4">
+                  <FollowUpHistory 
+                    followUps={followUps}
+                    isExpanded={showFollowUpHistory}
+                    onToggle={toggleFollowUpHistory}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
           
@@ -421,13 +453,27 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             handlePrint={handlePrint}
             handleSend={handleSend}
             handleSave={handleSave}
+            handleFollowUp={handleFollowUp}
             isGeneratingPdf={isGeneratingPdf}
             isPrinting={isPrinting}
             isSaving={isSaving}
             itemsExist={items.length > 0}
+            showFollowUp={isEditing && quoteId !== undefined}
           />
         </div>
       </div>
+
+      {/* Add follow-up reminder dialog */}
+      {showFollowUpReminder && (
+        <FollowUpReminder 
+          quoteId={quoteId || ''}
+          clientName={client}
+          isOpen={showFollowUpReminder}
+          onClose={() => setShowFollowUpReminder(false)}
+          lastContact={isEditing ? quotes.find(q => q.id === quoteId)?.date : undefined}
+          onFollowUpSent={handleFollowUpSent}
+        />
+      )}
     </QuoteEditorLayout>
   );
 };
