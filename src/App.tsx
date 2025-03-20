@@ -1,42 +1,46 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Quotes from "./pages/Quotes";
-import Shipments from "./pages/Shipments";
-import Documents from "./pages/Documents";
-import Team from "./pages/Team";
-import Finance from "./pages/Finance";
-import Settings from "./pages/Settings";
-import Clients from "./pages/Clients";
-import NotFound from "./pages/NotFound";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
 
-const queryClient = new QueryClient();
+import Sidebar from "@/components/layout/Sidebar";
+import Navbar from "@/components/layout/Navbar";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/quotes" element={<Quotes />} />
-          <Route path="/shipments" element={<Shipments />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/finance" element={<Finance />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/clients" element={<Clients />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+import Index from "@/pages/Index";
+import Quotes from "@/pages/Quotes";
+import Shipments from "@/pages/Shipments";
+import Clients from "@/pages/Clients";
+import Finance from "@/pages/Finance";
+import Documents from "@/pages/Documents";
+import Team from "@/pages/Team";
+import Settings from "@/pages/Settings";
+import NotFound from "@/pages/NotFound";
+import Suppliers from "@/pages/Suppliers";
+
+function App() {
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <Navbar />
+        <div className="flex-1 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/quotes" element={<Quotes />} />
+            <Route path="/shipments" element={<Shipments />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/suppliers" element={<Suppliers />} />
+            <Route path="/finance" element={<Finance />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </div>
+      </div>
+      <Toaster position="top-right" />
+    </div>
+  );
+}
 
 export default App;
