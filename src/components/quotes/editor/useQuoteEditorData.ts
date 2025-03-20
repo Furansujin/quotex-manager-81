@@ -136,7 +136,7 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
   
   // State
   const [client, setClient] = useState(isEditing ? 'Tech Supplies Inc' : selectedClient?.name || '');
-  const [clientDetails, setClientDetails] = useState(selectedClient);
+  const [clientDetails, setClientDetails] = useState<Client | undefined>(selectedClient);
   const [origin, setOrigin] = useState(isEditing ? 'Shanghai, CN' : '');
   const [destination, setDestination] = useState(isEditing ? 'Paris, FR' : '');
   const [validUntil, setValidUntil] = useState(() => {

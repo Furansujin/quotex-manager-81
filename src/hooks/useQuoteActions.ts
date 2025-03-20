@@ -13,6 +13,8 @@ export const useQuoteActions = () => {
 
   const handleNewQuote = () => {
     setEditingQuoteId(undefined);
+    setSelectedClient(null);
+    setSelectedClientName(null);
     setShowClientSelector(true);
   };
 
