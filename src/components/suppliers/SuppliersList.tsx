@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,8 +91,8 @@ const SuppliersList = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const { toast } = useToast();
@@ -117,8 +118,8 @@ const SuppliersList = () => {
       supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = !selectedCategory || supplier.category === selectedCategory;
-    const matchesStatus = !selectedStatus || supplier.status === selectedStatus;
+    const matchesCategory = selectedCategory === 'all' || supplier.category === selectedCategory;
+    const matchesStatus = selectedStatus === 'all' || supplier.status === selectedStatus;
     
     return matchesSearch && matchesCategory && matchesStatus;
   });
