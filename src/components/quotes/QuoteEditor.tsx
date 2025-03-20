@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -878,4 +879,189 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-4">
-                        Sélectionnez un type de transport pour voir les
+                        Sélectionnez un type de transport pour voir les suggestions
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Services et produits</CardTitle>
+              <CardDescription>Ajoutez les services et produits pour ce devis</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[40%]">Description</TableHead>
+                      <TableHead>Quantité</TableHead>
+                      <TableHead>Prix unitaire</TableHead>
+                      <TableHead>Remise (%)</TableHead>
+                      <TableHead>TVA (%)</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <Input 
+                            value={item.description} 
+                            onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                            className="max-w-full"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            value={item.quantity} 
+                            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            className="w-20"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            value={item.unitPrice} 
+                            onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            className="w-24"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            value={item.discount} 
+                            onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                            className="w-20"
+                            min="0"
+                            max="100"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            value={item.tax} 
+                            onChange={(e) => updateItem(item.id, 'tax', parseFloat(e.target.value) || 0)}
+                            className="w-20"
+                            min="0"
+                            max="100"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {item.total.toFixed(2)} {currency}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeItem(item.id)}
+                            className="h-8 w-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                          Aucun service ajouté. Cliquez sur un service suggéré ou ajoutez-en un manuellement.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              <div className="mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => addItem()}
+                  className="gap-2"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Ajouter une ligne
+                </Button>
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <div className="w-72 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Sous-total:</span>
+                    <span className="font-medium">{calculateSubtotal().toFixed(2)} {currency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">TVA:</span>
+                    <span className="font-medium">{calculateTaxAmount().toFixed(2)} {currency}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-2">
+                    <span className="font-medium">Total:</span>
+                    <span className="font-bold">{calculateTotal().toFixed(2)} {currency}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="flex justify-between">
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleGeneratePdf}
+                disabled={isGeneratingPdf || items.length === 0}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                {isGeneratingPdf ? 'Génération...' : 'Générer PDF'}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handlePrint}
+                disabled={isPrinting || items.length === 0}
+                className="gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                {isPrinting ? 'Impression...' : 'Imprimer'}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleSend}
+                disabled={isSaving || items.length === 0}
+                className="gap-2"
+              >
+                <SendHorizontal className="h-4 w-4" />
+                {isSaving ? 'Envoi...' : 'Envoyer'}
+              </Button>
+              
+              <Button 
+                onClick={handleSave}
+                disabled={isSaving || items.length === 0}
+                className="gap-2"
+              >
+                <Save className="h-4 w-4" />
+                {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuoteEditor;
