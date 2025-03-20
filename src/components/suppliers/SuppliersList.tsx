@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -214,7 +213,7 @@ const SuppliersList = () => {
   const handleToggleStatus = (supplier: Supplier) => {
     const newStatus = supplier.status === 'actif' ? 'inactif' : 'actif';
     const updatedSuppliers = suppliers.map(s => 
-      s.id === supplier.id ? { ...s, status: newStatus } : s
+      s.id === supplier.id ? { ...s, status: newStatus as 'actif' | 'inactif' } : s
     );
     
     setSuppliers(updatedSuppliers);
