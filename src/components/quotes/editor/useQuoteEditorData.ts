@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 interface QuoteItem {
@@ -8,6 +9,10 @@ interface QuoteItem {
   discount: number;
   tax: number;
   total: number;
+  supplier?: string;
+  margin?: number;
+  basePrice?: number;
+  additionalFees?: number;
 }
 
 interface Client {
@@ -158,7 +163,11 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
             unitPrice: 1200, 
             discount: 0, 
             tax: 20, 
-            total: 2400 
+            total: 2400,
+            supplier: 'Maersk Line',
+            margin: 15,
+            basePrice: 1043.48,
+            additionalFees: 0
           },
           { 
             id: '2', 
@@ -176,7 +185,11 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
             unitPrice: 680, 
             discount: 5, 
             tax: 20, 
-            total: 646 
+            total: 646,
+            supplier: 'Allianz',
+            margin: 20,
+            basePrice: 538.33,
+            additionalFees: 0
           }
         ]
       : []
@@ -216,7 +229,7 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
   }, [selectedClient, clientId]);
 
   // Item management functions
-  const addItem = (predefinedItem?: {description: string, unitPrice: number}) => {
+  const addItem = (predefinedItem?: {description: string, unitPrice: number, supplier?: string, margin?: number, basePrice?: number}) => {
     const newItem: QuoteItem = {
       id: Date.now().toString(),
       description: predefinedItem?.description || '',
@@ -226,6 +239,20 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
       tax: 20,
       total: predefinedItem?.unitPrice || 0
     };
+
+    // Add supplier and margin information if provided
+    if (predefinedItem?.supplier) {
+      newItem.supplier = predefinedItem.supplier;
+    }
+
+    if (predefinedItem?.margin) {
+      newItem.margin = predefinedItem.margin;
+    }
+
+    if (predefinedItem?.basePrice) {
+      newItem.basePrice = predefinedItem.basePrice;
+    }
+
     setItems([...items, newItem]);
   };
 
@@ -247,6 +274,15 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
           const subtotal = quantity * unitPrice;
           const discountAmount = subtotal * (discount / 100);
           updatedItem.total = subtotal - discountAmount;
+          
+          // Update margin info if base price exists
+          if (updatedItem.basePrice && field === 'unitPrice') {
+            const newUnitPrice = value as number;
+            // Calculate new margin percentage
+            if (newUnitPrice > 0 && updatedItem.basePrice > 0) {
+              updatedItem.margin = Math.round(((newUnitPrice - updatedItem.basePrice) / updatedItem.basePrice) * 100);
+            }
+          }
         }
         
         return updatedItem;
@@ -269,6 +305,31 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
 
   const calculateTotal = () => {
     return calculateSubtotal() + calculateTaxAmount();
+  };
+
+  // Calculate total margin on the quote
+  const calculateTotalMargin = () => {
+    const itemsWithMargin = items.filter(item => item.basePrice !== undefined && item.margin !== undefined);
+    
+    if (itemsWithMargin.length === 0) {
+      return 0;
+    }
+    
+    const totalBasePrice = itemsWithMargin.reduce((acc, item) => {
+      const baseTotal = (item.basePrice || 0) * item.quantity;
+      return acc + baseTotal;
+    }, 0);
+    
+    const totalSellPrice = itemsWithMargin.reduce((acc, item) => {
+      const sellTotal = item.unitPrice * item.quantity * (1 - (item.discount / 100));
+      return acc + sellTotal;
+    }, 0);
+    
+    if (totalBasePrice === 0) {
+      return 0;
+    }
+    
+    return Math.round(((totalSellPrice - totalBasePrice) / totalBasePrice) * 100);
   };
 
   // Location suggestions
@@ -327,6 +388,7 @@ export function useQuoteEditorData(quoteId?: string, clientId?: string, quotes: 
     calculateSubtotal,
     calculateTaxAmount,
     calculateTotal,
+    calculateTotalMargin,
     
     // Data
     suggestedItems: suggestedItemsData,

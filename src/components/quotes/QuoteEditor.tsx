@@ -11,6 +11,7 @@ import QuoteOptions from './editor/QuoteOptions';
 import QuoteInfoCard from './editor/QuoteInfoCard';
 import QuoteItemsTable from './editor/QuoteItemsTable';
 import QuoteActionButtons from './editor/QuoteActionButtons';
+import SupplierPricing from './editor/SupplierPricing';
 
 interface QuoteEditorProps {
   quoteId?: string;
@@ -25,6 +26,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [showSupplierPricing, setShowSupplierPricing] = useState(false);
 
   const {
     isEditing,
@@ -65,6 +67,13 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       setClient(selectedClientName);
     }
   }, [selectedClientName, client, setClient]);
+
+  // Show supplier pricing when origin and destination are set
+  useEffect(() => {
+    if (origin && destination) {
+      setShowSupplierPricing(true);
+    }
+  }, [origin, destination]);
 
   const handleSave = async () => {
     // Validation simple
@@ -387,6 +396,16 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             </CardContent>
           </Card>
         </div>
+        
+        {showSupplierPricing && (
+          <SupplierPricing
+            origin={origin}
+            destination={destination}
+            type={type}
+            currency={currency}
+            onPriceSelect={addItem}
+          />
+        )}
         
         <Card>
           <CardHeader>

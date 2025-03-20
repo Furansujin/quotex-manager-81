@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Info, User, Mail, Phone, MapPin } from 'lucide-react';
+import { Info, User, Mail, Phone, MapPin, Package, Calendar } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -91,6 +91,18 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span>{clientDetails.address}</span>
             </div>
+            {clientDetails.preferredShipping && (
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span>Transport préféré: {clientDetails.preferredShipping}</span>
+              </div>
+            )}
+            {clientDetails.quoteCount !== undefined && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Devis précédents: {clientDetails.quoteCount}</span>
+              </div>
+            )}
             {clientDetails.tags && clientDetails.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {clientDetails.tags.map(tag => (
