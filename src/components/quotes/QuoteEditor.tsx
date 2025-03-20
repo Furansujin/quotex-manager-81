@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuoteActions } from '@/hooks/useQuoteActions';
+import { useQuotesData } from '@/hooks/useQuotesData';
 
 interface QuoteItem {
   id: string;
@@ -62,6 +63,8 @@ interface QuoteEditorProps {
 const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose }) => {
   const { toast } = useToast();
   const isEditing = !!quoteId;
+  const { saveQuote, generatePdf, printQuote } = useQuoteActions();
+  const { quotes } = useQuotesData();
   
   // Récupérer les informations du client si clientId est fourni
   const clients: Client[] = [
@@ -143,6 +146,9 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
   const [incoterm, setIncoterm] = useState('FOB');
   const [currency, setCurrency] = useState('EUR');
   const [showClientInfo, setShowClientInfo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   
   const [items, setItems] = useState<QuoteItem[]>(
     isEditing 
@@ -177,6 +183,45 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
         ]
       : []
   );
+
+  // Retrieve quote data if editing
+  useEffect(() => {
+    if (isEditing && quoteId) {
+      const quoteData = quotes.find(q => q.id === quoteId);
+      if (quoteData) {
+        setClient(quoteData.client);
+        setOrigin(quoteData.origin);
+        setDestination(quoteData.destination);
+        setType(quoteData.type);
+        setNotes(quoteData.notes || '');
+        
+        // In a real app, you would load the items as well
+      }
+    }
+  }, [isEditing, quoteId, quotes]);
+
+  // Suggestion d'origine et destination basée sur le client sélectionné
+  const originSuggestions = [
+    "Shanghai, CN", 
+    "Rotterdam, NL", 
+    "Singapour, SG", 
+    "Anvers, BE",
+    "Hambourg, DE",
+    "Hong Kong, HK",
+    "New York, US",
+    "Dubaï, AE"
+  ];
+  
+  const destinationSuggestions = [
+    "Paris, FR", 
+    "Marseille, FR", 
+    "Lyon, FR", 
+    "Bordeaux, FR", 
+    "Le Havre, FR",
+    "Madrid, ES",
+    "Barcelone, ES",
+    "Berlin, DE"
+  ];
 
   // Produits suggérés basés sur le type de transport
   const suggestedItems = {
@@ -269,7 +314,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     return calculateSubtotal() + calculateTaxAmount();
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation simple
     if (!client) {
       toast({
@@ -297,14 +342,52 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       });
       return;
     }
+
+    setIsSaving(true);
     
-    toast({
-      title: "Devis enregistré",
-      description: "Le devis a été sauvegardé avec succès.",
-    });
+    try {
+      // Prepare quote data
+      const quoteData = {
+        id: quoteId,
+        client,
+        clientId: clientDetails?.id || selectedClient?.id || "UNKNOWN",
+        date: new Date().toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        origin,
+        destination,
+        status: isEditing ? "approved" : "pending",
+        amount: `€ ${calculateTotal().toFixed(2)}`,
+        type,
+        commercial: "Jean Dupont", // Hardcoded for now
+        validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        notes,
+        // In a real app, you would include the items as well
+      };
+      
+      // Save the quote
+      await saveQuote(quoteData);
+      
+      // Close the editor
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'enregistrement du devis.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     // Vérification similaire à handleSave
     if (!client || !origin || !destination || items.length === 0) {
       toast({
@@ -315,41 +398,178 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       return;
     }
     
-    toast({
-      title: "Devis envoyé",
-      description: "Le devis a été envoyé au client par email.",
-    });
+    // First save the quote
+    setIsSaving(true);
+    
+    try {
+      // Prepare quote data (same as in handleSave)
+      const quoteData = {
+        id: quoteId,
+        client,
+        clientId: clientDetails?.id || selectedClient?.id || "UNKNOWN",
+        date: new Date().toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        origin,
+        destination,
+        status: "pending",
+        amount: `€ ${calculateTotal().toFixed(2)}`,
+        type,
+        commercial: "Jean Dupont",
+        validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        notes
+      };
+      
+      // Save the quote
+      const savedQuote = await saveQuote(quoteData);
+      
+      // In a real app, you would send an email with the quote
+      toast({
+        title: "Devis envoyé",
+        description: "Le devis a été envoyé au client par email.",
+      });
+      
+      // Close the editor
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi du devis.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleGeneratePdf = () => {
-    toast({
-      title: "PDF généré",
-      description: "Le devis a été converti en PDF avec succès.",
-    });
+  const handleGeneratePdf = async () => {
+    if (!quoteId && !client) {
+      toast({
+        title: "Action impossible",
+        description: "Veuillez d'abord enregistrer le devis avant de générer un PDF.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsGeneratingPdf(true);
+    
+    try {
+      let id = quoteId;
+      
+      // If it's a new quote, save it first
+      if (!id) {
+        // Prepare quote data (same as in handleSave)
+        const quoteData = {
+          client,
+          clientId: clientDetails?.id || selectedClient?.id || "UNKNOWN",
+          date: new Date().toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          origin,
+          destination,
+          status: "pending",
+          amount: `€ ${calculateTotal().toFixed(2)}`,
+          type,
+          commercial: "Jean Dupont",
+          validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          notes
+        };
+        
+        // Save the quote
+        const savedQuote = await saveQuote(quoteData);
+        id = savedQuote.id;
+      }
+      
+      // Generate PDF
+      const pdfUrl = await generatePdf(id);
+      
+      // In a real app, you would open or download the PDF
+      // For now, we'll just show a toast
+      toast({
+        title: "PDF généré",
+        description: "Le PDF du devis est prêt à être téléchargé.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la génération du PDF.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
-  // Suggestion d'origine et destination basée sur le client sélectionné
-  const originSuggestions = [
-    "Shanghai, CN", 
-    "Rotterdam, NL", 
-    "Singapour, SG", 
-    "Anvers, BE",
-    "Hambourg, DE",
-    "Hong Kong, HK",
-    "New York, US",
-    "Dubaï, AE"
-  ];
-  
-  const destinationSuggestions = [
-    "Paris, FR", 
-    "Marseille, FR", 
-    "Lyon, FR", 
-    "Bordeaux, FR",
-    "Le Havre, FR",
-    "Madrid, ES",
-    "Barcelone, ES",
-    "Berlin, DE"
-  ];
+  const handlePrint = async () => {
+    if (!quoteId && !client) {
+      toast({
+        title: "Action impossible",
+        description: "Veuillez d'abord enregistrer le devis avant de l'imprimer.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsPrinting(true);
+    
+    try {
+      let id = quoteId;
+      
+      // If it's a new quote, save it first
+      if (!id) {
+        // Prepare quote data (same as in handleSave)
+        const quoteData = {
+          client,
+          clientId: clientDetails?.id || selectedClient?.id || "UNKNOWN",
+          date: new Date().toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          origin,
+          destination,
+          status: "pending",
+          amount: `€ ${calculateTotal().toFixed(2)}`,
+          type,
+          commercial: "Jean Dupont",
+          validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          notes
+        };
+        
+        // Save the quote
+        const savedQuote = await saveQuote(quoteData);
+        id = savedQuote.id;
+      }
+      
+      // Print the quote
+      printQuote(id);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'impression.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   // Effet pour préremplir les champs s'il y a un client sélectionné
   useEffect(() => {
@@ -659,241 +879,3 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                     ) : (
                       <div className="text-center text-muted-foreground py-4">
                         Sélectionnez un type de transport pour voir les suggestions
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                <span>Détails des services</span>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-1" onClick={() => addItem()}>
-                    <PlusCircle className="h-4 w-4" />
-                    Service personnalisé
-                  </Button>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button size="sm" className="gap-1">
-                        <PlusCircle className="h-4 w-4" />
-                        Ajouter
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80" align="end">
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Services suggérés</h4>
-                        <Tabs defaultValue={type} onValueChange={setType}>
-                          <TabsList className="grid grid-cols-3 h-auto">
-                            <TabsTrigger value="Maritime" className="text-xs">Maritime</TabsTrigger>
-                            <TabsTrigger value="Aérien" className="text-xs">Aérien</TabsTrigger>
-                            <TabsTrigger value="Routier" className="text-xs">Routier</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="Maritime" className="mt-2">
-                            <div className="space-y-1">
-                              {suggestedItems.Maritime.map((item, index) => (
-                                <div 
-                                  key={index} 
-                                  className="flex justify-between items-center p-2 hover:bg-accent rounded-md cursor-pointer"
-                                  onClick={() => {
-                                    addItem(item);
-                                    document.body.click(); // Close the popover
-                                  }}
-                                >
-                                  <div>
-                                    <div className="font-medium text-xs">{item.description}</div>
-                                    <div className="text-xs text-muted-foreground">{item.unitPrice.toFixed(2)} {currency}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </TabsContent>
-                          <TabsContent value="Aérien" className="mt-2">
-                            <div className="space-y-1">
-                              {suggestedItems.Aérien.map((item, index) => (
-                                <div 
-                                  key={index} 
-                                  className="flex justify-between items-center p-2 hover:bg-accent rounded-md cursor-pointer"
-                                  onClick={() => {
-                                    addItem(item);
-                                    document.body.click(); // Close the popover
-                                  }}
-                                >
-                                  <div>
-                                    <div className="font-medium text-xs">{item.description}</div>
-                                    <div className="text-xs text-muted-foreground">{item.unitPrice.toFixed(2)} {currency}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </TabsContent>
-                          <TabsContent value="Routier" className="mt-2">
-                            <div className="space-y-1">
-                              {suggestedItems.Routier.map((item, index) => (
-                                <div 
-                                  key={index} 
-                                  className="flex justify-between items-center p-2 hover:bg-accent rounded-md cursor-pointer"
-                                  onClick={() => {
-                                    addItem(item);
-                                    document.body.click(); // Close the popover
-                                  }}
-                                >
-                                  <div>
-                                    <div className="font-medium text-xs">{item.description}</div>
-                                    <div className="text-xs text-muted-foreground">{item.unitPrice.toFixed(2)} {currency}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40%]">Description</TableHead>
-                      <TableHead className="text-right">Quantité</TableHead>
-                      <TableHead className="text-right">Prix unitaire</TableHead>
-                      <TableHead className="text-right">Remise (%)</TableHead>
-                      <TableHead className="text-right">TVA (%)</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <Input 
-                            value={item.description} 
-                            onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                            placeholder="Description du service"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input 
-                            type="number" 
-                            min="1"
-                            value={item.quantity} 
-                            onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
-                            className="text-right w-20"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input 
-                            type="number" 
-                            min="0"
-                            step="0.01"
-                            value={item.unitPrice} 
-                            onChange={(e) => updateItem(item.id, 'unitPrice', Number(e.target.value))}
-                            className="text-right w-24"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input 
-                            type="number" 
-                            min="0"
-                            max="100"
-                            value={item.discount} 
-                            onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
-                            className="text-right w-20"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input 
-                            type="number" 
-                            min="0"
-                            max="100"
-                            value={item.tax} 
-                            onChange={(e) => updateItem(item.id, 'tax', Number(e.target.value))}
-                            className="text-right w-20"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {item.total.toFixed(2)} {currency}
-                        </TableCell>
-                        <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    
-                    {items.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                          Aucun service ajouté. Cliquez sur "Ajouter" pour commencer.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              {items.length > 0 && (
-                <div className="mt-6 space-y-2 w-72 ml-auto">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sous-total:</span>
-                    <span>{calculateSubtotal().toFixed(2)} {currency}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">TVA:</span>
-                    <span>{calculateTaxAmount().toFixed(2)} {currency}</span>
-                  </div>
-                  <div className="flex justify-between font-bold pt-2 border-t">
-                    <span>Total:</span>
-                    <span>{calculateTotal().toFixed(2)} {currency}</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div>
-              <Button variant="outline" className="gap-2 mr-2" onClick={handleGeneratePdf}>
-                <FileText className="h-4 w-4" />
-                Générer PDF
-              </Button>
-              <Button variant="outline" className="gap-2" onClick={() => {}}>
-                <Printer className="h-4 w-4" />
-                Imprimer
-              </Button>
-            </div>
-            
-            <div>
-              <Button variant="outline" className="gap-2 mr-2" onClick={onClose}>
-                Annuler
-              </Button>
-              <Button variant="default" className="gap-2 mr-2" onClick={handleSave}>
-                <Save className="h-4 w-4" />
-                Enregistrer
-              </Button>
-              <Button variant="default" className="gap-2" onClick={handleSend}>
-                <SendHorizontal className="h-4 w-4" />
-                Envoyer
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default QuoteEditor;

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { QuoteFilterValues } from '@/components/quotes/QuoteFilters';
 
@@ -24,9 +24,7 @@ export const useQuotesData = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<QuoteFilterValues | null>(null);
   const { toast } = useToast();
-
-  // Mock data - in a real app, this would come from an API
-  const quotes: Quote[] = [
+  const [quotes, setQuotes] = useState<Quote[]>([
     { 
       id: "QT-2023-0142", 
       client: "Tech Supplies Inc", 
@@ -102,7 +100,25 @@ export const useQuotesData = () => {
       validUntil: "18/06/2023",
       notes: "Devis remplacé par QT-2023-0142"
     },
-  ];
+  ]);
+
+  // Add a new quote to the list
+  const addQuote = (quote: Quote) => {
+    setQuotes(prevQuotes => {
+      // Check if the quote already exists (for editing)
+      const existingIndex = prevQuotes.findIndex(q => q.id === quote.id);
+      
+      if (existingIndex >= 0) {
+        // Update the existing quote
+        const updatedQuotes = [...prevQuotes];
+        updatedQuotes[existingIndex] = quote;
+        return updatedQuotes;
+      } else {
+        // Add the new quote at the beginning of the array
+        return [quote, ...prevQuotes];
+      }
+    });
+  };
 
   // Filter quotes based on active tab, search term, and filters
   const filteredQuotes = quotes.filter(quote => {
@@ -210,6 +226,34 @@ export const useQuotesData = () => {
     });
   };
 
+  // Listen for new quotes added via useQuoteActions
+  useEffect(() => {
+    // In a real app, this would be a subscription to a backend service
+    // or a websocket connection to get real-time updates
+    
+    // You could also use a more sophisticated state management solution
+    // like React Context, Redux, or Zustand
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'newQuote') {
+        try {
+          const newQuote = JSON.parse(e.newValue || '');
+          if (newQuote && newQuote.id) {
+            addQuote(newQuote);
+          }
+        } catch (error) {
+          console.error('Failed to parse new quote data', error);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   return {
     activeTab,
     setActiveTab,
@@ -219,6 +263,7 @@ export const useQuotesData = () => {
     setActiveFilters,
     filteredQuotes,
     quotes,
+    addQuote,
     handleApplyFilters,
     clearAllFilters
   };

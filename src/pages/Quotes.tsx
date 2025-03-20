@@ -9,7 +9,6 @@ import ClientSelector from '@/components/quotes/ClientSelector';
 import { useQuotesData } from '@/hooks/useQuotesData';
 import { useQuoteActions } from '@/hooks/useQuoteActions';
 import QuotesHeader from '@/components/quotes/QuotesHeader';
-import QuotesSearchAndFilter from '@/components/quotes/QuotesSearchAndFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,7 @@ const Quotes = () => {
     setSearchTerm, 
     activeFilters, 
     filteredQuotes, 
+    addQuote,
     handleApplyFilters, 
     clearAllFilters 
   } = useQuotesData();
@@ -44,17 +44,49 @@ const Quotes = () => {
     handleDownloadQuote,
     handleClientSelect,
     setShowQuoteEditor,
-    setShowClientSelector
+    setShowClientSelector,
+    saveQuote
   } = useQuoteActions();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Mettre à jour le titre de la page
+  // Mise à jour du titre de la page
   useEffect(() => {
     document.title = "Gestion des Devis";
   }, []);
+
+  // Connect the saveQuote method to the addQuote method
+  useEffect(() => {
+    // This is a workaround for demonstration purposes
+    // In a production app, you'd use a more robust state management solution
+    const originalSaveQuote = saveQuote;
+    
+    // Override the saveQuote method to also update the quotes list
+    const enhancedSaveQuote = async (quoteData: any) => {
+      const result = await originalSaveQuote(quoteData);
+      if (result) {
+        addQuote(result);
+        
+        // Optional: trigger a refresh or notification
+        localStorage.setItem('newQuote', JSON.stringify(result));
+        // This will trigger the storage event listener in useQuotesData
+      }
+      return result;
+    };
+    
+    // Replace the saveQuote method
+    // Note: This is a hack for demo purposes and wouldn't be used in production
+    // @ts-ignore - Typescript will complain about this modification
+    useQuoteActions.prototype.saveQuote = enhancedSaveQuote;
+    
+    return () => {
+      // Restore the original method on cleanup
+      // @ts-ignore
+      useQuoteActions.prototype.saveQuote = originalSaveQuote;
+    };
+  }, [saveQuote, addQuote]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,6 +207,7 @@ const Quotes = () => {
               <TabsTrigger value="expired">Expirés</TabsTrigger>
             </TabsList>
 
+            {/* Tab content for all quote statuses */}
             <TabsContent value="all" className="space-y-4">
               <QuotesList 
                 quotes={filteredQuotes} 
