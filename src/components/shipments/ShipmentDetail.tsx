@@ -73,6 +73,53 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     notes: "Le client souhaite être informé de tout retard éventuel. Livraison prioritaire."
   };
 
+  // Données pour le ShipmentTracker
+  const trackerStops = [
+    {
+      location: "Shanghai, CN",
+      date: "22/05/2023",
+      status: "completed" as const
+    },
+    {
+      location: "Singapour, SG",
+      date: "29/05/2023",
+      status: "completed" as const
+    },
+    {
+      location: "Canal de Suez, EG",
+      date: "05/06/2023",
+      status: "current" as const
+    },
+    {
+      location: "Marseille, FR",
+      date: "12/06/2023",
+      status: "upcoming" as const
+    },
+    {
+      location: "Paris, FR",
+      date: "15/06/2023",
+      status: "upcoming" as const
+    }
+  ];
+
+  const trackerEvents = [
+    {
+      date: "05/06/2023",
+      description: "Passage du Canal de Suez en cours",
+      type: "info" as const
+    },
+    {
+      date: "29/05/2023",
+      description: "Transbordement effectué à Singapour",
+      type: "success" as const
+    },
+    {
+      date: "22/05/2023",
+      description: "Départ du port de Shanghai",
+      type: "success" as const
+    }
+  ];
+
   const handleDownloadDocument = (docType: string) => {
     toast({
       title: `Téléchargement du document`,
@@ -231,7 +278,17 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                 <Progress value={shipment.progress} className="h-2" />
               </div>
               
-              <ShipmentTracker />
+              <ShipmentTracker 
+                shipmentType={shipment.type as "maritime" | "aérien" | "routier"}
+                status={shipment.status as "planifiée" | "en cours" | "terminée" | "retardée"}
+                progress={shipment.progress}
+                origin={shipment.origin}
+                destination={shipment.destination}
+                departureDate={shipment.departureDate}
+                estimatedArrival={shipment.arrivalDate}
+                stops={trackerStops}
+                events={trackerEvents}
+              />
             </CardContent>
           </Card>
           
