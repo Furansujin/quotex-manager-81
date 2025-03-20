@@ -1,68 +1,72 @@
-
 import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, 
-  UserPlus, 
-  User, 
-  Building, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  CalendarClock,
-  Tag,
-  FileText,
-  Clock,
-  Euro
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, UserPlus, Building2, User, Calendar, Tag, Users, X, FileText } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
-// Modèle de client
-interface Client {
-  id: string;
-  name: string;
-  contact: string;
-  email: string;
-  phone: string;
-  address: string;
-  type: string;
-  status: string;
-  lastQuote?: string;
-  createdAt: string;
-  tags?: string[];
-  quoteCount?: number;
-  preferredShipping?: string;
-}
-
-// Formulaire de client validé avec Zod
-const clientFormSchema = z.object({
-  name: z.string().min(1, { message: "Le nom est requis" }),
-  contact: z.string().optional(),
-  email: z.string().email({ message: "Email invalide" }),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  type: z.string().default("business"),
-  tags: z.string().optional()
-});
-
-type ClientFormValues = z.infer<typeof clientFormSchema>;
+// Mocked clients data
+const mockClients = [
+  {
+    id: 'CL-001',
+    name: 'Tech Supplies Inc',
+    type: 'Entreprise',
+    industry: 'Technologie',
+    contact: 'John Smith',
+    email: 'john@techsupplies.com',
+    lastActivity: '22/05/2023',
+    quotesCount: 12,
+    tags: ['VIP', 'International']
+  },
+  {
+    id: 'CL-002',
+    name: 'Pharma Solutions',
+    type: 'Entreprise',
+    industry: 'Pharmaceutique',
+    contact: 'Marie Dupont',
+    email: 'marie@pharmasol.com',
+    lastActivity: '21/05/2023',
+    quotesCount: 8,
+    tags: ['Prioritaire']
+  },
+  {
+    id: 'CL-003',
+    name: 'Global Imports Ltd',
+    type: 'Entreprise',
+    industry: 'Import/Export',
+    contact: 'Carlos Rodriguez',
+    email: 'carlos@globalimports.com',
+    lastActivity: '20/05/2023',
+    quotesCount: 15,
+    tags: ['International']
+  },
+  {
+    id: 'CL-004',
+    name: 'Eurotech GmbH',
+    type: 'Entreprise',
+    industry: 'Électronique',
+    contact: 'Hans Meyer',
+    email: 'hans@eurotech.de',
+    lastActivity: '19/05/2023',
+    quotesCount: 5,
+    tags: ['International', 'Premium']
+  },
+  {
+    id: 'CL-005',
+    name: 'Jean Martin',
+    type: 'Particulier',
+    industry: '',
+    contact: 'Jean Martin',
+    email: 'jean.martin@email.com',
+    lastActivity: '18/05/2023',
+    quotesCount: 2,
+    tags: ['Nouveau']
+  },
+];
 
 interface ClientSelectorProps {
   onClose: () => void;
@@ -70,784 +74,354 @@ interface ClientSelectorProps {
   initialSearchTerm?: string;
 }
 
-const ClientSelector: React.FC<ClientSelectorProps> = ({ onClose, onSelectClient, initialSearchTerm = '' }) => {
+const ClientSelector: React.FC<ClientSelectorProps> = ({ 
+  onClose, 
+  onSelectClient,
+  initialSearchTerm = ''
+}) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('all');
-  const { toast } = useToast();
-  const [isViewingClientDetails, setIsViewingClientDetails] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
-  // Formulaire pour la création/édition de client
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: {
-      name: '',
-      contact: '',
-      email: '',
-      phone: '',
-      address: '',
-      type: 'business',
-      tags: ''
+  // Filtrer les clients en fonction de la recherche et des filtres
+  const filteredClients = mockClients.filter(client => {
+    // Filtre de recherche
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        client.name.toLowerCase().includes(searchLower) ||
+        client.contact.toLowerCase().includes(searchLower) ||
+        client.email.toLowerCase().includes(searchLower) ||
+        client.id.toLowerCase().includes(searchLower);
+        
+      if (!matchesSearch) return false;
     }
+    
+    // Filtre par type
+    if (activeTab === "companies" && client.type !== "Entreprise") return false;
+    if (activeTab === "individuals" && client.type !== "Particulier") return false;
+    
+    // Filtre supplémentaire
+    if (selectedFilter === "vip" && !client.tags.includes("VIP") && 
+        !client.tags.includes("Premium") && !client.tags.includes("Prioritaire")) return false;
+    if (selectedFilter === "international" && !client.tags.includes("International")) return false;
+    if (selectedFilter === "new" && !client.tags.includes("Nouveau")) return false;
+    
+    return true;
   });
 
-  // Liste de clients fictive avec données enrichies
-  const clients: Client[] = [
-    { 
-      id: 'CL-001', 
-      name: 'Tech Supplies Inc', 
-      contact: 'John Doe', 
-      email: 'john.doe@techsupplies.com', 
-      phone: '+33 1 23 45 67 89', 
-      address: '123 Tech Avenue, Paris', 
-      type: 'business',
-      status: 'active',
-      lastQuote: '22/05/2023',
-      createdAt: '15/01/2023',
-      tags: ['VIP', 'Tech', 'International'],
-      quoteCount: 12,
-      preferredShipping: 'Maritime'
-    },
-    { 
-      id: 'CL-002', 
-      name: 'Pharma Solutions', 
-      contact: 'Jane Smith', 
-      email: 'jane.smith@pharmasolutions.com', 
-      phone: '+33 9 87 65 43 21', 
-      address: '456 Health Street, Lyon', 
-      type: 'business',
-      status: 'active',
-      lastQuote: '21/05/2023',
-      createdAt: '03/02/2023',
-      tags: ['Pharmacie', 'Prioritaire'],
-      quoteCount: 8,
-      preferredShipping: 'Aérien'
-    },
-    { 
-      id: 'CL-003', 
-      name: 'Global Imports Ltd', 
-      contact: 'Robert Johnson', 
-      email: 'robert@globalimports.com', 
-      phone: '+33 6 11 22 33 44', 
-      address: '789 Import Road, Marseille', 
-      type: 'business',
-      status: 'active',
-      lastQuote: '20/05/2023',
-      createdAt: '22/02/2023',
-      tags: ['Import', 'Volumineux'],
-      quoteCount: 5,
-      preferredShipping: 'Maritime'
-    },
-    { 
-      id: 'CL-004', 
-      name: 'Eurotech GmbH', 
-      contact: 'Anna Müller', 
-      email: 'anna.muller@eurotech.de', 
-      phone: '+49 30 1234567', 
-      address: '10 Tech Straße, Berlin', 
-      type: 'business',
-      status: 'inactive',
-      lastQuote: '19/05/2023',
-      createdAt: '10/03/2023',
-      tags: ['Europe', 'Tech'],
-      quoteCount: 3,
-      preferredShipping: 'Routier'
+  // Sélectionner un client
+  const handleSelectClient = (clientId: string) => {
+    setSelectedClientId(clientId);
+    const client = mockClients.find(c => c.id === clientId);
+    if (client) {
+      onSelectClient(client.id, client.name);
     }
-  ];
-
-  // Filtrer les clients en fonction du terme de recherche et de l'onglet actif
-  const filteredClients = clients.filter(client => {
-    const matchesSearch = 
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      client.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (client.tags && client.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
-    
-    // Filtrer par statut si l'onglet n'est pas "all"
-    if (activeTab !== 'all') {
-      return matchesSearch && client.status === activeTab;
-    }
-    
-    // Filtre spécial pour l'onglet "recent"
-    if (activeTab === 'recent') {
-      // Simuler les clients récents (derniers 30 jours)
-      return matchesSearch && new Date(client.createdAt).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000;
-    }
-    
-    return matchesSearch;
-  });
-
-  // Récupérer le client sélectionné
-  const selectedClient = clients.find(client => client.id === selectedClientId);
-
-  // Fonction pour éditer un client existant
-  const handleEditClient = (client: Client) => {
-    form.reset({
-      name: client.name,
-      contact: client.contact,
-      email: client.email,
-      phone: client.phone,
-      address: client.address,
-      type: client.type,
-      tags: client.tags?.join(', ')
-    });
-    
-    setSelectedClientId(client.id);
-    setShowNewClientForm(true);
-  };
-
-  // Fonction pour créer un nouveau client
-  const handleCreateClient = (data: ClientFormValues) => {
-    // Simuler la création ou mise à jour du client
-    const isEditing = !!selectedClientId;
-    
-    toast({
-      title: isEditing ? "Client mis à jour" : "Client créé",
-      description: `Le client ${data.name} a été ${isEditing ? 'mis à jour' : 'créé'} avec succès.`,
-    });
-
-    // Retour à la liste des clients
-    setShowNewClientForm(false);
-    setSelectedClientId(null);
-    
-    // Réinitialiser le formulaire
-    form.reset({
-      name: '',
-      contact: '',
-      email: '',
-      phone: '',
-      address: '',
-      type: 'business',
-      tags: ''
-    });
-  };
-
-  useEffect(() => {
-    // Auto-focus sur le champ de recherche à l'ouverture
-    const timeout = setTimeout(() => {
-      const searchInput = document.getElementById('client-search');
-      if (searchInput) {
-        searchInput.focus();
-      }
-    }, 100);
-    
-    return () => clearTimeout(timeout);
-  }, [showNewClientForm]);
-
-  // Composant pour afficher les détails du client
-  const ClientDetails = () => {
-    if (!selectedClient) return null;
-    
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-xl font-bold">{selectedClient.name}</h3>
-            <p className="text-sm text-muted-foreground">ID: {selectedClient.id}</p>
-          </div>
-          <Badge variant={selectedClient.status === 'active' ? 'success' : 'outline'}>
-            {selectedClient.status === 'active' ? 'Actif' : 'Inactif'}
-          </Badge>
-        </div>
-        
-        <div className="flex flex-wrap gap-2 mt-2">
-          {selectedClient.tags?.map(tag => (
-            <Badge key={tag} variant="outline" className="gap-1">
-              <Tag className="h-3 w-3" />
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Informations de contact</h4>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.contact}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.address}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground">Activité</h4>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.quoteCount} devis au total</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>Dernier devis: {selectedClient.lastQuote}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                  <span>Client depuis: {selectedClient.createdAt}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Euro className="h-4 w-4 text-muted-foreground" />
-                  <span>Préférence d'expédition: {selectedClient.preferredShipping}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-end gap-2 pt-4 mt-6 border-t">
-          <Button variant="outline" onClick={() => setIsViewingClientDetails(false)}>
-            Retour à la liste
-          </Button>
-          <Button variant="outline" onClick={() => handleEditClient(selectedClient)}>
-            Modifier
-          </Button>
-          <Button onClick={() => onSelectClient(selectedClient.id, selectedClient.name)}>
-            Sélectionner pour le devis
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>
-            {showNewClientForm 
-              ? (selectedClientId ? "Modifier le client" : "Ajouter un nouveau client") 
-              : (isViewingClientDetails ? "Détails du client" : "Sélectionner un client")}
-          </DialogTitle>
-          <DialogDescription>
-            {showNewClientForm 
-              ? "Remplissez les informations du client ci-dessous." 
-              : (isViewingClientDetails 
-                ? "Consultez et modifiez les informations du client." 
-                : "Recherchez un client existant ou créez-en un nouveau.")}
-          </DialogDescription>
+          <DialogTitle>Sélectionner un client</DialogTitle>
         </DialogHeader>
-
-        {showNewClientForm ? (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleCreateClient)} className="py-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Nom de l'entreprise *</FormLabel>
-                      <div className="relative">
-                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            className="pl-10"
-                            placeholder="Nom de l'entreprise"
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="contact"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Nom du contact</FormLabel>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="pl-10"
-                            placeholder="Nom du contact"
-                          />
-                        </FormControl>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Email *</FormLabel>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="pl-10"
-                            placeholder="email@exemple.com"
-                            type="email"
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Téléphone</FormLabel>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="pl-10"
-                            placeholder="+33 1 23 45 67 89"
-                          />
-                        </FormControl>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel>Adresse</FormLabel>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <FormControl>
-                        <Input
-                          {...field}
-                          className="pl-10"
-                          placeholder="123 Rue Exemple, 75000 Paris"
-                        />
-                      </FormControl>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Type de client</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez un type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="business">Entreprise</SelectItem>
-                          <SelectItem value="individual">Particulier</SelectItem>
-                          <SelectItem value="government">Gouvernement</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="tags"
-                  render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel>Tags (séparés par des virgules)</FormLabel>
-                      <div className="relative">
-                        <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <FormControl>
-                          <Input
-                            {...field}
-                            className="pl-10"
-                            placeholder="VIP, International, Prioritaire"
-                          />
-                        </FormControl>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <DialogFooter className="pt-4">
-                <Button variant="outline" type="button" onClick={() => {
-                  setShowNewClientForm(false);
-                  setSelectedClientId(null);
-                  form.reset();
-                }}>
-                  Annuler
-                </Button>
-                <Button type="submit">
-                  {selectedClientId ? 'Mettre à jour' : 'Créer le client'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        ) : isViewingClientDetails ? (
-          <ClientDetails />
-        ) : (
-          <>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="client-search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                  placeholder="Rechercher par nom, contact, ID ou tag..."
-                  autoComplete="off"
-                />
-              </div>
-              <Button className="gap-2" onClick={() => {
-                setShowNewClientForm(true);
-                setSelectedClientId(null);
-              }}>
-                <UserPlus className="h-4 w-4" />
-                Nouveau Client
+        
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Rechercher un client par nom, contact, email..." 
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoFocus
+            />
+            {searchTerm && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                onClick={() => setSearchTerm('')}
+              >
+                <X className="h-4 w-4" />
               </Button>
+            )}
+          </div>
+          
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => {/* Functionality to add later */}}
+          >
+            <UserPlus className="h-4 w-4" />
+            Nouveau client
+          </Button>
+        </div>
+        
+        <Tabs defaultValue="all" className="flex-1 flex flex-col overflow-hidden" value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex justify-between items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="all">Tous les clients</TabsTrigger>
+              <TabsTrigger value="companies">Entreprises</TabsTrigger>
+              <TabsTrigger value="individuals">Particuliers</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex gap-2">
+              <Badge 
+                variant={selectedFilter === "all" ? "default" : "outline"} 
+                className="cursor-pointer"
+                onClick={() => setSelectedFilter("all")}
+              >
+                Tous
+              </Badge>
+              <Badge 
+                variant={selectedFilter === "recent" ? "default" : "outline"} 
+                className="cursor-pointer"
+                onClick={() => setSelectedFilter("recent")}
+              >
+                Récents
+              </Badge>
+              <Badge 
+                variant={selectedFilter === "vip" ? "default" : "outline"} 
+                className="cursor-pointer"
+                onClick={() => setSelectedFilter("vip")}
+              >
+                VIP/Premium
+              </Badge>
+              <Badge 
+                variant={selectedFilter === "international" ? "default" : "outline"} 
+                className="cursor-pointer"
+                onClick={() => setSelectedFilter("international")}
+              >
+                International
+              </Badge>
+              <Badge 
+                variant={selectedFilter === "new" ? "default" : "outline"} 
+                className="cursor-pointer"
+                onClick={() => setSelectedFilter("new")}
+              >
+                Nouveaux
+              </Badge>
             </div>
-
-            <Tabs defaultValue="all" className="w-full" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="all">Tous</TabsTrigger>
-                <TabsTrigger value="active">Actifs</TabsTrigger>
-                <TabsTrigger value="inactive">Inactifs</TabsTrigger>
-                <TabsTrigger value="recent">Récents</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="all" className="h-full">
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-2">
-                    {filteredClients.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        Aucun client trouvé. Essayez de modifier votre recherche ou 
-                        <Button variant="link" onClick={() => {
-                          setShowNewClientForm(true);
-                          setSelectedClientId(null);
-                        }}>
-                          créez un nouveau client
-                        </Button>
-                      </div>
-                    ) : (
-                      filteredClients.map((client) => (
-                        <div 
-                          key={client.id}
-                          className="p-4 border rounded-lg hover:border-primary/50 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-                        >
-                          <div onClick={() => {
-                            setSelectedClientId(client.id);
-                            setIsViewingClientDetails(true);
-                          }}>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{client.name}</h3>
-                              <Badge variant={client.status === 'active' ? 'success' : 'outline'}>
-                                {client.status === 'active' ? 'Actif' : 'Inactif'}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">ID: {client.id}</p>
-                            <div className="flex items-center gap-4 mt-1">
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
-                                {client.contact}
-                              </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {client.email}
-                              </div>
-                            </div>
-                            {client.tags && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {client.tags.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+          </div>
+          
+          <TabsContent value="all" className="flex-1 overflow-hidden">
+            <ScrollArea className="h-[50vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
+                {filteredClients.map((client) => (
+                  <Card 
+                    key={client.id} 
+                    className={cn(
+                      "cursor-pointer hover:border-primary transition-colors",
+                      selectedClientId === client.id ? "border-primary bg-primary/5" : ""
+                    )}
+                    onClick={() => handleSelectClient(client.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center text-white",
+                          client.type === "Entreprise" ? "bg-blue-500" : "bg-emerald-500"
+                        )}>
+                          {client.type === "Entreprise" ? 
+                            <Building2 className="h-5 w-5" /> : 
+                            <User className="h-5 w-5" />
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium truncate">{client.name}</h3>
+                            <span className="text-xs text-muted-foreground">{client.id}</span>
                           </div>
                           
-                          <div className="flex md:flex-col gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => onSelectClient(client.id, client.name)}
-                              className="w-full"
-                            >
-                              Sélectionner
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClientId(client.id);
-                                setIsViewingClientDetails(true);
-                              }}
-                              className="w-full"
-                            >
-                              Détails
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-
-              {/* Contenu similaire pour les autres onglets - utilise les mêmes filtres */}
-              <TabsContent value="active">
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-2">
-                    {filteredClients.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        Aucun client actif trouvé.
-                      </div>
-                    ) : (
-                      filteredClients.map((client) => (
-                        // Structure identique au TabsContent "all"
-                        <div 
-                          key={client.id}
-                          className="p-4 border rounded-lg hover:border-primary/50 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-                        >
-                          <div onClick={() => {
-                            setSelectedClientId(client.id);
-                            setIsViewingClientDetails(true);
-                          }}>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{client.name}</h3>
-                              <Badge variant="success">Actif</Badge>
+                          {client.type === "Entreprise" && (
+                            <p className="text-sm text-muted-foreground">{client.industry}</p>
+                          )}
+                          
+                          <div className="mt-2 flex flex-col gap-1">
+                            <div className="flex items-center text-sm">
+                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.contact}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground">ID: {client.id}</p>
-                            <div className="flex items-center gap-4 mt-1">
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
-                                {client.contact}
-                              </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {client.email}
-                              </div>
+                            
+                            <div className="flex items-center text-sm">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>Dernière activité: {client.lastActivity}</span>
                             </div>
-                            {client.tags && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {client.tags.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            
+                            <div className="flex items-center text-sm">
+                              <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.quotesCount} devis</span>
+                            </div>
                           </div>
                           
-                          <div className="flex md:flex-col gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => onSelectClient(client.id, client.name)}
-                              className="w-full"
-                            >
-                              Sélectionner
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClientId(client.id);
-                                setIsViewingClientDetails(true);
-                              }}
-                              className="w-full"
-                            >
-                              Détails
-                            </Button>
-                          </div>
+                          {client.tags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {client.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              
-              {/* Les autres TabsContent fonctionnent de la même manière */}
-              <TabsContent value="inactive">
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-2">
-                    {filteredClients.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        Aucun client inactif trouvé.
                       </div>
-                    ) : (
-                      filteredClients.map((client) => (
-                        // Même structure que les autres onglets
-                        <div 
-                          key={client.id}
-                          className="p-4 border rounded-lg hover:border-primary/50 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-                        >
-                          <div onClick={() => {
-                            setSelectedClientId(client.id);
-                            setIsViewingClientDetails(true);
-                          }}>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{client.name}</h3>
-                              <Badge variant="outline">Inactif</Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">ID: {client.id}</p>
-                            <div className="flex items-center gap-4 mt-1">
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
-                                {client.contact}
-                              </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {client.email}
-                              </div>
-                            </div>
-                            {client.tags && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {client.tags.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredClients.length === 0 && (
+                  <div className="col-span-3 py-8 text-center">
+                    <Users className="mx-auto h-8 w-8 text-muted-foreground/60" />
+                    <h3 className="mt-2 text-lg font-medium">Aucun client trouvé</h3>
+                    <p className="text-muted-foreground">
+                      Essayez d'ajuster votre recherche ou de créer un nouveau client
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+          
+          <TabsContent value="companies" className="flex-1 overflow-hidden">
+            <ScrollArea className="h-[50vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
+                {filteredClients.map((client) => (
+                  <Card 
+                    key={client.id} 
+                    className={cn(
+                      "cursor-pointer hover:border-primary transition-colors",
+                      selectedClientId === client.id ? "border-primary bg-primary/5" : ""
+                    )}
+                    onClick={() => handleSelectClient(client.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                          <Building2 className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium truncate">{client.name}</h3>
+                            <span className="text-xs text-muted-foreground">{client.id}</span>
                           </div>
                           
-                          <div className="flex md:flex-col gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => onSelectClient(client.id, client.name)}
-                              className="w-full"
-                            >
-                              Sélectionner
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClientId(client.id);
-                                setIsViewingClientDetails(true);
-                              }}
-                              className="w-full"
-                            >
-                              Détails
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="recent">
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-2">
-                    {filteredClients.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        Aucun client récent trouvé.
-                      </div>
-                    ) : (
-                      filteredClients.map((client) => (
-                        // Même structure que les autres onglets
-                        <div 
-                          key={client.id}
-                          className="p-4 border rounded-lg hover:border-primary/50 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-                        >
-                          <div onClick={() => {
-                            setSelectedClientId(client.id);
-                            setIsViewingClientDetails(true);
-                          }}>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{client.name}</h3>
-                              <Badge variant={client.status === 'active' ? 'success' : 'outline'}>
-                                {client.status === 'active' ? 'Actif' : 'Inactif'}
-                              </Badge>
+                          <p className="text-sm text-muted-foreground">{client.industry}</p>
+                          
+                          <div className="mt-2 flex flex-col gap-1">
+                            <div className="flex items-center text-sm">
+                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.contact}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground">ID: {client.id}</p>
-                            <div className="flex items-center gap-4 mt-1">
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <User className="h-3 w-3 mr-1" />
-                                {client.contact}
-                              </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {client.email}
-                              </div>
+                            
+                            <div className="flex items-center text-sm">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>Dernière activité: {client.lastActivity}</span>
                             </div>
-                            {client.tags && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {client.tags.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            
+                            <div className="flex items-center text-sm">
+                              <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.quotesCount} devis</span>
+                            </div>
                           </div>
                           
-                          <div className="flex md:flex-col gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => onSelectClient(client.id, client.name)}
-                              className="w-full"
-                            >
-                              Sélectionner
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClientId(client.id);
-                                setIsViewingClientDetails(true);
-                              }}
-                              className="w-full"
-                            >
-                              Détails
-                            </Button>
-                          </div>
+                          {client.tags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {client.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      ))
-                    )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredClients.length === 0 && (
+                  <div className="col-span-3 py-8 text-center">
+                    <Building2 className="mx-auto h-8 w-8 text-muted-foreground/60" />
+                    <h3 className="mt-2 text-lg font-medium">Aucune entreprise trouvée</h3>
+                    <p className="text-muted-foreground">
+                      Essayez d'ajuster votre recherche ou de créer une nouvelle entreprise
+                    </p>
                   </div>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+          
+          <TabsContent value="individuals" className="flex-1 overflow-hidden">
+            <ScrollArea className="h-[50vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
+                {filteredClients.map((client) => (
+                  <Card 
+                    key={client.id} 
+                    className={cn(
+                      "cursor-pointer hover:border-primary transition-colors",
+                      selectedClientId === client.id ? "border-primary bg-primary/5" : ""
+                    )}
+                    onClick={() => handleSelectClient(client.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium truncate">{client.name}</h3>
+                            <span className="text-xs text-muted-foreground">{client.id}</span>
+                          </div>
+                          
+                          <div className="mt-2 flex flex-col gap-1">
+                            <div className="flex items-center text-sm">
+                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.contact}</span>
+                            </div>
+                            
+                            <div className="flex items-center text-sm">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>Dernière activité: {client.lastActivity}</span>
+                            </div>
+                            
+                            <div className="flex items-center text-sm">
+                              <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.quotesCount} devis</span>
+                            </div>
+                          </div>
+                          
+                          {client.tags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {client.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredClients.length === 0 && (
+                  <div className="col-span-3 py-8 text-center">
+                    <User className="mx-auto h-8 w-8 text-muted-foreground/60" />
+                    <h3 className="mt-2 text-lg font-medium">Aucun particulier trouvé</h3>
+                    <p className="text-muted-foreground">
+                      Essayez d'ajuster votre recherche ou de créer un nouveau particulier
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

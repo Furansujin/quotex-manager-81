@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -8,20 +7,12 @@ import {
   PlusCircle, 
   Search, 
   Filter, 
-  SlidersHorizontal, 
   FileText,
   CheckCircle2, 
   Clock, 
   AlertCircle,
-  ChevronDown,
-  CalendarRange,
-  UserCircle,
-  ArrowUpDown,
-  Euro,
-  Users,
   X
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import QuoteEditor from '@/components/quotes/QuoteEditor';
@@ -284,7 +275,7 @@ const Quotes = () => {
               <h1 className="text-2xl font-bold">Gestion des Devis</h1>
               <p className="text-muted-foreground">Créez et gérez vos demandes de devis</p>
             </div>
-            <div className="flex gap-2">
+            <div>
               <Button 
                 className="gap-2" 
                 onClick={handleNewQuote}
@@ -292,14 +283,6 @@ const Quotes = () => {
               >
                 <PlusCircle className="h-4 w-4" />
                 Nouveau Devis
-              </Button>
-              <Button 
-                className="gap-2" 
-                variant="outline"
-                onClick={() => setShowClientSelector(true)}
-              >
-                <Users className="h-4 w-4" />
-                Gérer Clients
               </Button>
             </div>
           </div>
@@ -332,11 +315,14 @@ const Quotes = () => {
               >
                 <Filter className="h-4 w-4" />
                 {activeFilters ? "Filtres actifs" : "Filtres"}
-                {activeFilters && <Badge variant="outline" className="ml-1 text-xs">{Object.keys(activeFilters).filter(k => activeFilters[k as keyof QuoteFilterValues] && (
-                  Array.isArray(activeFilters[k as keyof QuoteFilterValues]) 
-                    ? (activeFilters[k as keyof QuoteFilterValues] as any[]).length > 0 
-                    : true
-                )).length}</Badge>}
+                {activeFilters && <Badge variant="outline" className="ml-1 text-xs">{Object.keys(activeFilters).filter(k => {
+                  const value = activeFilters[k as keyof QuoteFilterValues];
+                  return value && (
+                    Array.isArray(value) 
+                      ? (value as any[]).length > 0 
+                      : true
+                  );
+                }).length}</Badge>}
               </Button>
               
               {activeFilters && (
