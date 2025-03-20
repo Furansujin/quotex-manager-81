@@ -878,4 +878,4 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground py-4">
-                        Sélectionnez un type de transport pour voir les suggestions
+                        Sélectionnez un type de transport pour voir les
