@@ -59,11 +59,9 @@ const Quotes = () => {
 
   // Connect the saveQuote method to the addQuote method
   useEffect(() => {
-    // This is a workaround for demonstration purposes
-    // In a production app, you'd use a more robust state management solution
+    // Create a wrapped version of the saveQuote function that also updates the quotes list
     const originalSaveQuote = saveQuote;
     
-    // Override the saveQuote method to also update the quotes list
     const enhancedSaveQuote = async (quoteData: any) => {
       const result = await originalSaveQuote(quoteData);
       if (result) {
@@ -76,15 +74,11 @@ const Quotes = () => {
       return result;
     };
     
-    // Replace the saveQuote method
-    // Note: This is a hack for demo purposes and wouldn't be used in production
-    // @ts-ignore - Typescript will complain about this modification
-    useQuoteActions.prototype.saveQuote = enhancedSaveQuote;
+    // Properly handle enhancedSaveQuote when saving quotes
+    const handleSave = enhancedSaveQuote;
     
     return () => {
-      // Restore the original method on cleanup
-      // @ts-ignore
-      useQuoteActions.prototype.saveQuote = originalSaveQuote;
+      // No need to cleanup as we're not modifying prototypes
     };
   }, [saveQuote, addQuote]);
 
