@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ShipmentTable from './ShipmentTable';
 import { Shipment } from './ShipmentTable';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ShipmentTabsProps {
   activeTab: string;
@@ -20,12 +19,12 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
 }) => {
   return (
     <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab} value={activeTab}>
-      <TabsList className="mb-6 h-11 p-1 bg-[#f3f3f3] border border-[#eee]">
-        <TabsTrigger value="all" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Toutes</TabsTrigger>
-        <TabsTrigger value="active" className="h-9 px-5 rounded-md data-[state=active]:bg-white">En cours</TabsTrigger>
-        <TabsTrigger value="completed" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Terminées</TabsTrigger>
-        <TabsTrigger value="delayed" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Retardées</TabsTrigger>
-        <TabsTrigger value="calendar" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Calendrier</TabsTrigger>
+      <TabsList className="mb-4">
+        <TabsTrigger value="all">Toutes</TabsTrigger>
+        <TabsTrigger value="active">En cours</TabsTrigger>
+        <TabsTrigger value="completed">Terminées</TabsTrigger>
+        <TabsTrigger value="delayed">Retardées</TabsTrigger>
+        <TabsTrigger value="calendar">Calendrier</TabsTrigger>
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">

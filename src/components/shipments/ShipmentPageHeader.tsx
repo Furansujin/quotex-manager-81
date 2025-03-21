@@ -9,18 +9,18 @@ interface ShipmentPageHeaderProps {
 
 const ShipmentPageHeader: React.FC<ShipmentPageHeaderProps> = ({ onNewShipment }) => {
   return (
-    <div className="flex items-center justify-between mb-8">
+    <div className="flex items-center justify-between mb-6">
       <div>
         <h1 className="text-2xl font-bold">Gestion des Expéditions</h1>
         <p className="text-muted-foreground">Suivi et gestion des expéditions en cours</p>
       </div>
-      <div className="flex gap-3">
-        <Button variant="outline" className="gap-2 px-4 h-10">
+      <div className="flex gap-2">
+        <Button variant="outline" className="gap-2">
           <Calendar className="h-4 w-4" />
           Planifier
         </Button>
         <Button 
-          className="gap-2 px-4 h-10" 
+          className="gap-2" 
           onClick={onNewShipment}
         >
           <Plus className="h-4 w-4" />

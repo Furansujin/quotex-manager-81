@@ -18,9 +18,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from '@/components/ui/card';
@@ -52,26 +50,26 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
   const getShipmentIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case 'maritime':
-        return <Ship className="h-5 w-5 text-blue-600" />;
+        return <Ship className="h-4 w-4 text-blue-600" />;
       case 'routier':
-        return <Truck className="h-5 w-5 text-amber-600" />;
+        return <Truck className="h-4 w-4 text-amber-600" />;
       case 'aérien':
-        return <PlaneTakeoff className="h-5 w-5 text-green-600" />;
+        return <PlaneTakeoff className="h-4 w-4 text-green-600" />;
       default:
-        return <Ship className="h-5 w-5 text-primary" />;
+        return <Ship className="h-4 w-4 text-primary" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'en cours':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-700 font-medium">En cours</Badge>;
+        return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-200">En cours</Badge>;
       case 'terminée':
-        return <Badge variant="outline" className="bg-green-100 text-green-700 font-medium">Terminée</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-200">Terminée</Badge>;
       case 'planifiée':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-700 font-medium">Planifiée</Badge>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-200">Planifiée</Badge>;
       case 'retardée':
-        return <Badge variant="outline" className="bg-red-100 text-red-700 font-medium">Retardée</Badge>;
+        return <Badge variant="outline" className="bg-red-100 text-red-700 hover:bg-red-200">Retardée</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -111,19 +109,19 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
   };
 
   return (
-    <Card className="border border-[#eee] shadow-sm">
-      <CardContent className="p-0">
+    <Card>
+      <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-[#f6f6f7]">
-            <TableRow className="border-0 hover:bg-transparent">
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">N° Expédition</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Client</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Dates</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Type</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Trajet</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Fret</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Statut</TableHead>
-              <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700 text-right">Actions</TableHead>
+          <TableHeader>
+            <TableRow>
+              <TableHead>N° Expédition</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Dates</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Trajet</TableHead>
+              <TableHead>Fret</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,26 +136,22 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
                 </TableCell>
               </TableRow>
             ) : (
-              shipments.map((shipment, index) => (
+              shipments.map((shipment) => (
                 <TableRow 
                   key={shipment.id}
-                  className={`cursor-pointer hover:bg-[#f1f1f1] transition-colors ${index < shipments.length - 1 ? 'border-b' : 'border-b-0'}`}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => onOpenShipment(shipment.id)}
                   onMouseEnter={() => setHoveredRow(shipment.id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
-                  <TableCell className="px-6 py-5 font-medium">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-md bg-[#f1f0fb]">
-                        {getShipmentIcon(shipment.type)}
-                      </div>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {getShipmentIcon(shipment.type)}
                       {shipment.id}
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5">
-                    <span className="font-medium text-gray-800">{shipment.client}</span>
-                  </TableCell>
-                  <TableCell className="px-6 py-5">
+                  <TableCell>{shipment.client}</TableCell>
+                  <TableCell>
                     <div className="flex flex-col gap-1">
                       <span className="text-sm flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5 text-blue-600" />
@@ -169,62 +163,55 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5">
-                    <span className="text-gray-800">{shipment.type}</span>
+                  <TableCell>
+                    <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
+                                                       shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
+                                                       'bg-amber-100 text-amber-700'}>
+                      {shipment.type}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-gray-800">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
                       <span className="max-w-[100px] truncate">{shipment.origin}</span>
                       <span>→</span>
                       <span className="max-w-[100px] truncate">{shipment.destination}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5 text-gray-800">{shipment.containers}</TableCell>
-                  <TableCell className="px-6 py-5">
-                    <div className="space-y-2.5">
-                      <div className="flex justify-between items-center">
-                        {getStatusBadge(shipment.status)}
-                        <span className="text-xs font-medium text-gray-600">{shipment.progress}%</span>
+                  <TableCell>{shipment.containers}</TableCell>
+                  <TableCell>
+                    <div className="space-y-2">
+                      {getStatusBadge(shipment.status)}
+                      <div className="w-full h-1.5 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${getProgressColor(shipment.status)}`}
+                          style={{ width: `${shipment.progress}%` }}
+                        ></div>
                       </div>
-                      <Progress 
-                        value={shipment.progress} 
-                        className={`h-2 ${getProgressColor(shipment.status)}`} 
-                      />
                     </div>
                   </TableCell>
-                  <TableCell className="px-6 py-5 text-right">
-                    <div className="flex justify-end">
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className={`h-9 px-2.5 rounded-full transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-0'}`}
-                            onClick={(e) => e.stopPropagation()}
+                            className={`h-8 px-2 transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-70'}`}
                           >
-                            <MoreHorizontal className="h-4.5 w-4.5" />
+                            <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Actions</span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditShipment(shipment.id);
-                          }}>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => handleEditShipment(shipment.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Modifier</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            handleDuplicateShipment(shipment.id);
-                          }}>
+                          <DropdownMenuItem onClick={() => handleDuplicateShipment(shipment.id)}>
                             <Copy className="mr-2 h-4 w-4" />
                             <span>Dupliquer</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownloadShipment(shipment.id);
-                          }}>
+                          <DropdownMenuItem onClick={() => handleDownloadShipment(shipment.id)}>
                             <Download className="mr-2 h-4 w-4" />
                             <span>Télécharger</span>
                           </DropdownMenuItem>
@@ -237,7 +224,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
             )}
           </TableBody>
         </Table>
-      </CardContent>
+      </div>
     </Card>
   );
 };
