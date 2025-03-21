@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -62,7 +63,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     suggestedItems,
     originSuggestions,
     destinationSuggestions,
-    // Nouvelles propriétés pour les détails de marchandise
+    // Propriétés pour les détails de marchandise
     cargoDescription,
     setCargoDescription,
     cargoType,
@@ -444,43 +445,48 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       onClose={onClose}
     >
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations générales</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <ClientInfoCard 
-                    client={client}
-                    setClient={setClient}
-                    clientDetails={clientDetails}
-                    showClientInfo={showClientInfo}
-                    setShowClientInfo={setShowClientInfo}
-                    clientId={clientId}
-                    initialClientName={selectedClientName}
-                  />
-                </div>
-                <div>
-                  <QuoteOptions 
-                    type={type}
-                    setType={setType}
-                    validUntil={validUntil}
-                    setValidUntil={setValidUntil}
-                    incoterm={incoterm}
-                    setIncoterm={setIncoterm}
-                    currency={currency}
-                    setCurrency={setCurrency}
-                    notes={notes}
-                    setNotes={setNotes}
-                    items={items}
-                    addItem={addItem}
-                    suggestedItems={suggestedItems}
-                  />
-                </div>
+        {/* Section supérieure - Informations générales - Disposition en grille adaptative */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations générales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Colonne de gauche - Client info */}
+              <div>
+                <ClientInfoCard 
+                  client={client}
+                  setClient={setClient}
+                  clientDetails={clientDetails}
+                  showClientInfo={showClientInfo}
+                  setShowClientInfo={setShowClientInfo}
+                  clientId={clientId}
+                  initialClientName={selectedClientName}
+                />
               </div>
               
+              {/* Colonne de droite - Options du devis */}
+              <div>
+                <QuoteOptions 
+                  type={type}
+                  setType={setType}
+                  validUntil={validUntil}
+                  setValidUntil={setValidUntil}
+                  incoterm={incoterm}
+                  setIncoterm={setIncoterm}
+                  currency={currency}
+                  setCurrency={setCurrency}
+                  notes={notes}
+                  setNotes={setNotes}
+                  items={items}
+                  addItem={addItem}
+                  suggestedItems={suggestedItems}
+                />
+              </div>
+            </div>
+            
+            {/* Champs d'origine et destination */}
+            <div className="mt-6">
               <LocationFields 
                 origin={origin}
                 setOrigin={setOrigin}
@@ -489,21 +495,24 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
                 originSuggestions={originSuggestions}
                 destinationSuggestions={destinationSuggestions}
               />
+            </div>
 
-              {/* Add follow-up history component if there are follow-ups */}
-              {quoteId && followUps.length > 0 && (
-                <div className="mt-4">
-                  <FollowUpHistory 
-                    followUps={followUps}
-                    isExpanded={showFollowUpHistory}
-                    onToggle={toggleFollowUpHistory}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          {/* Add the new Cargo Details component */}
+            {/* Historique des suivis */}
+            {quoteId && followUps.length > 0 && (
+              <div className="mt-4">
+                <FollowUpHistory 
+                  followUps={followUps}
+                  isExpanded={showFollowUpHistory}
+                  onToggle={toggleFollowUpHistory}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Section du milieu - Détails de marchandise et Tarification fournisseur */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Détails de la marchandise */}
           <CargoDetails
             description={cargoDescription}
             setDescription={setCargoDescription}
@@ -527,6 +536,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
             setPackageCount={setCargoPackageCount}
           />
           
+          {/* Tarification fournisseur */}
           {showSupplierPricing && (
             <SupplierPricing
               origin={origin}
@@ -536,45 +546,47 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
               onPriceSelect={addItem}
             />
           )}
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Services et produits</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <QuoteItemsTable 
-                items={items}
-                updateItem={updateItem}
-                removeItem={removeItem}
-                addItem={addItem}
-                calculateSubtotal={calculateSubtotal}
-                calculateTaxAmount={calculateTaxAmount}
-                calculateTotal={calculateTotal}
-                currency={currency}
-                suggestedItems={type ? suggestedItems[type] : []}
-                type={type}
-              />
-            </CardContent>
-          </Card>
-          
-          <QuoteActionButtons 
-            onClose={onClose}
-            handleGeneratePdf={handleGeneratePdf}
-            handlePrint={handlePrint}
-            handleSend={handleSend}
-            handleSave={handleSave}
-            handleFollowUp={handleFollowUp}
-            isGeneratingPdf={isGeneratingPdf}
-            isPrinting={isPrinting}
-            isSaving={isSaving}
-            itemsExist={items.length > 0}
-            showFollowUp={isEditing && quoteId !== undefined}
-            hasCargoDetails={hasCargoDetails()}
-          />
         </div>
+        
+        {/* Section inférieure - Services et produits */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Services et produits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuoteItemsTable 
+              items={items}
+              updateItem={updateItem}
+              removeItem={removeItem}
+              addItem={addItem}
+              calculateSubtotal={calculateSubtotal}
+              calculateTaxAmount={calculateTaxAmount}
+              calculateTotal={calculateTotal}
+              currency={currency}
+              suggestedItems={type ? suggestedItems[type] : []}
+              type={type}
+            />
+          </CardContent>
+        </Card>
+        
+        {/* Boutons d'action */}
+        <QuoteActionButtons 
+          onClose={onClose}
+          handleGeneratePdf={handleGeneratePdf}
+          handlePrint={handlePrint}
+          handleSend={handleSend}
+          handleSave={handleSave}
+          handleFollowUp={handleFollowUp}
+          isGeneratingPdf={isGeneratingPdf}
+          isPrinting={isPrinting}
+          isSaving={isSaving}
+          itemsExist={items.length > 0}
+          showFollowUp={isEditing && quoteId !== undefined}
+          hasCargoDetails={hasCargoDetails()}
+        />
       </div>
 
-      {/* Add follow-up reminder dialog */}
+      {/* Dialogue de rappel de suivi */}
       {showFollowUpReminder && (
         <FollowUpReminder 
           quoteId={quoteId || ''}
