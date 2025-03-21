@@ -1,89 +1,202 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useEffect, useRef } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { 
-  LayoutDashboard, 
+  Home, 
   FileText, 
-  Ship, 
   Users, 
-  Truck,
-  DollarSign, 
-  FileCheck, 
-  UserCircle, 
-  Settings,
-  X,
-  LogOut
+  Truck, 
+  Briefcase, 
+  File, 
+  BarChart3, 
+  Settings, 
+  UserPlus,
+  FileInvoice  // Nouvel import d'icône
 } from 'lucide-react';
 
 interface SidebarProps {
-  isOpen?: boolean;
-  onClose?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
-  const menuItems = [
-    { icon: <LayoutDashboard className="mr-3 h-5 w-5" />, label: 'Tableau de Bord', path: '/' },
-    { icon: <FileText className="mr-3 h-5 w-5" />, label: 'Devis', path: '/quotes' },
-    { icon: <Ship className="mr-3 h-5 w-5" />, label: 'Expéditions', path: '/shipments' },
-    { icon: <Users className="mr-3 h-5 w-5" />, label: 'Clients', path: '/clients' },
-    { icon: <Truck className="mr-3 h-5 w-5" />, label: 'Fournisseurs', path: '/suppliers' },
-    { icon: <DollarSign className="mr-3 h-5 w-5" />, label: 'Finance', path: '/finance' },
-    { icon: <FileCheck className="mr-3 h-5 w-5" />, label: 'Documents', path: '/documents' },
-    { icon: <UserCircle className="mr-3 h-5 w-5" />, label: 'Équipe', path: '/team' },
-    { icon: <Settings className="mr-3 h-5 w-5" />, label: 'Paramètres', path: '/settings' },
-  ];
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+  const location = useLocation();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Cette fonction gère le clic à l'extérieur du sidebar pour le fermer (sur mobile)
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen && 
+        sidebarRef.current && 
+        !sidebarRef.current.contains(event.target as Node) &&
+        backdropRef.current && 
+        backdropRef.current.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   return (
     <>
-      {/* Mobile sidebar */}
-      <div className={`md:hidden fixed inset-0 z-50 ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-        <div className="fixed left-0 top-0 bottom-0 w-64 bg-background border-r p-4 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">QuoteX</h2>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          
+      {/* Backdrop - visible uniquement sur mobile lorsque le sidebar est ouvert */}
+      <div 
+        ref={backdropRef}
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+      />
+
+      {/* Sidebar */}
+      <div 
+        ref={sidebarRef}
+        className={cn(
+          "fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 pt-16 z-30 transition-transform duration-300 ease-in-out md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="px-6 py-4">
+          <p className="text-xs font-medium text-gray-400 uppercase mb-4">Menu principal</p>
           <nav className="space-y-1">
-            {menuItems.map((item, index) => (
-              <Link 
-                key={index} 
-                to={item.path}
-                className="flex items-center py-2 px-3 text-base rounded-md hover:bg-muted transition-colors"
-                onClick={onClose}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          
-          <div className="fixed bottom-4 w-56">
-            <Button variant="outline" className="w-full justify-start">
-              <LogOut className="mr-3 h-5 w-5" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Desktop sidebar */}
-      <div className="hidden md:block fixed left-0 top-0 bottom-0 w-64 pt-16 bg-background border-r shadow-sm">
-        <div className="px-3 py-4">
-          <nav className="space-y-1">
-            {menuItems.map((item, index) => (
-              <Link 
-                key={index} 
-                to={item.path}
-                className="flex items-center py-2 px-3 text-base rounded-md hover:bg-muted transition-colors"
-              >
-                {item.icon}
-                {item.label}
-              </Link>
-            ))}
+            <NavLink 
+              to="/" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+              end
+            >
+              <Home className="mr-3 h-4 w-4" />
+              Tableau de bord
+            </NavLink>
+
+            <NavLink 
+              to="/quotes" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <FileText className="mr-3 h-4 w-4" />
+              Devis
+            </NavLink>
+
+            <NavLink 
+              to="/invoices" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <FileInvoice className="mr-3 h-4 w-4" />
+              Factures
+            </NavLink>
+
+            <NavLink 
+              to="/shipments" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <Truck className="mr-3 h-4 w-4" />
+              Expéditions
+            </NavLink>
+
+            <NavLink 
+              to="/clients" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <Users className="mr-3 h-4 w-4" />
+              Clients
+            </NavLink>
+
+            <NavLink 
+              to="/suppliers" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <Briefcase className="mr-3 h-4 w-4" />
+              Fournisseurs
+            </NavLink>
+
+            <NavLink 
+              to="/documents" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <File className="mr-3 h-4 w-4" />
+              Documents
+            </NavLink>
+
+            <NavLink 
+              to="/finance" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <BarChart3 className="mr-3 h-4 w-4" />
+              Finance
+            </NavLink>
+
+            <NavLink 
+              to="/team" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <UserPlus className="mr-3 h-4 w-4" />
+              Équipe
+            </NavLink>
+
+            <NavLink 
+              to="/settings" 
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2 text-sm rounded-md",
+                isActive 
+                  ? "bg-primary text-white" 
+                  : "text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              <Settings className="mr-3 h-4 w-4" />
+              Paramètres
+            </NavLink>
           </nav>
         </div>
       </div>

@@ -80,7 +80,7 @@ export const useQuotesData = () => {
       date: "20/05/2023", 
       origin: "Rotterdam, NL", 
       destination: "Marseille, FR",
-      status: "pending",
+      status: "validated",
       amount: "€ 1,780.25",
       type: "Maritime",
       commercial: "Jean Dupont",
@@ -110,13 +110,13 @@ export const useQuotesData = () => {
       date: "18/05/2023", 
       origin: "Hong Kong, HK", 
       destination: "Paris, FR",
-      status: "expired",
+      status: "invoiced",
       amount: "€ 4,230.75",
       type: "Maritime",
       commercial: "Jean Dupont",
       lastModified: "18/05/2023",
       validUntil: "18/06/2023",
-      notes: "Devis remplacé par QT-2023-0142"
+      notes: "Facturé le 23/05/2023"
     },
   ]);
 
@@ -136,6 +136,25 @@ export const useQuotesData = () => {
         return [quote, ...prevQuotes];
       }
     });
+  };
+
+  // Update the status of a quote
+  const updateQuoteStatus = (quoteId: string, newStatus: string) => {
+    setQuotes(prevQuotes => 
+      prevQuotes.map(quote => 
+        quote.id === quoteId 
+          ? { 
+              ...quote, 
+              status: newStatus,
+              lastModified: new Date().toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })
+            } 
+          : quote
+      )
+    );
   };
 
   // Filter quotes based on active tab, search term, and filters
@@ -282,6 +301,7 @@ export const useQuotesData = () => {
     filteredQuotes,
     quotes,
     addQuote,
+    updateQuoteStatus,
     handleApplyFilters,
     clearAllFilters
   };

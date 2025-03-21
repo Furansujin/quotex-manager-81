@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -15,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Filter, X, Calendar } from 'lucide-react';
 import QuoteFollowUpButton from '@/components/quotes/QuoteFollowUpButton';
 import { useToast } from '@/hooks/use-toast';
+import { useInvoiceService } from '@/hooks/useInvoiceService';
+import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 
 const Quotes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,7 +31,9 @@ const Quotes = () => {
     setSearchTerm, 
     activeFilters, 
     filteredQuotes, 
+    quotes,
     addQuote,
+    updateQuoteStatus,
     handleApplyFilters, 
     clearAllFilters 
   } = useQuotesData();
@@ -48,6 +53,22 @@ const Quotes = () => {
     setShowClientSelector,
     saveQuote
   } = useQuoteActions();
+
+  // Get invoice service
+  const {
+    invoices,
+    isGenerating,
+    currentInvoice,
+    showInvoiceModal,
+    generateInvoice,
+    openInvoice,
+    closeInvoice,
+    sendInvoice,
+    markAsPaid,
+    findInvoiceById,
+    findInvoiceByQuoteId,
+    updateInvoice
+  } = useInvoiceService();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -124,6 +145,85 @@ const Quotes = () => {
     }
   }, [filteredQuotes, toast]);
 
+  // Gestion de l'approbation d'un devis
+  const handleApproveQuote = async (quoteId: string) => {
+    // Trouver le devis
+    const quoteToApprove = quotes.find(q => q.id === quoteId);
+    
+    if (!quoteToApprove) {
+      toast({
+        title: "Erreur",
+        description: "Devis introuvable.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Mettre à jour le statut du devis
+    updateQuoteStatus(quoteId, "validated");
+    
+    toast({
+      title: "Devis validé",
+      description: `Le devis ${quoteId} a été validé avec succès.`,
+    });
+    
+    // Option: générer automatiquement la facture
+    // (Désactivé par défaut, à activer selon les besoins de l'utilisateur)
+    /*
+    try {
+      const invoice = await handleGenerateInvoice(quoteId);
+      // Afficher un message de succès supplémentaire
+    } catch (error) {
+      // Gestion des erreurs
+    }
+    */
+  };
+
+  // Gestion de la génération d'une facture
+  const handleGenerateInvoice = async (quoteId: string) => {
+    // Vérifier si une facture existe déjà
+    const existingInvoice = findInvoiceByQuoteId(quoteId);
+    
+    if (existingInvoice) {
+      // Ouvrir la facture existante
+      openInvoice(existingInvoice);
+      return existingInvoice;
+    }
+    
+    // Trouver le devis
+    const quote = quotes.find(q => q.id === quoteId);
+    
+    if (!quote) {
+      toast({
+        title: "Erreur",
+        description: "Devis introuvable.",
+        variant: "destructive"
+      });
+      throw new Error("Quote not found");
+    }
+    
+    try {
+      // Générer la facture
+      const invoice = await generateInvoice(quote);
+      
+      // Mettre à jour le statut du devis
+      updateQuoteStatus(quoteId, "invoiced");
+      
+      // Ouvrir la facture générée
+      openInvoice(invoice);
+      
+      return invoice;
+    } catch (error) {
+      console.error("Erreur lors de la génération de la facture", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer la facture. Veuillez réessayer.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={toggleSidebar} />
@@ -176,6 +276,8 @@ const Quotes = () => {
                       <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
                       <Badge variant="warning" className="cursor-pointer">En attente</Badge>
                       <Badge variant="success" className="cursor-pointer">Approuvés</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-blue-100 text-blue-700">Validés</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-violet-100 text-violet-700">Facturés</Badge>
                       <Badge variant="destructive" className="cursor-pointer">Rejetés</Badge>
                       <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Expirés</Badge>
                     </div>
@@ -238,6 +340,8 @@ const Quotes = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="all">Tous les devis</TabsTrigger>
               <TabsTrigger value="pending">En attente</TabsTrigger>
+              <TabsTrigger value="validated">Validés</TabsTrigger>
+              <TabsTrigger value="invoiced">Facturés</TabsTrigger>
               <TabsTrigger value="approved">Approuvés</TabsTrigger>
               <TabsTrigger value="rejected">Rejetés</TabsTrigger>
               <TabsTrigger value="expired">Expirés</TabsTrigger>
@@ -250,6 +354,8 @@ const Quotes = () => {
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                onApprove={handleApproveQuote}
+                onGenerateInvoice={handleGenerateInvoice}
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
@@ -258,11 +364,37 @@ const Quotes = () => {
             
             <TabsContent value="pending" className="space-y-4">
               <QuotesList 
-                quotes={filteredQuotes} 
+                quotes={filteredQuotes}
                 onEdit={handleEditQuote} 
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
+                onApprove={handleApproveQuote}
                 renderFollowUpButton={(quote) => <QuoteFollowUpButton quote={quote} />}
+              />
+            </TabsContent>
+            
+            <TabsContent value="validated" className="space-y-4">
+              <QuotesList 
+                quotes={filteredQuotes}
+                onEdit={handleEditQuote} 
+                onDuplicate={handleDuplicateQuote} 
+                onDownload={handleDownloadQuote}
+                onGenerateInvoice={handleGenerateInvoice}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
+              />
+            </TabsContent>
+            
+            <TabsContent value="invoiced" className="space-y-4">
+              <QuotesList 
+                quotes={filteredQuotes}
+                onEdit={handleEditQuote} 
+                onDuplicate={handleDuplicateQuote} 
+                onDownload={handleDownloadQuote}
+                renderFollowUpButton={(quote) => (
+                  quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
+                )}
               />
             </TabsContent>
             
@@ -318,6 +450,18 @@ const Quotes = () => {
           onClose={() => setShowClientSelector(false)}
           onSelectClient={handleClientSelect}
           initialSearchTerm={searchTerm}
+        />
+      )}
+
+      {/* Invoice Viewer Modal */}
+      {showInvoiceModal && (
+        <InvoiceViewer
+          invoice={currentInvoice}
+          isOpen={showInvoiceModal}
+          onClose={closeInvoice}
+          onSendEmail={sendInvoice}
+          onMarkAsPaid={markAsPaid}
+          onUpdateInvoice={updateInvoice}
         />
       )}
     </div>
