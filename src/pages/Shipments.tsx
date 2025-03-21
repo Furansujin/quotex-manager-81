@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -38,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ShipmentDetail from '@/components/shipments/ShipmentDetail';
+import NewShipmentForm from '@/components/shipments/NewShipmentForm';
 import { useToast } from '@/hooks/use-toast';
 
 const Shipments = () => {
@@ -46,6 +46,7 @@ const Shipments = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<string | null>(null);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [showNewShipmentForm, setShowNewShipmentForm] = useState(false);
   const { toast } = useToast();
 
   const toggleSidebar = () => {
@@ -117,6 +118,15 @@ const Shipments = () => {
     });
   };
 
+  const handleNewShipmentSuccess = (shipmentId: string) => {
+    setShowNewShipmentForm(false);
+    toast({
+      title: "Expédition créée",
+      description: `L'expédition ${shipmentId} a été créée avec succès.`,
+    });
+    // In a real app, you would refresh the shipments list or add the new shipment to the state
+  };
+
   const shipments = [
     { 
       id: "SHP-2023-0089", 
@@ -185,10 +195,10 @@ const Shipments = () => {
                 <Calendar className="h-4 w-4" />
                 Planifier
               </Button>
-              <Button className="gap-2" onClick={() => toast({
-                title: "Fonction en développement",
-                description: "La création d'une nouvelle expédition sera bientôt disponible.",
-              })}>
+              <Button 
+                className="gap-2" 
+                onClick={() => setShowNewShipmentForm(true)}
+              >
                 <Plus className="h-4 w-4" />
                 Nouvelle Expédition
               </Button>
@@ -509,6 +519,13 @@ const Shipments = () => {
         <ShipmentDetail
           shipmentId={selectedShipment}
           onClose={() => setSelectedShipment(null)}
+        />
+      )}
+
+      {showNewShipmentForm && (
+        <NewShipmentForm 
+          onClose={() => setShowNewShipmentForm(false)}
+          onSuccess={handleNewShipmentSuccess}
         />
       )}
     </div>
