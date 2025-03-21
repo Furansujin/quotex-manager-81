@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Copy, Download, ArrowRight, MoreHorizontal, CheckCircle, FileInvoice } from 'lucide-react';
+import { Edit, Copy, Download, ArrowRight, MoreHorizontal, CheckCircle, FileText } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
 import { 
   DropdownMenu,
@@ -177,7 +176,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => onGenerateInvoice(quote.id)}>
-                              <FileInvoice className="mr-2 h-4 w-4 text-blue-500" />
+                              <FileText className="mr-2 h-4 w-4 text-blue-500" />
                               <span>Générer la facture</span>
                             </DropdownMenuItem>
                           </>
