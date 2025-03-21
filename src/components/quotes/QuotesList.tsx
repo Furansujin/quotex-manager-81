@@ -1,16 +1,16 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Copy, Download, ArrowRight, MoreHorizontal, CheckCircle, FileText } from 'lucide-react';
+import { Edit, Copy, Download, ArrowRight, MoreHorizontal } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Popover,
@@ -23,20 +23,10 @@ interface QuotesListProps {
   onEdit: (id: string) => void;
   onDuplicate: (id: string) => void;
   onDownload: (id: string) => void;
-  onApprove?: (id: string) => void;
-  onGenerateInvoice?: (id: string) => void;
   renderFollowUpButton?: (quote: Quote) => React.ReactNode;
 }
 
-const QuotesList: React.FC<QuotesListProps> = ({ 
-  quotes, 
-  onEdit, 
-  onDuplicate, 
-  onDownload, 
-  onApprove,
-  onGenerateInvoice,
-  renderFollowUpButton 
-}) => {
+const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, onDownload, renderFollowUpButton }) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   // Helper function to get status badge
@@ -46,14 +36,10 @@ const QuotesList: React.FC<QuotesListProps> = ({
         return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-200">En attente</Badge>;
       case 'approved':
         return <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-200">Approuvé</Badge>;
-      case 'validated':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-200">Validé</Badge>;
       case 'rejected':
         return <Badge variant="outline" className="bg-red-100 text-red-700 hover:bg-red-200">Rejeté</Badge>;
       case 'expired':
         return <Badge variant="outline" className="bg-gray-100 text-gray-700 hover:bg-gray-200">Expiré</Badge>;
-      case 'invoiced':
-        return <Badge variant="outline" className="bg-violet-100 text-violet-700 hover:bg-violet-200">Facturé</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -148,7 +134,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
                           <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem onClick={() => onEdit(quote.id)}>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Modifier</span>
@@ -161,26 +147,6 @@ const QuotesList: React.FC<QuotesListProps> = ({
                           <Download className="mr-2 h-4 w-4" />
                           <span>Télécharger</span>
                         </DropdownMenuItem>
-                        
-                        {quote.status === 'pending' && onApprove && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onApprove(quote.id)}>
-                              <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                              <span>Valider le devis</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        
-                        {quote.status === 'validated' && onGenerateInvoice && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onGenerateInvoice(quote.id)}>
-                              <FileText className="mr-2 h-4 w-4 text-blue-500" />
-                              <span>Générer la facture</span>
-                            </DropdownMenuItem>
-                          </>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
