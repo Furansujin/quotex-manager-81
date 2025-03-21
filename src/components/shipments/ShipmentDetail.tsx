@@ -1,10 +1,9 @@
-
 // La partie ci-dessous fixe le problème de type
 // Remplacez la définition du type ShipmentType
 type ShipmentType = "maritime" | "aérien" | "routier" | "ferroviaire";
 
 import React, { useState } from 'react';
-import { X, MapPin, Calendar, Clock, Truck, Ship, PlaneTakeoff, Train, Package, FileText, User, Phone, Mail, Building, Download, MessageSquare, Plus, AlertTriangle, Edit, Trash, CheckCircle, Upload, Copy } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Truck, Ship, PlaneTakeoff, Train, Package, FileText, User, Phone, Mail, Building, Download, MessageSquare, Plus, AlertTriangle, Edit, Trash, CheckCircle, Upload, Copy, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
