@@ -12,20 +12,22 @@ import {
   Filter, 
   Calendar, 
   Plus,
-  ArrowRight,
-  Layers,
-  MapPin,
-  Clock,
-  AlertCircle,
-  SlidersHorizontal,
   ChevronDown,
+  SlidersHorizontal,
   CalendarRange,
-  UserCircle
+  UserCircle,
+  Clock,
+  MoreHorizontal,
+  FileText,
+  Download,
+  Copy,
+  Edit
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +45,7 @@ const Shipments = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<string | null>(null);
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const { toast } = useToast();
 
   const toggleSidebar = () => {
@@ -62,8 +65,56 @@ const Shipments = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'en cours':
+        return <Badge variant="outline" className="bg-amber-100 text-amber-700">En cours</Badge>;
+      case 'terminée':
+        return <Badge variant="outline" className="bg-green-100 text-green-700">Terminée</Badge>;
+      case 'planifiée':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700">Planifiée</Badge>;
+      case 'retardée':
+        return <Badge variant="outline" className="bg-red-100 text-red-700">Retardée</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getProgressColor = (status: string) => {
+    switch (status) {
+      case 'en cours':
+        return 'bg-amber-500';
+      case 'terminée':
+        return 'bg-green-500';
+      case 'planifiée':
+        return 'bg-blue-500';
+      case 'retardée':
+        return 'bg-red-500';
+      default:
+        return 'bg-primary';
+    }
+  };
+
   const handleOpenShipment = (id: string) => {
     setSelectedShipment(id);
+  };
+
+  const handleEditShipment = (id: string) => {
+    setSelectedShipment(id);
+  };
+
+  const handleDuplicateShipment = (id: string) => {
+    toast({
+      title: "Expédition dupliquée",
+      description: `L'expédition ${id} a été dupliquée avec succès.`,
+    });
+  };
+
+  const handleDownloadShipment = (id: string) => {
+    toast({
+      title: "Téléchargement en cours",
+      description: `Les documents de l'expédition ${id} sont en cours de téléchargement.`,
+    });
   };
 
   const shipments = [
@@ -261,69 +312,124 @@ const Shipments = () => {
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              {shipments.map((shipment) => (
-                <Card 
-                  key={shipment.id} 
-                  className="hover:border-primary/50 transition-colors cursor-pointer"
-                  onClick={() => handleOpenShipment(shipment.id)}
-                >
-                  <CardContent className="p-0">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-md bg-primary/10">
-                          {getShipmentIcon(shipment.type)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium">{shipment.id}</h3>
-                            <Badge variant={
-                              shipment.status === "terminée" ? "success" : 
-                              shipment.status === "en cours" ? "default" :
-                              shipment.status === "planifiée" ? "outline" :
-                              "destructive"
-                            }>
-                              {shipment.status.charAt(0).toUpperCase() + shipment.status.slice(1)}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{shipment.client}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm flex-1">
-                        <div>
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <p>Trajet</p>
-                          </div>
-                          <p className="font-medium">{shipment.origin} → {shipment.destination}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            <p>Dates</p>
-                          </div>
-                          <p className="font-medium">{shipment.departureDate} - {shipment.arrivalDate}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Layers className="h-3 w-3" />
-                            <p>Fret</p>
-                          </div>
-                          <p className="font-medium">{shipment.containers}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="w-full md:w-32">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Progression</span>
-                          <span>{shipment.progress}%</span>
-                        </div>
-                        <Progress value={shipment.progress} className="h-2" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>N° Expédition</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Dates</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Trajet</TableHead>
+                        <TableHead>Fret</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {shipments.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center text-center">
+                              <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-muted-foreground">Aucune expédition trouvée</p>
+                              <p className="text-sm text-muted-foreground">Créez une nouvelle expédition ou modifiez vos filtres de recherche</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        shipments.map((shipment) => (
+                          <TableRow 
+                            key={shipment.id}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => handleOpenShipment(shipment.id)}
+                            onMouseEnter={() => setHoveredRow(shipment.id)}
+                            onMouseLeave={() => setHoveredRow(null)}
+                          >
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                <div className="p-1 rounded-md bg-primary/10">
+                                  {getShipmentIcon(shipment.type)}
+                                </div>
+                                {shipment.id}
+                              </div>
+                            </TableCell>
+                            <TableCell>{shipment.client}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="text-xs text-muted-foreground">Départ: {shipment.departureDate}</span>
+                                <span className="text-xs text-muted-foreground">Arrivée: {shipment.arrivalDate}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{shipment.type}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <span className="max-w-[80px] truncate">{shipment.origin}</span>
+                                <span>→</span>
+                                <span className="max-w-[80px] truncate">{shipment.destination}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{shipment.containers}</TableCell>
+                            <TableCell>
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  {getStatusBadge(shipment.status)}
+                                  <span className="text-xs text-muted-foreground">{shipment.progress}%</span>
+                                </div>
+                                <Progress 
+                                  value={shipment.progress} 
+                                  className={`h-1.5 ${getProgressColor(shipment.status)}`} 
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className={`h-8 px-2 transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-70'}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <MoreHorizontal className="h-4 w-4" />
+                                      <span className="sr-only">Actions</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditShipment(shipment.id);
+                                    }}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      <span>Modifier</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDuplicateShipment(shipment.id);
+                                    }}>
+                                      <Copy className="mr-2 h-4 w-4" />
+                                      <span>Dupliquer</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownloadShipment(shipment.id);
+                                    }}>
+                                      <Download className="mr-2 h-4 w-4" />
+                                      <span>Télécharger</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </TabsContent>
             
             {/* Autres onglets */}
