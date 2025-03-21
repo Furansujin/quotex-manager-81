@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -69,13 +70,13 @@ const Shipments = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'en cours':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-700">En cours</Badge>;
+        return <Badge variant="outline" className="bg-amber-100 text-amber-700 font-medium">En cours</Badge>;
       case 'terminée':
-        return <Badge variant="outline" className="bg-green-100 text-green-700">Terminée</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-700 font-medium">Terminée</Badge>;
       case 'planifiée':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-700">Planifiée</Badge>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700 font-medium">Planifiée</Badge>;
       case 'retardée':
-        return <Badge variant="outline" className="bg-red-100 text-red-700">Retardée</Badge>;
+        return <Badge variant="outline" className="bg-red-100 text-red-700 font-medium">Retardée</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -185,18 +186,18 @@ const Shipments = () => {
 
       <main className="pt-16 md:pl-64">
         <div className="container mx-auto p-4 md:p-6 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl font-bold">Gestion des Expéditions</h1>
               <p className="text-muted-foreground">Suivi et gestion des expéditions en cours</p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
+            <div className="flex gap-3">
+              <Button variant="outline" className="gap-2 px-4 h-10">
                 <Calendar className="h-4 w-4" />
                 Planifier
               </Button>
               <Button 
-                className="gap-2" 
+                className="gap-2 px-4 h-10" 
                 onClick={() => setShowNewShipmentForm(true)}
               >
                 <Plus className="h-4 w-4" />
@@ -205,15 +206,15 @@ const Shipments = () => {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Rechercher par n° expédition, client, destination..." className="pl-10" />
+              <Input placeholder="Rechercher par n° expédition, client, destination..." className="pl-10 h-11 bg-white border-[#eee]" />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button 
                 variant={showAdvancedFilters ? "default" : "outline"} 
-                className="gap-2"
+                className="gap-2 px-4 h-11"
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               >
                 <Filter className="h-4 w-4" />
@@ -221,7 +222,7 @@ const Shipments = () => {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
+                  <Button variant="outline" className="gap-2 px-4 h-11">
                     <SlidersHorizontal className="h-4 w-4" />
                     Trier
                     <ChevronDown className="h-4 w-4 ml-1" />
@@ -254,58 +255,58 @@ const Shipments = () => {
           </div>
 
           {showAdvancedFilters && (
-            <Card className="mb-6">
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="mb-8 bg-white border border-[#eee] shadow-sm">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Statut</label>
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Statut</label>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
-                      <Badge variant="default" className="cursor-pointer">En cours</Badge>
-                      <Badge variant="success" className="cursor-pointer">Terminée</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Planifiée</Badge>
-                      <Badge variant="destructive" className="cursor-pointer">Retardée</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10 px-3 py-1">Tous</Badge>
+                      <Badge variant="default" className="cursor-pointer px-3 py-1">En cours</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1">Terminée</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1">Planifiée</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1">Retardée</Badge>
                     </div>
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Type de transport</label>
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Type de transport</label>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Maritime</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">Aérien</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-amber-500">Routier</Badge>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10 px-3 py-1">Tous</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-blue-50 text-blue-500 hover:bg-blue-100 px-3 py-1">Maritime</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-green-50 text-green-500 hover:bg-green-100 px-3 py-1">Aérien</Badge>
+                      <Badge variant="outline" className="cursor-pointer bg-amber-50 text-amber-500 hover:bg-amber-100 px-3 py-1">Routier</Badge>
                     </div>
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Période</label>
-                    <div className="flex gap-2">
-                      <Input type="date" className="w-full" placeholder="Date début" />
-                      <Input type="date" className="w-full" placeholder="Date fin" />
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Période</label>
+                    <div className="flex gap-3">
+                      <Input type="date" className="w-full h-10 bg-white" placeholder="Date début" />
+                      <Input type="date" className="w-full h-10 bg-white" placeholder="Date fin" />
                     </div>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Transporteur</label>
-                    <Input placeholder="Nom du transporteur" />
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Transporteur</label>
+                    <Input placeholder="Nom du transporteur" className="h-10 bg-white" />
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Origine</label>
-                    <Input placeholder="Port/Ville d'origine" />
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Origine</label>
+                    <Input placeholder="Port/Ville d'origine" className="h-10 bg-white" />
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Destination</label>
-                    <Input placeholder="Port/Ville de destination" />
+                    <label className="text-sm font-medium mb-3 block text-gray-700">Destination</label>
+                    <Input placeholder="Port/Ville de destination" className="h-10 bg-white" />
                   </div>
                 </div>
                 
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" className="mr-2">Réinitialiser</Button>
+                <div className="flex justify-end mt-8">
+                  <Button variant="outline" className="mr-3">Réinitialiser</Button>
                   <Button>Appliquer</Button>
                 </div>
               </CardContent>
@@ -313,101 +314,111 @@ const Shipments = () => {
           )}
 
           <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">Toutes</TabsTrigger>
-              <TabsTrigger value="active">En cours</TabsTrigger>
-              <TabsTrigger value="completed">Terminées</TabsTrigger>
-              <TabsTrigger value="delayed">Retardées</TabsTrigger>
-              <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+            <TabsList className="mb-6 h-11 p-1 bg-[#f3f3f3] border border-[#eee]">
+              <TabsTrigger value="all" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Toutes</TabsTrigger>
+              <TabsTrigger value="active" className="h-9 px-5 rounded-md data-[state=active]:bg-white">En cours</TabsTrigger>
+              <TabsTrigger value="completed" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Terminées</TabsTrigger>
+              <TabsTrigger value="delayed" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Retardées</TabsTrigger>
+              <TabsTrigger value="calendar" className="h-9 px-5 rounded-md data-[state=active]:bg-white">Calendrier</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-4">
-              <Card>
+              <Card className="border border-[#eee] shadow-sm">
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>N° Expédition</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Dates</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Trajet</TableHead>
-                        <TableHead>Fret</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                    <TableHeader className="bg-[#f6f6f7]">
+                      <TableRow className="border-0 hover:bg-transparent">
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">N° Expédition</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Client</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Dates</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Type</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Trajet</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Fret</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700">Statut</TableHead>
+                        <TableHead className="h-12 px-6 text-sm font-semibold text-gray-700 text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {shipments.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="h-24 text-center">
+                          <TableCell colSpan={8} className="h-32 text-center">
                             <div className="flex flex-col items-center justify-center text-center">
-                              <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                              <p className="text-muted-foreground">Aucune expédition trouvée</p>
-                              <p className="text-sm text-muted-foreground">Créez une nouvelle expédition ou modifiez vos filtres de recherche</p>
+                              <FileText className="h-10 w-10 text-muted-foreground mb-3" />
+                              <p className="text-muted-foreground text-base">Aucune expédition trouvée</p>
+                              <p className="text-sm text-muted-foreground mt-1">Créez une nouvelle expédition ou modifiez vos filtres de recherche</p>
                             </div>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        shipments.map((shipment) => (
+                        shipments.map((shipment, index) => (
                           <TableRow 
                             key={shipment.id}
-                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            className={`cursor-pointer hover:bg-[#f1f1f1] transition-colors ${index < shipments.length - 1 ? 'border-b' : 'border-b-0'}`}
                             onClick={() => handleOpenShipment(shipment.id)}
                             onMouseEnter={() => setHoveredRow(shipment.id)}
                             onMouseLeave={() => setHoveredRow(null)}
                           >
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                <div className="p-1 rounded-md bg-primary/10">
+                            <TableCell className="px-6 py-5 font-medium">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-md bg-[#f1f0fb]">
                                   {getShipmentIcon(shipment.type)}
                                 </div>
                                 {shipment.id}
                               </div>
                             </TableCell>
-                            <TableCell>{shipment.client}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-col">
-                                <span className="text-xs text-muted-foreground">Départ: {shipment.departureDate}</span>
-                                <span className="text-xs text-muted-foreground">Arrivée: {shipment.arrivalDate}</span>
+                            <TableCell className="px-6 py-5">
+                              <span className="font-medium text-gray-800">{shipment.client}</span>
+                            </TableCell>
+                            <TableCell className="px-6 py-5">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm flex items-center gap-1">
+                                  <Calendar className="h-3.5 w-3.5 text-blue-600" />
+                                  <span className="font-medium">Départ:</span> {shipment.departureDate}
+                                </span>
+                                <span className="text-sm flex items-center gap-1">
+                                  <Calendar className="h-3.5 w-3.5 text-green-600" />
+                                  <span className="font-medium">Arrivée:</span> {shipment.arrivalDate}
+                                </span>
                               </div>
                             </TableCell>
-                            <TableCell>{shipment.type}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                <span className="max-w-[80px] truncate">{shipment.origin}</span>
+                            <TableCell className="px-6 py-5">
+                              <span className="text-gray-800">{shipment.type}</span>
+                            </TableCell>
+                            <TableCell className="px-6 py-5">
+                              <div className="flex items-center gap-2 text-gray-800">
+                                <span className="max-w-[100px] truncate">{shipment.origin}</span>
                                 <span>→</span>
-                                <span className="max-w-[80px] truncate">{shipment.destination}</span>
+                                <span className="max-w-[100px] truncate">{shipment.destination}</span>
                               </div>
                             </TableCell>
-                            <TableCell>{shipment.containers}</TableCell>
-                            <TableCell>
-                              <div className="space-y-2">
+                            <TableCell className="px-6 py-5 text-gray-800">{shipment.containers}</TableCell>
+                            <TableCell className="px-6 py-5">
+                              <div className="space-y-2.5">
                                 <div className="flex justify-between items-center">
                                   {getStatusBadge(shipment.status)}
-                                  <span className="text-xs text-muted-foreground">{shipment.progress}%</span>
+                                  <span className="text-xs font-medium text-gray-600">{shipment.progress}%</span>
                                 </div>
                                 <Progress 
                                   value={shipment.progress} 
-                                  className={`h-1.5 ${getProgressColor(shipment.status)}`} 
+                                  className={`h-2 ${getProgressColor(shipment.status)}`} 
                                 />
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="px-6 py-5 text-right">
                               <div className="flex justify-end">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button 
                                       variant="ghost" 
                                       size="sm" 
-                                      className={`h-8 px-2 transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-70'}`}
+                                      className={`h-9 px-2.5 rounded-full transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-0'}`}
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      <MoreHorizontal className="h-4 w-4" />
+                                      <MoreHorizontal className="h-4.5 w-4.5" />
                                       <span className="sr-only">Actions</span>
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuContent align="end" className="w-48">
                                     <DropdownMenuItem onClick={(e) => {
                                       e.stopPropagation();
                                       handleEditShipment(shipment.id);
