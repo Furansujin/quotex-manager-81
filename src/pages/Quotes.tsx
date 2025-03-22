@@ -47,8 +47,43 @@ const Quotes = () => {
     saveQuote
   } = useQuoteActions();
 
+  // State for sorting
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  // Handle sort toggle
+  const handleSortToggle = (field: string) => {
+    let newDirection: 'asc' | 'desc' | null = null;
+    let newField = field;
+    
+    if (sortField === field) {
+      // Toggle direction: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        newDirection = 'desc';
+      } else if (sortDirection === 'desc') {
+        newField = '';
+        newDirection = null;
+      }
+    } else {
+      // New field, start with ascending
+      newDirection = 'asc';
+    }
+    
+    setSortField(newField || null);
+    setSortDirection(newDirection);
+    
+    // Apply sorting to filters
+    const newFilters = {
+      ...activeFilters || { status: [], types: [] },
+      sortField: newField || undefined,
+      sortDirection: newDirection || undefined
+    };
+    
+    handleApplyFilters(newFilters);
   };
 
   // Mise à jour du titre de la page
@@ -122,6 +157,17 @@ const Quotes = () => {
     }
   }, [filteredQuotes, toast]);
 
+  // Update sort state when activeFilters change
+  useEffect(() => {
+    if (activeFilters?.sortField) {
+      setSortField(activeFilters.sortField);
+      setSortDirection(activeFilters.sortDirection || 'asc');
+    } else {
+      setSortField(null);
+      setSortDirection(null);
+    }
+  }, [activeFilters]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={toggleSidebar} />
@@ -162,6 +208,9 @@ const Quotes = () => {
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
               />
             </TabsContent>
             
@@ -172,6 +221,9 @@ const Quotes = () => {
                 onDuplicate={handleDuplicateQuote} 
                 onDownload={handleDownloadQuote}
                 renderFollowUpButton={(quote) => <QuoteFollowUpButton quote={quote} />}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
               />
             </TabsContent>
             
@@ -184,6 +236,9 @@ const Quotes = () => {
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
               />
             </TabsContent>
             
@@ -196,6 +251,9 @@ const Quotes = () => {
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
               />
             </TabsContent>
             
@@ -208,6 +266,9 @@ const Quotes = () => {
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
               />
             </TabsContent>
           </Tabs>

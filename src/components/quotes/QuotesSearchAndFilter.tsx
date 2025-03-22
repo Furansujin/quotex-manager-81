@@ -8,9 +8,6 @@ import { Label } from '@/components/ui/label';
 import { 
   Search, 
   Filter, 
-  ArrowDownUp,
-  SortAsc,
-  SortDesc,
   X, 
   RefreshCw,
   Ship,
@@ -103,6 +100,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedStatus, status];
     
     setSelectedStatus(newStatus);
+    applyCurrentFilters(newStatus, selectedTypes);
   };
   
   const handleTypeToggle = (type: string) => {
@@ -111,10 +109,12 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedTypes, type];
     
     setSelectedTypes(newTypes);
+    applyCurrentFilters(selectedStatus, newTypes);
   };
 
   const handleCommercialSelect = (commercial: string) => {
     setCommercialSearch(commercial);
+    applyCurrentFilters();
   };
 
   const handleDateChange = (type: 'start' | 'end', date: Date | undefined) => {
@@ -133,6 +133,11 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
         setEndDateInput('');
       }
     }
+    
+    // Attendre un peu avant d'appliquer les filtres pour permettre à l'état de se mettre à jour
+    setTimeout(() => {
+      applyCurrentFilters();
+    }, 0);
   };
 
   const handleDateInputChange = (type: 'start' | 'end', value: string) => {
@@ -170,6 +175,11 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
   };
 
+  // Apply date input changes when focus is lost
+  const handleDateInputBlur = () => {
+    applyCurrentFilters();
+  };
+
   const handleAmountChange = (type: 'min' | 'max', value: string) => {
     if (type === 'min') {
       setMinAmount(value);
@@ -178,7 +188,15 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
   };
 
-  const getFilterValues = () => {
+  // Apply amount changes when focus is lost
+  const handleAmountBlur = () => {
+    applyCurrentFilters();
+  };
+
+  const applyCurrentFilters = (
+    statusOverride: string[] = selectedStatus, 
+    typesOverride: string[] = selectedTypes
+  ) => {
     // Déterminer le commercial sélectionné
     let selectedCommercial: string | undefined = undefined;
     const matchedCommercial = commercials.find(c => 
@@ -191,22 +209,23 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
     
     // Construire l'objet de filtres
-    return {
+    const filters: QuoteFilterValues = {
       startDate,
       endDate,
-      status: selectedStatus,
-      types: selectedTypes,
+      status: statusOverride,
+      types: typesOverride,
       commercial: selectedCommercial,
       minAmount: minAmount ? parseFloat(minAmount) : undefined,
       maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
       sortField: sortField || undefined,
       sortDirection: sortDirection || undefined
     };
+    
+    onApplyFilters(filters);
   };
   
   const handleApplyFilters = () => {
-    const filters = getFilterValues();
-    onApplyFilters(filters);
+    applyCurrentFilters();
     setShowAdvancedFilters(false);
   };
   
@@ -220,10 +239,21 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     setEndDateInput('');
     setMinAmount('');
     setMaxAmount('');
-    setSortField(null);
-    setSortDirection(null);
     
-    clearAllFilters();
+    // Ne pas réinitialiser le tri
+    const resetFilters = {
+      status: [],
+      types: [],
+      commercial: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      minAmount: undefined,
+      maxAmount: undefined,
+      sortField: sortField || undefined,
+      sortDirection: sortDirection || undefined
+    };
+    
+    onApplyFilters(resetFilters);
   };
   
   // Format active status filters for display
@@ -237,7 +267,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
   };
   
-  // Check if any filters are active
+  // Check if any filters are active (excluding sort)
   const hasActiveFilters = () => {
     if (!activeFilters) return false;
     
@@ -248,8 +278,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       !!activeFilters.minAmount ||
       !!activeFilters.maxAmount ||
       !!activeFilters.startDate ||
-      !!activeFilters.endDate ||
-      !!activeFilters.sortField
+      !!activeFilters.endDate
     );
   };
   
@@ -328,36 +357,11 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                   (activeFilters?.types?.length || 0) + 
                   (activeFilters?.commercial ? 1 : 0) +
                   (activeFilters?.startDate || activeFilters?.endDate ? 1 : 0) +
-                  (activeFilters?.minAmount || activeFilters?.maxAmount ? 1 : 0) +
-                  (activeFilters?.sortField ? 1 : 0)
+                  (activeFilters?.minAmount || activeFilters?.maxAmount ? 1 : 0)
                 }
               </Badge>
             )}
           </Button>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              className={`gap-2 px-3 h-11 ${sortField === 'date' ? 'border-primary' : ''}`}
-              onClick={() => handleSortToggle('date')}
-            >
-              {sortField === 'date' && sortDirection === 'asc' && <SortAsc className="h-4 w-4 text-primary" />}
-              {sortField === 'date' && sortDirection === 'desc' && <SortDesc className="h-4 w-4 text-primary" />}
-              {(!sortField || sortField !== 'date') && <ArrowDownUp className="h-4 w-4" />}
-              Date
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className={`gap-2 px-3 h-11 ${sortField === 'amount' ? 'border-primary' : ''}`}
-              onClick={() => handleSortToggle('amount')}
-            >
-              {sortField === 'amount' && sortDirection === 'asc' && <SortAsc className="h-4 w-4 text-primary" />}
-              {sortField === 'amount' && sortDirection === 'desc' && <SortDesc className="h-4 w-4 text-primary" />}
-              {(!sortField || sortField !== 'amount') && <ArrowDownUp className="h-4 w-4" />}
-              Montant
-            </Button>
-          </div>
           
           {hasActiveFilters() && (
             <Button 
@@ -489,28 +493,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             </Badge>
           )}
           
-          {activeFilters?.sortField && (
-            <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
-              Tri: {activeFilters.sortField === 'date' ? 'Date' : 
-                activeFilters.sortField === 'amount' ? 'Montant' : 
-                activeFilters.sortField === 'client' ? 'Client' : activeFilters.sortField}
-              {activeFilters.sortDirection === 'asc' ? ' (↑)' : ' (↓)'}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4 ml-1"
-                onClick={() => {
-                  const newFilters = {...activeFilters, sortField: undefined, sortDirection: undefined};
-                  onApplyFilters(newFilters);
-                  setSortField(null);
-                  setSortDirection(null);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </Badge>
-          )}
-          
           <Button 
             variant="outline" 
             size="sm" 
@@ -535,6 +517,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedStatus.length === 0} 
                     onPressedChange={() => {
                       setSelectedStatus([]);
+                      applyCurrentFilters([], selectedTypes);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -578,6 +561,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedTypes.length === 0} 
                     onPressedChange={() => {
                       setSelectedTypes([]);
+                      applyCurrentFilters(selectedStatus, []);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -634,6 +618,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                       placeholder="JJ/MM/AAAA"
                       value={startDateInput}
                       onChange={(e) => handleDateInputChange('start', e.target.value)}
+                      onBlur={handleDateInputBlur}
                       className="h-10 bg-white"
                     />
                     <Popover>
@@ -663,6 +648,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                       placeholder="JJ/MM/AAAA"
                       value={endDateInput}
                       onChange={(e) => handleDateInputChange('end', e.target.value)}
+                      onBlur={handleDateInputBlur}
                       className="h-10 bg-white"
                     />
                     <Popover>
@@ -700,6 +686,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     className="pl-10 h-10 bg-white" 
                     value={commercialSearch}
                     onChange={(e) => setCommercialSearch(e.target.value)}
+                    onBlur={() => applyCurrentFilters()}
                   />
                   {commercialSearch && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
@@ -726,6 +713,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     className="h-10 bg-white"
                     value={minAmount}
                     onChange={(e) => handleAmountChange('min', e.target.value)}
+                    onBlur={handleAmountBlur}
                   />
                   <Input 
                     type="number" 
@@ -733,6 +721,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     className="h-10 bg-white"
                     value={maxAmount}
                     onChange={(e) => handleAmountChange('max', e.target.value)}
+                    onBlur={handleAmountBlur}
                   />
                 </div>
               </div>

@@ -4,7 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Copy, Download, ArrowRight, MoreHorizontal } from 'lucide-react';
+import { 
+  Edit, 
+  Copy, 
+  Download, 
+  ArrowRight, 
+  MoreHorizontal, 
+  ArrowUp,
+  ArrowDown
+} from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
 import { 
   DropdownMenu,
@@ -24,9 +32,21 @@ interface QuotesListProps {
   onDuplicate: (id: string) => void;
   onDownload: (id: string) => void;
   renderFollowUpButton?: (quote: Quote) => React.ReactNode;
+  onSort?: (field: string) => void;
+  sortField?: string | null;
+  sortDirection?: 'asc' | 'desc' | null;
 }
 
-const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, onDownload, renderFollowUpButton }) => {
+const QuotesList: React.FC<QuotesListProps> = ({ 
+  quotes, 
+  onEdit, 
+  onDuplicate, 
+  onDownload, 
+  renderFollowUpButton,
+  onSort,
+  sortField,
+  sortDirection
+}) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   // Helper function to get status badge
@@ -61,6 +81,27 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
     }
   };
 
+  // Fonction pour rendre les icônes de tri
+  const renderSortIcon = (field: string) => {
+    if (!onSort) return null;
+    
+    return (
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onSort) onSort(field);
+        }}
+        className={`ml-1 p-0 h-6 w-6 hover:bg-transparent`}
+      >
+        {sortField === field && sortDirection === 'asc' && <ArrowUp className="h-3.5 w-3.5 text-primary" />}
+        {sortField === field && sortDirection === 'desc' && <ArrowDown className="h-3.5 w-3.5 text-primary" />}
+        {sortField !== field && <div className="h-3.5 w-3.5 opacity-0 group-hover:opacity-30">↕</div>}
+      </Button>
+    );
+  };
+
   if (quotes.length === 0) {
     return (
       <Card className="p-6 text-center text-muted-foreground">
@@ -75,13 +116,34 @@ const QuotesList: React.FC<QuotesListProps> = ({ quotes, onEdit, onDuplicate, on
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Devis</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Montant</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead className="group">
+                N° Devis
+                {renderSortIcon('id')}
+              </TableHead>
+              <TableHead className="group">
+                Client
+                {renderSortIcon('client')}
+              </TableHead>
+              <TableHead className="group">
+                Date
+                {renderSortIcon('date')}
+              </TableHead>
+              <TableHead className="group">
+                Type
+                {renderSortIcon('type')}
+              </TableHead>
+              <TableHead className="group">
+                Destination
+                {renderSortIcon('destination')}
+              </TableHead>
+              <TableHead className="group">
+                Montant
+                {renderSortIcon('amount')}
+              </TableHead>
+              <TableHead className="group">
+                Statut
+                {renderSortIcon('status')}
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
