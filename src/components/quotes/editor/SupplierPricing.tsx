@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { RefreshCw, ChevronDown, Check, Calendar, Upload, Tag, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, ChevronDown, Check, Calendar, Tag, ArrowUpDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface SupplierPrice {
@@ -245,16 +245,6 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
     }
   };
 
-  // Handle CSV upload for fixed prices
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // In a real app, this would parse the CSV/Excel file
-      // For now, we'll just show a message
-      alert('Import de tarifs réussi! (simulation)');
-    }
-  };
-
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -423,25 +413,6 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-medium">Tarifs contractuels</h3>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      Importer
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept=".csv,.xlsx"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                      />
-                    </label>
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Tag className="h-4 w-4" />
-                    Ajouter manuellement
-                  </Button>
-                </div>
               </div>
               
               <div className="rounded-md border">
