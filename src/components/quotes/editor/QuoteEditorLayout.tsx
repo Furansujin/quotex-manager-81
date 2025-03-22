@@ -33,7 +33,7 @@ const QuoteEditorLayout: React.FC<QuoteEditorLayoutProps> = ({
         <div className="sticky top-0 z-10 bg-background p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold">{title}</h2>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+            <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="hidden sm:flex">
               {isFullscreen ? (
                 <Minimize2 className="h-5 w-5" />
               ) : (
@@ -45,7 +45,7 @@ const QuoteEditorLayout: React.FC<QuoteEditorLayoutProps> = ({
             </Button>
           </div>
         </div>
-        <div className={`${isFullscreen ? 'h-[calc(95vh-4rem)]' : ''} overflow-y-auto`}>
+        <div className={`${isFullscreen ? 'h-[calc(95vh-4rem)]' : ''} overflow-y-auto p-4`}>
           {children}
         </div>
       </div>

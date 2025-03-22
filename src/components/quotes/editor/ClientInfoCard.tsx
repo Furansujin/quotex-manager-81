@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Info, User, Mail, Phone, MapPin, Package, Calendar } from 'lucide-react';
+import { Info, User, Mail, Phone, MapPin, Package, Calendar, Link } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -30,6 +30,7 @@ interface ClientInfoCardProps {
   setShowClientInfo: (value: boolean) => void;
   clientId?: string;
   initialClientName?: string | null;
+  onTagClick?: (tag: string) => void;
 }
 
 const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
@@ -39,7 +40,8 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
   showClientInfo,
   setShowClientInfo,
   clientId,
-  initialClientName
+  initialClientName,
+  onTagClick
 }) => {
   // Set the client name from initialClientName if it's provided
   useEffect(() => {
@@ -47,6 +49,13 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
       setClient(initialClientName);
     }
   }, [initialClientName, client, setClient]);
+
+  const handleTagClick = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTagClick) {
+      onTagClick(tag);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -110,7 +119,13 @@ const ClientInfoCard: React.FC<ClientInfoCardProps> = ({
             {clientDetails.tags && clientDetails.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {clientDetails.tags.map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs">
+                  <Badge 
+                    key={tag} 
+                    variant="outline" 
+                    className="text-xs cursor-pointer hover:bg-primary/10 flex items-center gap-1"
+                    onClick={(e) => handleTagClick(tag, e)}
+                  >
+                    <Link className="h-3 w-3" />
                     {tag}
                   </Badge>
                 ))}

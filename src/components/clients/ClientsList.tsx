@@ -11,7 +11,8 @@ import {
   Ship, 
   Tag, 
   Trash2, 
-  UserCircle 
+  UserCircle,
+  Link
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,9 +47,10 @@ interface ClientsListProps {
   clients: Client[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onTagClick?: (tag: string) => void;
 }
 
-const ClientsList = ({ clients, onEdit, onDelete }: ClientsListProps) => {
+const ClientsList = ({ clients, onEdit, onDelete, onTagClick }: ClientsListProps) => {
   if (clients.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -61,6 +63,13 @@ const ClientsList = ({ clients, onEdit, onDelete }: ClientsListProps) => {
       </div>
     );
   }
+
+  const handleTagClick = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTagClick) {
+      onTagClick(tag);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -131,7 +140,13 @@ const ClientsList = ({ clients, onEdit, onDelete }: ClientsListProps) => {
             <div className="px-4 py-2">
               <div className="flex flex-wrap gap-1 mb-3">
                 {client.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
+                  <Badge 
+                    key={index} 
+                    variant="outline" 
+                    className="text-xs cursor-pointer hover:bg-primary/10 flex items-center gap-1"
+                    onClick={(e) => handleTagClick(tag, e)}
+                  >
+                    <Link className="h-3 w-3" />
                     {tag}
                   </Badge>
                 ))}

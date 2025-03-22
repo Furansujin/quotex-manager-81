@@ -24,6 +24,7 @@ const Clients = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Exemple de données clients
@@ -110,6 +111,9 @@ const Clients = () => {
     },
   ];
 
+  // Get all unique tags from clients
+  const allTags = Array.from(new Set(clients.flatMap(client => client.tags)));
+
   // Filtrer les clients en fonction de la recherche et des filtres
   const filteredClients = clients.filter(client => {
     // Filtre par onglet
@@ -132,6 +136,12 @@ const Clients = () => {
         client.tags.some(tag => tag.toLowerCase().includes(searchLower));
         
       if (!matchesSearch) return false;
+    }
+    
+    // Filtre par tags sélectionnés
+    if (selectedTags.length > 0) {
+      const hasSelectedTag = client.tags.some(tag => selectedTags.includes(tag));
+      if (!hasSelectedTag) return false;
     }
     
     // Filtres avancés
@@ -164,9 +174,21 @@ const Clients = () => {
     });
   };
 
+  const handleTagClick = (tag: string) => {
+    setSelectedTags(prev => {
+      // If tag is already selected, remove it
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      }
+      // Otherwise, add it
+      return [...prev, tag];
+    });
+  };
+
   const clearAllFilters = () => {
     setActiveFilters(null);
     setSearchTerm('');
+    setSelectedTags([]);
     
     toast({
       title: "Filtres réinitialisés",
@@ -233,7 +255,37 @@ const Clients = () => {
             </div>
           </div>
 
-          {/* Advanced filters panel - similar to Shipments */}
+          {/* Tags actifs */}
+          {selectedTags.length > 0 && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm font-medium">Tags actifs:</span>
+              <div className="flex flex-wrap gap-1">
+                {selectedTags.map(tag => (
+                  <Badge 
+                    key={tag} 
+                    variant="default" 
+                    className="cursor-pointer gap-1"
+                    onClick={() => handleTagClick(tag)}
+                  >
+                    {tag}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+                {selectedTags.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => setSelectedTags([])}
+                  >
+                    Effacer tous
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Advanced filters panel */}
           {showAdvancedFilters && (
             <Card className="mb-6">
               <CardContent className="p-4">
@@ -253,7 +305,6 @@ const Clients = () => {
                       <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
                       <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Entreprise</Badge>
                       <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">PME</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-amber-500/10 text-amber-500">Particulier</Badge>
                     </div>
                   </div>
                   
@@ -281,11 +332,12 @@ const Clients = () => {
                 <div className="mt-4">
                   <label className="text-sm font-medium mb-2 block">Tags</label>
                   <div className="flex flex-wrap gap-2">
-                    {['VIP', 'International', 'Healthcare', 'Import', 'Tech', 'EU', 'Food'].map((tag) => (
+                    {allTags.map((tag) => (
                       <Badge 
                         key={tag} 
-                        variant="outline"
+                        variant={selectedTags.includes(tag) ? "default" : "outline"}
                         className="cursor-pointer hover:bg-primary/10"
+                        onClick={() => handleTagClick(tag)}
                       >
                         {tag}
                       </Badge>
@@ -316,6 +368,7 @@ const Clients = () => {
                 clients={filteredClients} 
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
+                onTagClick={handleTagClick}
               />
             </TabsContent>
             
@@ -324,6 +377,7 @@ const Clients = () => {
                 clients={filteredClients} 
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
+                onTagClick={handleTagClick}
               />
             </TabsContent>
             
@@ -332,6 +386,7 @@ const Clients = () => {
                 clients={filteredClients} 
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
+                onTagClick={handleTagClick}
               />
             </TabsContent>
           </Tabs>
