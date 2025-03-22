@@ -7,6 +7,8 @@ import {
   Search, 
   Filter, 
   ArrowDownUp,
+  SortAsc,
+  SortDesc,
   X, 
   RefreshCw,
   Ship,
@@ -40,15 +42,27 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
   
   // Handle sort toggle
-  const handleSortToggle = () => {
-    if (!sortField) {
-      setSortField('date');
-      setSortDirection('asc');
-    } else if (sortDirection === 'asc') {
-      setSortDirection('desc');
+  const handleSortToggle = (field: string) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
     } else {
-      setSortField(null);
-      setSortDirection(null);
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    
+    // Apply sort to filters
+    if (activeFilters) {
+      const newFilters = { 
+        ...activeFilters, 
+        sortField: field !== sortField || sortDirection === 'desc' ? field : undefined,
+        sortDirection: field !== sortField ? 'asc' : sortDirection === 'asc' ? 'desc' : undefined
+      };
+      onApplyFilters(newFilters);
     }
   };
   
@@ -74,9 +88,21 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       !!activeFilters.minAmount ||
       !!activeFilters.maxAmount ||
       !!activeFilters.startDate ||
-      !!activeFilters.endDate
+      !!activeFilters.endDate ||
+      !!activeFilters.sortField
     );
   };
+  
+  // Update local sort state when activeFilters change
+  React.useEffect(() => {
+    if (activeFilters?.sortField) {
+      setSortField(activeFilters.sortField);
+      setSortDirection(activeFilters.sortDirection || 'asc');
+    } else {
+      setSortField(null);
+      setSortDirection(null);
+    }
+  }, [activeFilters?.sortField, activeFilters?.sortDirection]);
   
   return (
     <div className="mb-6 space-y-4 animate-fade-in">
@@ -105,22 +131,36 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                   (activeFilters?.types?.length || 0) + 
                   (activeFilters?.commercial ? 1 : 0) +
                   (activeFilters?.startDate || activeFilters?.endDate ? 1 : 0) +
-                  (activeFilters?.minAmount || activeFilters?.maxAmount ? 1 : 0)
+                  (activeFilters?.minAmount || activeFilters?.maxAmount ? 1 : 0) +
+                  (activeFilters?.sortField ? 1 : 0)
                 }
               </Badge>
             )}
           </Button>
           
-          <Button 
-            variant="outline" 
-            className={`gap-2 px-4 h-11 ${sortField ? 'bg-primary/10' : ''}`}
-            onClick={handleSortToggle}
-          >
-            <ArrowDownUp className={`h-4 w-4 ${sortField ? 'text-primary' : ''}`} />
-            {!sortField && "Trier"}
-            {sortField === 'date' && sortDirection === 'asc' && "Date (↑)"}
-            {sortField === 'date' && sortDirection === 'desc' && "Date (↓)"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className={`gap-2 px-3 h-11 ${sortField === 'date' ? 'border-primary' : ''}`}
+              onClick={() => handleSortToggle('date')}
+            >
+              {sortField === 'date' && sortDirection === 'asc' && <SortAsc className="h-4 w-4 text-primary" />}
+              {sortField === 'date' && sortDirection === 'desc' && <SortDesc className="h-4 w-4 text-primary" />}
+              {(!sortField || sortField !== 'date') && <ArrowDownUp className="h-4 w-4" />}
+              Date
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`gap-2 px-3 h-11 ${sortField === 'amount' ? 'border-primary' : ''}`}
+              onClick={() => handleSortToggle('amount')}
+            >
+              {sortField === 'amount' && sortDirection === 'asc' && <SortAsc className="h-4 w-4 text-primary" />}
+              {sortField === 'amount' && sortDirection === 'desc' && <SortDesc className="h-4 w-4 text-primary" />}
+              {(!sortField || sortField !== 'amount') && <ArrowDownUp className="h-4 w-4" />}
+              Montant
+            </Button>
+          </div>
           
           {hasActiveFilters() && (
             <Button 
@@ -252,6 +292,28 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             </Badge>
           )}
           
+          {activeFilters?.sortField && (
+            <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
+              Tri: {activeFilters.sortField === 'date' ? 'Date' : 
+                activeFilters.sortField === 'amount' ? 'Montant' : 
+                activeFilters.sortField === 'client' ? 'Client' : activeFilters.sortField}
+              {activeFilters.sortDirection === 'asc' ? ' (↑)' : ' (↓)'}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 ml-1"
+                onClick={() => {
+                  const newFilters = {...activeFilters, sortField: undefined, sortDirection: undefined};
+                  onApplyFilters(newFilters);
+                  setSortField(null);
+                  setSortDirection(null);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          
           <Button 
             variant="outline" 
             size="sm" 
@@ -266,13 +328,11 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       
       {/* Filters panel */}
       {showAdvancedFilters && (
-        <div className="mt-2 animate-fade-in">
-          <QuoteFilters 
-            show={showAdvancedFilters} 
-            onClose={() => setShowAdvancedFilters(false)}
-            onApplyFilters={onApplyFilters}
-          />
-        </div>
+        <QuoteFilters 
+          show={showAdvancedFilters} 
+          onClose={() => setShowAdvancedFilters(false)}
+          onApplyFilters={onApplyFilters}
+        />
       )}
     </div>
   );
