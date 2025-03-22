@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,8 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       const newFilters = { 
         ...activeFilters, 
         sortField: field !== sortField || sortDirection === 'desc' ? field : undefined,
-        sortDirection: field !== sortField ? 'asc' : sortDirection === 'asc' ? 'desc' : undefined
+        sortDirection: field !== sortField ? 'asc' : 
+                       sortDirection === 'asc' ? 'desc' as const : undefined
       };
       onApplyFilters(newFilters);
     }
