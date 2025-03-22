@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Switch } from '@/components/ui/switch';
 import { 
   Filter, 
   Search, 
@@ -234,20 +233,24 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Période</label>
                 <div className="flex gap-3">
-                  <Input 
-                    type="date" 
-                    className="w-full h-10 bg-white" 
-                    placeholder="Date début"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                  <Input 
-                    type="date" 
-                    className="w-full h-10 bg-white" 
-                    placeholder="Date fin"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
+                  <div className="relative w-full">
+                    <Input 
+                      type="text" 
+                      placeholder="JJ/MM/AAAA"
+                      className="w-full h-10 bg-white" 
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative w-full">
+                    <Input 
+                      type="text" 
+                      placeholder="JJ/MM/AAAA"
+                      className="w-full h-10 bg-white" 
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -300,12 +303,7 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-between mt-8">
-              <div className="flex items-center gap-2">
-                <Switch id="auto-apply" />
-                <label htmlFor="auto-apply" className="text-sm text-gray-700 cursor-pointer">Appliquer automatiquement</label>
-              </div>
-              
+            <div className="flex justify-end mt-8">              
               <div className="flex gap-3">
                 <Button variant="outline" onClick={clearAllFilters}>Réinitialiser</Button>
                 <Button onClick={applyFilters}>Appliquer</Button>
