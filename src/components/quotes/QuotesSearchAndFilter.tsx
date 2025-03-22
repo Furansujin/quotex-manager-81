@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Toggle } from '@/components/ui/toggle';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
 import { 
   Search, 
   Filter, 
@@ -104,7 +103,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedStatus, status];
     
     setSelectedStatus(newStatus);
-    applyCurrentFilters(newStatus, selectedTypes);
   };
   
   const handleTypeToggle = (type: string) => {
@@ -113,12 +111,10 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedTypes, type];
     
     setSelectedTypes(newTypes);
-    applyCurrentFilters(selectedStatus, newTypes);
   };
 
   const handleCommercialSelect = (commercial: string) => {
     setCommercialSearch(commercial);
-    applyCurrentFilters();
   };
 
   const handleDateChange = (type: 'start' | 'end', date: Date | undefined) => {
@@ -137,8 +133,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
         setEndDateInput('');
       }
     }
-    
-    applyCurrentFilters();
   };
 
   const handleDateInputChange = (type: 'start' | 'end', value: string) => {
@@ -176,25 +170,15 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
   };
 
-  // Apply date input changes when focus is lost
-  const handleDateInputBlur = () => {
-    applyCurrentFilters();
-  };
-
   const handleAmountChange = (type: 'min' | 'max', value: string) => {
     if (type === 'min') {
       setMinAmount(value);
     } else {
       setMaxAmount(value);
     }
-    
-    applyCurrentFilters();
   };
 
-  const applyCurrentFilters = (
-    statusOverride: string[] = selectedStatus, 
-    typesOverride: string[] = selectedTypes
-  ) => {
+  const getFilterValues = () => {
     // Déterminer le commercial sélectionné
     let selectedCommercial: string | undefined = undefined;
     const matchedCommercial = commercials.find(c => 
@@ -207,23 +191,22 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
     
     // Construire l'objet de filtres
-    const filters: QuoteFilterValues = {
+    return {
       startDate,
       endDate,
-      status: statusOverride,
-      types: typesOverride,
+      status: selectedStatus,
+      types: selectedTypes,
       commercial: selectedCommercial,
       minAmount: minAmount ? parseFloat(minAmount) : undefined,
       maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
       sortField: sortField || undefined,
       sortDirection: sortDirection || undefined
     };
-    
-    onApplyFilters(filters);
   };
   
   const handleApplyFilters = () => {
-    applyCurrentFilters();
+    const filters = getFilterValues();
+    onApplyFilters(filters);
     setShowAdvancedFilters(false);
   };
   
@@ -552,7 +535,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedStatus.length === 0} 
                     onPressedChange={() => {
                       setSelectedStatus([]);
-                      applyCurrentFilters([], selectedTypes);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -596,7 +578,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedTypes.length === 0} 
                     onPressedChange={() => {
                       setSelectedTypes([]);
-                      applyCurrentFilters(selectedStatus, []);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -653,7 +634,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                       placeholder="JJ/MM/AAAA"
                       value={startDateInput}
                       onChange={(e) => handleDateInputChange('start', e.target.value)}
-                      onBlur={handleDateInputBlur}
                       className="h-10 bg-white"
                     />
                     <Popover>
@@ -683,7 +663,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                       placeholder="JJ/MM/AAAA"
                       value={endDateInput}
                       onChange={(e) => handleDateInputChange('end', e.target.value)}
-                      onBlur={handleDateInputBlur}
                       className="h-10 bg-white"
                     />
                     <Popover>
@@ -721,7 +700,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     className="pl-10 h-10 bg-white" 
                     value={commercialSearch}
                     onChange={(e) => setCommercialSearch(e.target.value)}
-                    onBlur={() => applyCurrentFilters()}
                   />
                   {commercialSearch && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
