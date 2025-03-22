@@ -6,12 +6,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SuppliersList from '@/components/suppliers/SuppliersList';
 import SupplierPricing from '@/components/suppliers/SupplierPricing';
 import SupplierImport from '@/components/suppliers/SupplierImport';
+import SupplierFilters from '@/components/suppliers/SupplierFilters';
 import { HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
+
+interface SupplierFilterValues {
+  types: string[];
+  categories: string[];
+  locations: string[];
+  startDate?: Date;
+  endDate?: Date;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
 
 const Suppliers = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('suppliers');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<SupplierFilterValues | null>(null);
+  const { toast } = useToast();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -19,6 +35,51 @@ const Suppliers = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+  };
+
+  const handleApplyFilters = (filters: SupplierFilterValues) => {
+    setActiveFilters(filters);
+    
+    toast({
+      title: "Filtres appliqués",
+      description: "Les fournisseurs ont été filtrés selon vos critères.",
+    });
+  };
+  
+  const clearAllFilters = () => {
+    setActiveFilters(null);
+    setSearchTerm('');
+    
+    toast({
+      title: "Filtres réinitialisés",
+      description: "Tous les filtres ont été réinitialisés.",
+    });
+  };
+  
+  const handleSortToggle = (field: string) => {
+    let newDirection: 'asc' | 'desc' | null = null;
+    let newField = field;
+    
+    if (activeFilters?.sortField === field) {
+      // Basculer la direction: asc -> desc -> null
+      if (activeFilters.sortDirection === 'asc') {
+        newDirection = 'desc';
+      } else if (activeFilters.sortDirection === 'desc') {
+        newField = '';
+        newDirection = null;
+      }
+    } else {
+      // Nouveau champ, commencer par ascendant
+      newDirection = 'asc';
+    }
+    
+    const newFilters = {
+      ...activeFilters || { types: [], categories: [], locations: [] },
+      sortField: newField || undefined,
+      sortDirection: newDirection || undefined
+    };
+    
+    handleApplyFilters(newFilters);
   };
 
   return (
@@ -32,6 +93,18 @@ const Suppliers = () => {
             <h1 className="text-2xl font-bold">Gestion des Fournisseurs</h1>
             <p className="text-muted-foreground">Gérez vos fournisseurs et leurs tarifs</p>
           </div>
+
+          {activeTab === 'suppliers' && (
+            <SupplierFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              showAdvancedFilters={showAdvancedFilters}
+              setShowAdvancedFilters={setShowAdvancedFilters}
+              activeFilters={activeFilters}
+              onApplyFilters={handleApplyFilters}
+              clearAllFilters={clearAllFilters}
+            />
+          )}
 
           <Tabs defaultValue="suppliers" value={activeTab} onValueChange={handleTabChange} className="space-y-4">
             <div className="flex items-center justify-between">
@@ -67,7 +140,7 @@ const Suppliers = () => {
             </div>
 
             <TabsContent value="suppliers" className="min-h-[500px]">
-              <SuppliersList />
+              <SuppliersList sortField={activeFilters?.sortField} sortDirection={activeFilters?.sortDirection} onSort={handleSortToggle} />
             </TabsContent>
 
             <TabsContent value="pricing" className="min-h-[500px]">

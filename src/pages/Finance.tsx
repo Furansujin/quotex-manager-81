@@ -3,32 +3,112 @@ import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
-  Search, 
   Download, 
   FileSpreadsheet, 
-  DollarSign, 
   Euro, 
   CalendarRange,
   BarChart4,
   PieChart,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   FileText,
   Plus,
-  Filter
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import FinanceFilters from '@/components/finance/FinanceFilters';
+
+interface FinanceFilterValues {
+  status: string[];
+  clientTypes: string[];
+  startDate?: Date;
+  endDate?: Date;
+  minAmount?: number;
+  maxAmount?: number;
+  commercial?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
 
 const Finance = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FinanceFilterValues | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const { toast } = useToast();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleApplyFilters = (filters: FinanceFilterValues) => {
+    setActiveFilters(filters);
+    
+    // Si des filtres de statut sont appliqués, on peut basculer sur l'onglet correspondant
+    if (filters.status && filters.status.length === 1) {
+      setActiveTab(filters.status[0]);
+    } else if (filters.status && filters.status.length === 0) {
+      setActiveTab('all');
+    }
+    
+    toast({
+      title: "Filtres appliqués",
+      description: "Les factures ont été filtrées selon vos critères.",
+    });
+  };
+  
+  const clearAllFilters = () => {
+    setActiveFilters(null);
+    setSearchTerm('');
+    
+    toast({
+      title: "Filtres réinitialisés",
+      description: "Tous les filtres ont été réinitialisés.",
+    });
+  };
+  
+  const handleSortToggle = (field: string) => {
+    let newDirection: 'asc' | 'desc' | null = null;
+    let newField = field;
+    
+    if (activeFilters?.sortField === field) {
+      // Basculer la direction: asc -> desc -> null
+      if (activeFilters.sortDirection === 'asc') {
+        newDirection = 'desc';
+      } else if (activeFilters.sortDirection === 'desc') {
+        newField = '';
+        newDirection = null;
+      }
+    } else {
+      // Nouveau champ, commencer par ascendant
+      newDirection = 'asc';
+    }
+    
+    const newFilters = {
+      ...activeFilters || { status: [], clientTypes: [] },
+      sortField: newField || undefined,
+      sortDirection: newDirection || undefined
+    };
+    
+    handleApplyFilters(newFilters);
+  };
+
+  // Rendu des icônes de tri
+  const renderSortIcon = (field: string) => {
+    if (activeFilters?.sortField === field) {
+      if (activeFilters.sortDirection === 'asc') {
+        return <ArrowUp className="h-3.5 w-3.5 text-primary ml-1" />;
+      } else if (activeFilters.sortDirection === 'desc') {
+        return <ArrowDown className="h-3.5 w-3.5 text-primary ml-1" />;
+      }
+    }
+    return <span className="h-3.5 w-3.5 opacity-0 group-hover:opacity-30 ml-1">↕</span>;
   };
 
   return (
@@ -199,40 +279,52 @@ const Finance = () => {
             </div>
           </div>
 
+          <FinanceFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            showAdvancedFilters={showAdvancedFilters}
+            setShowAdvancedFilters={setShowAdvancedFilters}
+            activeFilters={activeFilters}
+            onApplyFilters={handleApplyFilters}
+            clearAllFilters={clearAllFilters}
+          />
+
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle>Factures</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Rechercher..." className="pl-10 h-9" />
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Filter className="h-4 w-4" />
-                    Filtres
-                  </Button>
-                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="all" className="w-full">
+              <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">Toutes</TabsTrigger>
                   <TabsTrigger value="paid">Payées</TabsTrigger>
-                  <TabsTrigger value="unpaid">Impayées</TabsTrigger>
+                  <TabsTrigger value="pending">En attente</TabsTrigger>
                   <TabsTrigger value="overdue">En retard</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-4">
                   <div className="rounded-md border">
                     <div className="grid grid-cols-6 gap-4 p-3 bg-muted/30 text-sm font-medium border-b">
-                      <div>N° Facture</div>
-                      <div>Client</div>
-                      <div>Émission</div>
-                      <div>Échéance</div>
-                      <div className="text-right">Montant</div>
-                      <div className="text-right">Statut</div>
+                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('id')}>
+                        N° Facture {renderSortIcon('id')}
+                      </div>
+                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('client')}>
+                        Client {renderSortIcon('client')}
+                      </div>
+                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('issueDate')}>
+                        Émission {renderSortIcon('issueDate')}
+                      </div>
+                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('dueDate')}>
+                        Échéance {renderSortIcon('dueDate')}
+                      </div>
+                      <div className="flex items-center justify-end group cursor-pointer" onClick={() => handleSortToggle('amount')}>
+                        Montant {renderSortIcon('amount')}
+                      </div>
+                      <div className="flex items-center justify-end group cursor-pointer" onClick={() => handleSortToggle('status')}>
+                        Statut {renderSortIcon('status')}
+                      </div>
                     </div>
                     {[
                       { 
@@ -302,7 +394,7 @@ const Finance = () => {
                 <TabsContent value="paid">
                   <p className="text-center text-muted-foreground p-4">Liste des factures payées</p>
                 </TabsContent>
-                <TabsContent value="unpaid">
+                <TabsContent value="pending">
                   <p className="text-center text-muted-foreground p-4">Liste des factures impayées</p>
                 </TabsContent>
                 <TabsContent value="overdue">

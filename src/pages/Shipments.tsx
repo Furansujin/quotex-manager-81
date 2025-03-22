@@ -2,36 +2,32 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
-import { 
-  Search, 
-  SlidersHorizontal,
-  ChevronDown,
-  UserCircle,
-  Clock,
-  CalendarRange
-} from 'lucide-react';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import ShipmentDetail from '@/components/shipments/ShipmentDetail';
 import NewShipmentForm from '@/components/shipments/NewShipmentForm';
 import ShipmentFilters from '@/components/shipments/ShipmentFilters';
-import ShipmentTable from '@/components/shipments/ShipmentTable';
 import ShipmentTabs from '@/components/shipments/ShipmentTabs';
 import ShipmentPageHeader from '@/components/shipments/ShipmentPageHeader';
 import { useShipmentData } from '@/components/shipments/useShipmentData';
 import { useToast } from '@/hooks/use-toast';
 
+interface ShipmentFilterValues {
+  status: string[];
+  types: string[];
+  startDate?: Date;
+  endDate?: Date;
+  origin?: string;
+  destination?: string;
+  handler?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
+
 const Shipments = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<ShipmentFilterValues | null>(null);
   const [selectedShipment, setSelectedShipment] = useState<string | null>(null);
   const [showNewShipmentForm, setShowNewShipmentForm] = useState(false);
   const { toast } = useToast();
@@ -51,7 +47,59 @@ const Shipments = () => {
       title: "Expédition créée",
       description: `L'expédition ${shipmentId} a été créée avec succès.`,
     });
-    // In a real app, you would refresh the shipments list or add the new shipment to the state
+    // Dans une vrai app, vous rechargeriez la liste des expéditions ou ajouteriez la nouvelle expédition à l'état
+  };
+
+  const handleApplyFilters = (filters: ShipmentFilterValues) => {
+    setActiveFilters(filters);
+    
+    // Si des filtres de statut sont appliqués, on peut basculer sur l'onglet correspondant
+    if (filters.status && filters.status.length === 1) {
+      setActiveTab(filters.status[0]);
+    } else if (filters.status && filters.status.length === 0) {
+      setActiveTab('all');
+    }
+    
+    toast({
+      title: "Filtres appliqués",
+      description: "Les expéditions ont été filtrées selon vos critères.",
+    });
+  };
+  
+  const clearAllFilters = () => {
+    setActiveFilters(null);
+    setSearchTerm('');
+    
+    toast({
+      title: "Filtres réinitialisés",
+      description: "Tous les filtres ont été réinitialisés.",
+    });
+  };
+  
+  const handleSortToggle = (field: string) => {
+    let newDirection: 'asc' | 'desc' | null = null;
+    let newField = field;
+    
+    if (activeFilters?.sortField === field) {
+      // Basculer la direction: asc -> desc -> null
+      if (activeFilters.sortDirection === 'asc') {
+        newDirection = 'desc';
+      } else if (activeFilters.sortDirection === 'desc') {
+        newField = '';
+        newDirection = null;
+      }
+    } else {
+      // Nouveau champ, commencer par ascendant
+      newDirection = 'asc';
+    }
+    
+    const newFilters = {
+      ...activeFilters || { status: [], types: [] },
+      sortField: newField || undefined,
+      sortDirection: newDirection || undefined
+    };
+    
+    handleApplyFilters(newFilters);
   };
 
   return (
@@ -66,8 +114,13 @@ const Shipments = () => {
           />
 
           <ShipmentFilters 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
             showAdvancedFilters={showAdvancedFilters}
             setShowAdvancedFilters={setShowAdvancedFilters}
+            activeFilters={activeFilters}
+            onApplyFilters={handleApplyFilters}
+            clearAllFilters={clearAllFilters}
           />
 
           <ShipmentTabs 
@@ -75,6 +128,9 @@ const Shipments = () => {
             setActiveTab={setActiveTab}
             shipments={shipments}
             onOpenShipment={handleOpenShipment}
+            onSort={handleSortToggle}
+            sortField={activeFilters?.sortField}
+            sortDirection={activeFilters?.sortDirection}
           />
         </div>
       </main>

@@ -10,41 +10,36 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { 
-  Ship, 
-  Plane, 
-  Truck, 
-  Train, 
-  Package, 
-  UserCircle, 
   Calendar as CalendarIcon,
   X,
-  Clock
+  UserCircle,
+  Building,
 } from 'lucide-react';
 import SearchAndFilterBar from '@/components/common/SearchAndFilterBar';
 
-interface ShipmentFilterValues {
+interface FinanceFilterValues {
   status: string[];
-  types: string[];
+  clientTypes: string[];
   startDate?: Date;
   endDate?: Date;
-  origin?: string;
-  destination?: string;
-  handler?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  commercial?: string;
   sortField?: string;
   sortDirection?: 'asc' | 'desc';
 }
 
-interface ShipmentFiltersProps {
+interface FinanceFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   showAdvancedFilters: boolean;
   setShowAdvancedFilters: (show: boolean) => void;
-  activeFilters: ShipmentFilterValues | null;
-  onApplyFilters: (filters: ShipmentFilterValues) => void;
+  activeFilters: FinanceFilterValues | null;
+  onApplyFilters: (filters: FinanceFilterValues) => void;
   clearAllFilters: () => void;
 }
 
-const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
+const FinanceFilters: React.FC<FinanceFiltersProps> = ({
   searchTerm,
   setSearchTerm,
   showAdvancedFilters,
@@ -54,30 +49,28 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
   clearAllFilters
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedClientTypes, setSelectedClientTypes] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [startDateInput, setStartDateInput] = useState('');
   const [endDateInput, setEndDateInput] = useState('');
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
-  const [handler, setHandler] = useState('');
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [maxAmount, setMaxAmount] = useState<string>('');
+  const [commercial, setCommercial] = useState<string>('');
   
-  // Liste des gestionnaires (à remplacer par des données réelles)
-  const handlers = [
-    { id: 'marc', name: 'Marc Dubois' },
-    { id: 'sophie', name: 'Sophie Mercier' },
-    { id: 'thomas', name: 'Thomas Leroy' }
+  // Liste des commerciaux (à remplacer par des données réelles)
+  const commercials = [
+    { id: 'jean', name: 'Jean Dupont' },
+    { id: 'marie', name: 'Marie Martin' },
+    { id: 'pierre', name: 'Pierre Durand' }
   ];
   
   // Formatter le status pour affichage
   const formatStatus = (status: string) => {
     switch (status) {
-      case 'in_transit': return 'En transit';
-      case 'delivered': return 'Livrée';
+      case 'paid': return 'Payée';
       case 'pending': return 'En attente';
-      case 'delayed': return 'Retardée';
-      case 'cancelled': return 'Annulée';
+      case 'overdue': return 'En retard';
       default: return status;
     }
   };
@@ -91,13 +84,13 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
     setSelectedStatus(newStatus);
   };
   
-  // Gérer les changements de type
-  const handleTypeToggle = (type: string) => {
-    const newTypes = selectedTypes.includes(type)
-      ? selectedTypes.filter(t => t !== type)
-      : [...selectedTypes, type];
+  // Gérer les changements de type de client
+  const handleClientTypeToggle = (type: string) => {
+    const newTypes = selectedClientTypes.includes(type)
+      ? selectedClientTypes.filter(t => t !== type)
+      : [...selectedClientTypes, type];
     
-    setSelectedTypes(newTypes);
+    setSelectedClientTypes(newTypes);
   };
 
   // Gérer les changements de date
@@ -154,16 +147,25 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
     }
   };
 
+  // Gérer les changements de montant
+  const handleAmountChange = (type: 'min' | 'max', value: string) => {
+    if (type === 'min') {
+      setMinAmount(value);
+    } else {
+      setMaxAmount(value);
+    }
+  };
+
   // Construire et appliquer les filtres
   const applyCurrentFilters = () => {
-    const filters: ShipmentFilterValues = {
+    const filters: FinanceFilterValues = {
       status: selectedStatus,
-      types: selectedTypes,
+      clientTypes: selectedClientTypes,
       startDate,
       endDate,
-      origin: origin || undefined,
-      destination: destination || undefined,
-      handler: handler || undefined,
+      minAmount: minAmount ? parseFloat(minAmount) : undefined,
+      maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
+      commercial: commercial || undefined,
       sortField: activeFilters?.sortField,
       sortDirection: activeFilters?.sortDirection
     };
@@ -175,7 +177,7 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
   useEffect(() => {
     if (activeFilters) {
       setSelectedStatus(activeFilters.status || []);
-      setSelectedTypes(activeFilters.types || []);
+      setSelectedClientTypes(activeFilters.clientTypes || []);
       
       if (activeFilters.startDate) {
         setStartDate(activeFilters.startDate);
@@ -193,19 +195,19 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
         setEndDateInput('');
       }
       
-      setOrigin(activeFilters.origin || '');
-      setDestination(activeFilters.destination || '');
-      setHandler(activeFilters.handler || '');
+      setMinAmount(activeFilters.minAmount?.toString() || '');
+      setMaxAmount(activeFilters.maxAmount?.toString() || '');
+      setCommercial(activeFilters.commercial || '');
     } else {
       setSelectedStatus([]);
-      setSelectedTypes([]);
+      setSelectedClientTypes([]);
       setStartDate(undefined);
       setEndDate(undefined);
       setStartDateInput('');
       setEndDateInput('');
-      setOrigin('');
-      setDestination('');
-      setHandler('');
+      setMinAmount('');
+      setMaxAmount('');
+      setCommercial('');
     }
   }, [activeFilters]);
   
@@ -223,7 +225,7 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               const newStatus = selectedStatus.filter(s => s !== status);
               setSelectedStatus(newStatus);
               onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
+                ...activeFilters || { status: [], clientTypes: [] },
                 status: newStatus
               });
             }}
@@ -233,44 +235,20 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
         </Badge>
       ))}
       
-      {selectedTypes.map((type) => (
+      {selectedClientTypes.map((type) => (
         <Badge key={type} variant="outline" className="px-3 py-1.5 gap-1">
-          {type === 'Maritime' ? (
-            <>
-              <Ship className="h-3.5 w-3.5 text-blue-500" />
-              Maritime
-            </>
-          ) : type === 'Aérien' ? (
-            <>
-              <Plane className="h-3.5 w-3.5 text-green-500" />
-              Aérien
-            </>
-          ) : type === 'Routier' ? (
-            <>
-              <Truck className="h-3.5 w-3.5 text-amber-500" />
-              Routier
-            </>
-          ) : type === 'Ferroviaire' ? (
-            <>
-              <Train className="h-3.5 w-3.5 text-purple-500" />
-              Ferroviaire
-            </>
-          ) : (
-            <>
-              <Package className="h-3.5 w-3.5 text-indigo-500" />
-              Multimodal
-            </>
-          )}
+          <Building className="h-3.5 w-3.5 mr-1" />
+          {type}
           <Button
             variant="ghost"
             size="icon"
             className="h-4 w-4 ml-1"
             onClick={() => {
-              const newTypes = selectedTypes.filter(t => t !== type);
-              setSelectedTypes(newTypes);
+              const newTypes = selectedClientTypes.filter(t => t !== type);
+              setSelectedClientTypes(newTypes);
               onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
-                types: newTypes
+                ...activeFilters || { status: [], clientTypes: [] },
+                clientTypes: newTypes
               });
             }}
           >
@@ -294,7 +272,7 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               setStartDateInput('');
               setEndDateInput('');
               onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
+                ...activeFilters || { status: [], clientTypes: [] },
                 startDate: undefined,
                 endDate: undefined
               });
@@ -305,18 +283,22 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
         </Badge>
       )}
       
-      {origin && (
+      {(minAmount || maxAmount) && (
         <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
-          Origine: {origin}
+          Montant: {minAmount && `${minAmount}€`}
+          {minAmount && maxAmount && ' - '}
+          {maxAmount && `${maxAmount}€`}
           <Button
             variant="ghost"
             size="icon"
             className="h-4 w-4 ml-1"
             onClick={() => {
-              setOrigin('');
+              setMinAmount('');
+              setMaxAmount('');
               onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
-                origin: undefined
+                ...activeFilters || { status: [], clientTypes: [] },
+                minAmount: undefined,
+                maxAmount: undefined
               });
             }}
           >
@@ -325,38 +307,18 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
         </Badge>
       )}
       
-      {destination && (
+      {commercial && (
         <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
-          Destination: {destination}
+          Commercial: {commercial}
           <Button
             variant="ghost"
             size="icon"
             className="h-4 w-4 ml-1"
             onClick={() => {
-              setDestination('');
+              setCommercial('');
               onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
-                destination: undefined
-              });
-            }}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </Badge>
-      )}
-      
-      {handler && (
-        <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
-          Gestionnaire: {handler}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-4 w-4 ml-1"
-            onClick={() => {
-              setHandler('');
-              onApplyFilters({
-                ...activeFilters || { status: [], types: [] },
-                handler: undefined
+                ...activeFilters || { status: [], clientTypes: [] },
+                commercial: undefined
               });
             }}
           >
@@ -373,7 +335,7 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Status filters */}
         <div>
-          <label className="text-sm font-medium mb-3 block text-gray-700">Statut</label>
+          <label className="text-sm font-medium mb-3 block text-gray-700">Statut de paiement</label>
           <div className="flex flex-wrap gap-2">
             <Toggle 
               pressed={selectedStatus.length === 0} 
@@ -383,19 +345,11 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               Tous
             </Toggle>
             <Toggle 
-              pressed={selectedStatus.includes('in_transit')} 
-              onPressedChange={() => handleStatusToggle('in_transit')}
-              className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 gap-1"
-            >
-              <Clock className="h-3.5 w-3.5" />
-              En transit
-            </Toggle>
-            <Toggle 
-              pressed={selectedStatus.includes('delivered')} 
-              onPressedChange={() => handleStatusToggle('delivered')}
+              pressed={selectedStatus.includes('paid')} 
+              onPressedChange={() => handleStatusToggle('paid')}
               className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700"
             >
-              Livrée
+              Payée
             </Toggle>
             <Toggle 
               pressed={selectedStatus.includes('pending')} 
@@ -405,72 +359,46 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
               En attente
             </Toggle>
             <Toggle 
-              pressed={selectedStatus.includes('delayed')} 
-              onPressedChange={() => handleStatusToggle('delayed')}
+              pressed={selectedStatus.includes('overdue')} 
+              onPressedChange={() => handleStatusToggle('overdue')}
               className="data-[state=on]:bg-red-100 data-[state=on]:text-red-700"
             >
-              Retardée
-            </Toggle>
-            <Toggle 
-              pressed={selectedStatus.includes('cancelled')} 
-              onPressedChange={() => handleStatusToggle('cancelled')}
-              className="data-[state=on]:bg-gray-100 data-[state=on]:text-gray-700"
-            >
-              Annulée
+              En retard
             </Toggle>
           </div>
         </div>
         
-        {/* Transport type filters */}
+        {/* Client type filters */}
         <div>
-          <label className="text-sm font-medium mb-3 block text-gray-700">Type de transport</label>
+          <label className="text-sm font-medium mb-3 block text-gray-700">Type de client</label>
           <div className="flex flex-wrap gap-2">
             <Toggle 
-              pressed={selectedTypes.length === 0} 
-              onPressedChange={() => setSelectedTypes([])}
+              pressed={selectedClientTypes.length === 0} 
+              onPressedChange={() => setSelectedClientTypes([])}
               className="data-[state=on]:bg-primary/10"
             >
               Tous
             </Toggle>
             <Toggle 
-              pressed={selectedTypes.includes('Maritime')} 
-              onPressedChange={() => handleTypeToggle('Maritime')}
-              className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 gap-1"
+              pressed={selectedClientTypes.includes('Entreprise')} 
+              onPressedChange={() => handleClientTypeToggle('Entreprise')}
+              className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700"
             >
-              <Ship className="h-3.5 w-3.5" />
-              Maritime
+              Entreprise
             </Toggle>
             <Toggle 
-              pressed={selectedTypes.includes('Aérien')} 
-              onPressedChange={() => handleTypeToggle('Aérien')}
-              className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700 gap-1"
+              pressed={selectedClientTypes.includes('PME')} 
+              onPressedChange={() => handleClientTypeToggle('PME')}
+              className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700"
             >
-              <Plane className="h-3.5 w-3.5" />
-              Aérien
+              PME
             </Toggle>
             <Toggle 
-              pressed={selectedTypes.includes('Routier')} 
-              onPressedChange={() => handleTypeToggle('Routier')}
-              className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700 gap-1"
+              pressed={selectedClientTypes.includes('Particulier')} 
+              onPressedChange={() => handleClientTypeToggle('Particulier')}
+              className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700"
             >
-              <Truck className="h-3.5 w-3.5" />
-              Routier
-            </Toggle>
-            <Toggle 
-              pressed={selectedTypes.includes('Ferroviaire')} 
-              onPressedChange={() => handleTypeToggle('Ferroviaire')}
-              className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700 gap-1"
-            >
-              <Train className="h-3.5 w-3.5" />
-              Ferroviaire
-            </Toggle>
-            <Toggle 
-              pressed={selectedTypes.includes('Multimodal')} 
-              onPressedChange={() => handleTypeToggle('Multimodal')}
-              className="data-[state=on]:bg-indigo-100 data-[state=on]:text-indigo-700 gap-1"
-            >
-              <Package className="h-3.5 w-3.5" />
-              Multimodal
+              Particulier
             </Toggle>
           </div>
         </div>
@@ -543,49 +471,49 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        {/* Origin and destination */}
+        {/* Montant */}
         <div>
-          <Label className="text-sm font-medium mb-3 block text-gray-700">Origine</Label>
-          <Input 
-            placeholder="Ville, pays..." 
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            className="h-10 bg-white"
-          />
-        </div>
-        
-        <div>
-          <Label className="text-sm font-medium mb-3 block text-gray-700">Destination</Label>
-          <Input 
-            placeholder="Ville, pays..." 
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            className="h-10 bg-white"
-          />
-        </div>
-        
-        {/* Handler */}
-        <div>
-          <Label className="text-sm font-medium mb-3 block text-gray-700">Gestionnaire</Label>
-          <div className="relative">
-            <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <label className="text-sm font-medium mb-3 block text-gray-700">Montant (€)</label>
+          <div className="grid grid-cols-2 gap-4">
             <Input 
-              placeholder="Nom du gestionnaire" 
-              className="pl-10 h-10 bg-white" 
-              value={handler}
-              onChange={(e) => setHandler(e.target.value)}
+              type="number" 
+              placeholder="Min" 
+              className="h-10 bg-white"
+              value={minAmount}
+              onChange={(e) => handleAmountChange('min', e.target.value)}
+            />
+            <Input 
+              type="number" 
+              placeholder="Max" 
+              className="h-10 bg-white"
+              value={maxAmount}
+              onChange={(e) => handleAmountChange('max', e.target.value)}
             />
           </div>
         </div>
-      </div>
-      
-      <div className="flex justify-end mt-6">
-        <Button onClick={() => {
-          applyCurrentFilters();
-          onApplyFilters();
-        }}>
-          Appliquer
-        </Button>
+        
+        {/* Commercial */}
+        <div>
+          <label className="text-sm font-medium mb-3 block text-gray-700">Commercial</label>
+          <div className="relative">
+            <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Rechercher un commercial..." 
+              className="pl-10 h-10 bg-white" 
+              value={commercial}
+              onChange={(e) => setCommercial(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <div className="flex items-end justify-end">
+          <Button onClick={() => {
+            applyCurrentFilters();
+            onApplyFilters();
+          }}>
+            Appliquer
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -601,9 +529,9 @@ const ShipmentFilters: React.FC<ShipmentFiltersProps> = ({
       clearAllFilters={clearAllFilters}
       renderFilterContent={renderFilterContent}
       renderFilterBadges={renderFilterBadges}
-      title="Expéditions"
+      title="Factures"
     />
   );
 };
 
-export default ShipmentFilters;
+export default FinanceFilters;
