@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Toggle } from '@/components/ui/toggle';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import { 
   Search, 
   Filter, 
@@ -25,22 +24,9 @@ import {
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-export interface QuoteFilterValues {
-  startDate?: Date;
-  endDate?: Date;
-  status: string[];
-  types: string[];
-  commercial?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  savedFilter?: boolean;
-  filterName?: string;
-  sortField?: string;
-  sortDirection?: 'asc' | 'desc';
-}
+import { QuoteFilterValues } from '@/hooks/useQuotesData';
 
 interface QuotesSearchAndFilterProps {
   searchTerm: string;
@@ -68,9 +54,10 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
   const [commercialSearch, setCommercialSearch] = useState<string>('');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [startDateInput, setStartDateInput] = useState('');
+  const [endDateInput, setEndDateInput] = useState('');
   const [minAmount, setMinAmount] = useState<string>('');
   const [maxAmount, setMaxAmount] = useState<string>('');
-  const [autoApply, setAutoApply] = useState<boolean>(true);
   
   // Liste des commerciaux (à remplacer par des données réelles)
   const commercials = [
@@ -86,28 +73,29 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
   
   // Handle sort toggle
   const handleSortToggle = (field: string) => {
+    let newSortField = field;
+    let newSortDirection: 'asc' | 'desc' | null = null;
+    
     if (sortField === field) {
       if (sortDirection === 'asc') {
-        setSortDirection('desc');
+        newSortDirection = 'desc';
       } else if (sortDirection === 'desc') {
-        setSortField(null);
-        setSortDirection(null);
+        newSortField = '';
       }
     } else {
-      setSortField(field);
-      setSortDirection('asc');
+      newSortDirection = 'asc';
     }
     
+    setSortField(newSortField || null);
+    setSortDirection(newSortDirection);
+    
     // Apply sort to filters
-    if (activeFilters && autoApply) {
-      const newFilters = { 
-        ...activeFilters, 
-        sortField: field !== sortField || sortDirection === 'desc' ? field : undefined,
-        sortDirection: field !== sortField ? ('asc' as const) : 
-                       sortDirection === 'asc' ? ('desc' as const) : undefined
-      };
-      onApplyFilters(newFilters);
-    }
+    const newFilters = { 
+      ...activeFilters || { status: [], types: [] }, 
+      sortField: newSortField || undefined,
+      sortDirection: newSortDirection || undefined
+    };
+    onApplyFilters(newFilters);
   };
 
   const handleStatusToggle = (status: string) => {
@@ -116,10 +104,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedStatus, status];
     
     setSelectedStatus(newStatus);
-    
-    if (autoApply) {
-      applyCurrentFilters(newStatus, selectedTypes);
-    }
+    applyCurrentFilters(newStatus, selectedTypes);
   };
   
   const handleTypeToggle = (type: string) => {
@@ -128,30 +113,72 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       : [...selectedTypes, type];
     
     setSelectedTypes(newTypes);
-    
-    if (autoApply) {
-      applyCurrentFilters(selectedStatus, newTypes);
-    }
+    applyCurrentFilters(selectedStatus, newTypes);
   };
 
   const handleCommercialSelect = (commercial: string) => {
     setCommercialSearch(commercial);
-    
-    if (autoApply) {
-      applyCurrentFilters();
-    }
+    applyCurrentFilters();
   };
 
   const handleDateChange = (type: 'start' | 'end', date: Date | undefined) => {
     if (type === 'start') {
       setStartDate(date);
+      if (date) {
+        setStartDateInput(format(date, 'dd/MM/yyyy'));
+      } else {
+        setStartDateInput('');
+      }
     } else {
       setEndDate(date);
+      if (date) {
+        setEndDateInput(format(date, 'dd/MM/yyyy'));
+      } else {
+        setEndDateInput('');
+      }
     }
     
-    if (autoApply) {
-      applyCurrentFilters();
+    applyCurrentFilters();
+  };
+
+  const handleDateInputChange = (type: 'start' | 'end', value: string) => {
+    if (type === 'start') {
+      setStartDateInput(value);
+      
+      try {
+        if (value) {
+          // Try to parse the date in format dd/MM/yyyy
+          const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
+          if (!isNaN(parsedDate.getTime())) {
+            setStartDate(parsedDate);
+          }
+        } else {
+          setStartDate(undefined);
+        }
+      } catch (error) {
+        // Invalid date format, keep the input but don't update the date
+      }
+    } else {
+      setEndDateInput(value);
+      
+      try {
+        if (value) {
+          const parsedDate = parse(value, 'dd/MM/yyyy', new Date());
+          if (!isNaN(parsedDate.getTime())) {
+            setEndDate(parsedDate);
+          }
+        } else {
+          setEndDate(undefined);
+        }
+      } catch (error) {
+        // Invalid date format
+      }
     }
+  };
+
+  // Apply date input changes when focus is lost
+  const handleDateInputBlur = () => {
+    applyCurrentFilters();
   };
 
   const handleAmountChange = (type: 'min' | 'max', value: string) => {
@@ -161,9 +188,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       setMaxAmount(value);
     }
     
-    if (autoApply) {
-      applyCurrentFilters();
-    }
+    applyCurrentFilters();
   };
 
   const applyCurrentFilters = (
@@ -199,6 +224,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
   
   const handleApplyFilters = () => {
     applyCurrentFilters();
+    setShowAdvancedFilters(false);
   };
   
   const handleResetFilters = () => {
@@ -207,6 +233,8 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     setCommercialSearch('');
     setStartDate(undefined);
     setEndDate(undefined);
+    setStartDateInput('');
+    setEndDateInput('');
     setMinAmount('');
     setMaxAmount('');
     setSortField(null);
@@ -247,8 +275,23 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     if (activeFilters) {
       setSelectedStatus(activeFilters.status || []);
       setSelectedTypes(activeFilters.types || []);
-      setStartDate(activeFilters.startDate);
-      setEndDate(activeFilters.endDate);
+      
+      if (activeFilters.startDate) {
+        setStartDate(activeFilters.startDate);
+        setStartDateInput(format(activeFilters.startDate, 'dd/MM/yyyy'));
+      } else {
+        setStartDate(undefined);
+        setStartDateInput('');
+      }
+      
+      if (activeFilters.endDate) {
+        setEndDate(activeFilters.endDate);
+        setEndDateInput(format(activeFilters.endDate, 'dd/MM/yyyy'));
+      } else {
+        setEndDate(undefined);
+        setEndDateInput('');
+      }
+      
       setCommercialSearch(activeFilters.commercial || '');
       setMinAmount(activeFilters.minAmount?.toString() || '');
       setMaxAmount(activeFilters.maxAmount?.toString() || '');
@@ -266,6 +309,8 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       setCommercialSearch('');
       setStartDate(undefined);
       setEndDate(undefined);
+      setStartDateInput('');
+      setEndDateInput('');
       setMinAmount('');
       setMaxAmount('');
       setSortField(null);
@@ -507,7 +552,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedStatus.length === 0} 
                     onPressedChange={() => {
                       setSelectedStatus([]);
-                      if (autoApply) applyCurrentFilters([], selectedTypes);
+                      applyCurrentFilters([], selectedTypes);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -551,7 +596,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     pressed={selectedTypes.length === 0} 
                     onPressedChange={() => {
                       setSelectedTypes([]);
-                      if (autoApply) applyCurrentFilters(selectedStatus, []);
+                      applyCurrentFilters(selectedStatus, []);
                     }}
                     className="data-[state=on]:bg-primary/10"
                   >
@@ -602,42 +647,66 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
               
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Période</label>
-                <div className="flex gap-3">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date début</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={startDate}
-                        onSelect={(date) => handleDateChange('start', date)}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Input
+                      placeholder="JJ/MM/AAAA"
+                      value={startDateInput}
+                      onChange={(e) => handleDateInputChange('start', e.target.value)}
+                      onBlur={handleDateInputBlur}
+                      className="h-10 bg-white"
+                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="absolute right-0 top-0 h-10 w-10"
+                        >
+                          <Calendar className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <CalendarComponent
+                          mode="single"
+                          selected={startDate}
+                          onSelect={(date) => handleDateChange('start', date)}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {endDate ? format(endDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date fin</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={endDate}
-                        onSelect={(date) => handleDateChange('end', date)}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="relative">
+                    <Input
+                      placeholder="JJ/MM/AAAA"
+                      value={endDateInput}
+                      onChange={(e) => handleDateInputChange('end', e.target.value)}
+                      onBlur={handleDateInputBlur}
+                      className="h-10 bg-white"
+                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="absolute right-0 top-0 h-10 w-10"
+                        >
+                          <Calendar className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <CalendarComponent
+                          mode="single"
+                          selected={endDate}
+                          onSelect={(date) => handleDateChange('end', date)}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </div>
             </div>
@@ -652,6 +721,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                     className="pl-10 h-10 bg-white" 
                     value={commercialSearch}
                     onChange={(e) => setCommercialSearch(e.target.value)}
+                    onBlur={() => applyCurrentFilters()}
                   />
                   {commercialSearch && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
@@ -688,29 +758,14 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                   />
                 </div>
               </div>
-              
-              <div className="flex items-center">
-                <div className="flex items-center gap-2">
-                  <Switch 
-                    id="auto-apply" 
-                    checked={autoApply}
-                    onCheckedChange={setAutoApply}
-                  />
-                  <Label htmlFor="auto-apply" className="text-sm text-gray-700 cursor-pointer">
-                    Appliquer automatiquement
-                  </Label>
-                </div>
-              </div>
-            </div>
 
-            {!autoApply && (
-              <div className="flex justify-end mt-8">
+              <div className="flex items-end justify-end">
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={handleResetFilters}>Réinitialiser</Button>
                   <Button onClick={handleApplyFilters}>Appliquer</Button>
                 </div>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}
