@@ -1,7 +1,21 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { QuoteFilterValues } from '@/components/quotes/QuoteFilters';
+
+// Define the QuoteFilterValues interface directly since we removed QuoteFilters.tsx
+export interface QuoteFilterValues {
+  startDate?: Date;
+  endDate?: Date;
+  status: string[];
+  types: string[];
+  commercial?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  savedFilter?: boolean;
+  filterName?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+}
 
 export interface CargoDimensions {
   length?: string;
