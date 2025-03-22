@@ -10,13 +10,19 @@ interface ShipmentTabsProps {
   setActiveTab: React.Dispatch<React.SetStateAction<string>>;
   shipments: Shipment[];
   onOpenShipment: (id: string) => void;
+  onSort?: (field: string) => void;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
 }
 
 const ShipmentTabs: React.FC<ShipmentTabsProps> = ({ 
   activeTab, 
   setActiveTab, 
   shipments, 
-  onOpenShipment 
+  onOpenShipment,
+  onSort,
+  sortField,
+  sortDirection
 }) => {
   return (
     <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab} value={activeTab}>
@@ -29,7 +35,13 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">
-        <ShipmentTable shipments={shipments} onOpenShipment={onOpenShipment} />
+        <ShipmentTable 
+          shipments={shipments} 
+          onOpenShipment={onOpenShipment}
+          onSort={onSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
+        />
       </TabsContent>
       
       <TabsContent value="active">
