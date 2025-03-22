@@ -149,9 +149,9 @@ const QuoteItemsTable: React.FC<QuoteItemsTableProps> = ({
                       {hasMarginInfo(item) ? (
                         <Badge 
                           variant="success" 
-                          className="whitespace-nowrap gap-1 flex items-center"
+                          className="whitespace-nowrap"
                         >
-                          {item.margin}% <Percent className="h-3 w-3 ml-0.5" />
+                          {item.margin}%
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="whitespace-nowrap">Non défini</Badge>
