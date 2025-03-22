@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, X, Save } from 'lucide-react';
+import { Toggle } from '@/components/ui/toggle';
+import { Calendar, X, Save, Ship, Plane, Truck, Train, Package, UserCircle, ArrowDownUp, RefreshCw } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -12,6 +13,7 @@ import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 interface QuoteFiltersProps {
   show: boolean;
@@ -36,7 +38,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [commercial, setCommercial] = useState<string>('all');
+  const [commercialSearch, setCommercialSearch] = useState<string>('');
   const [minAmount, setMinAmount] = useState<string>('');
   const [maxAmount, setMaxAmount] = useState<string>('');
   const [saveFilter, setSaveFilter] = useState(false);
@@ -48,6 +50,18 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
     { id: 1, name: 'Devis maritimes en attente' },
     { id: 2, name: 'Devis approuvés récents' }
   ]);
+  
+  // Liste des commerciaux (à remplacer par des données réelles)
+  const commercials = [
+    { id: 'jean', name: 'Jean Dupont' },
+    { id: 'marie', name: 'Marie Martin' },
+    { id: 'pierre', name: 'Pierre Durand' }
+  ];
+  
+  // Filtrer les commerciaux en fonction de la recherche
+  const filteredCommercials = commercials.filter(commercial => 
+    commercial.name.toLowerCase().includes(commercialSearch.toLowerCase())
+  );
   
   const handleStatusToggle = (status: string) => {
     if (selectedStatus.includes(status)) {
@@ -70,7 +84,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
     setEndDate(undefined);
     setSelectedStatus([]);
     setSelectedTypes([]);
-    setCommercial('all');
+    setCommercialSearch('');
     setMinAmount('');
     setMaxAmount('');
     setSaveFilter(false);
@@ -88,13 +102,25 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
       return;
     }
     
+    // Déterminer le commercial sélectionné
+    let selectedCommercial: string | undefined = undefined;
+    const matchedCommercial = commercials.find(c => 
+      c.name.toLowerCase() === commercialSearch.toLowerCase()
+    );
+    if (matchedCommercial) {
+      selectedCommercial = matchedCommercial.id;
+    } else if (commercialSearch.trim()) {
+      // Si une valeur est entrée mais ne correspond pas exactement, on la garde quand même
+      selectedCommercial = commercialSearch;
+    }
+    
     // Construire l'objet de filtres
     const filters: QuoteFilterValues = {
       startDate,
       endDate,
       status: selectedStatus,
       types: selectedTypes,
-      commercial: commercial !== 'all' ? commercial : undefined,
+      commercial: selectedCommercial,
       minAmount: minAmount ? parseFloat(minAmount) : undefined,
       maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
       savedFilter: saveFilter,
@@ -114,10 +140,9 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
     // Appliquer les filtres
     if (onApplyFilters) {
       onApplyFilters(filters);
-    } else {
-      console.log('Filtres appliqués:', filters);
     }
     
+    // Fermer automatiquement la fenêtre de filtres après application
     onClose();
   };
   
@@ -146,7 +171,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
   if (!show) return null;
   
   return (
-    <Card className="shadow-lg w-full md:w-[600px]">
+    <Card className="shadow-lg w-full md:w-[600px] animate-fade-in">
       <CardContent className="p-4">
         {/* Filtres sauvegardés */}
         {savedFilters.length > 0 && (
@@ -157,7 +182,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
                 <Badge 
                   key={filter.id}
                   variant="outline" 
-                  className="cursor-pointer hover:bg-primary/10"
+                  className="cursor-pointer hover:bg-primary/10 transition-colors"
                   onClick={() => loadSavedFilter(filter.id)}
                 >
                   {filter.name}
@@ -167,96 +192,103 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Statut</label>
             <div className="flex flex-wrap gap-2">
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-primary/10 ${selectedStatus.length === 0 ? 'bg-primary/10' : ''}`}
-                onClick={() => setSelectedStatus([])}
+              <Toggle 
+                pressed={selectedStatus.length === 0} 
+                onPressedChange={() => setSelectedStatus([])}
+                className="data-[state=on]:bg-primary/10"
               >
                 Tous
-              </Badge>
-              <Badge 
-                variant="warning" 
-                className={`cursor-pointer ${selectedStatus.includes('pending') ? 'opacity-100' : 'opacity-60'}`}
-                onClick={() => handleStatusToggle('pending')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedStatus.includes('pending')} 
+                onPressedChange={() => handleStatusToggle('pending')}
+                className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700"
               >
                 En attente
-              </Badge>
-              <Badge 
-                variant="success" 
-                className={`cursor-pointer ${selectedStatus.includes('approved') ? 'opacity-100' : 'opacity-60'}`}
-                onClick={() => handleStatusToggle('approved')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedStatus.includes('approved')} 
+                onPressedChange={() => handleStatusToggle('approved')}
+                className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700"
               >
                 Approuvés
-              </Badge>
-              <Badge 
-                variant="destructive" 
-                className={`cursor-pointer ${selectedStatus.includes('rejected') ? 'opacity-100' : 'opacity-60'}`}
-                onClick={() => handleStatusToggle('rejected')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedStatus.includes('rejected')} 
+                onPressedChange={() => handleStatusToggle('rejected')}
+                className="data-[state=on]:bg-red-100 data-[state=on]:text-red-700"
               >
                 Rejetés
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-primary/10 ${selectedStatus.includes('expired') ? 'opacity-100' : 'opacity-60'}`}
-                onClick={() => handleStatusToggle('expired')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedStatus.includes('expired')} 
+                onPressedChange={() => handleStatusToggle('expired')}
+                className="data-[state=on]:bg-gray-100 data-[state=on]:text-gray-700"
               >
                 Expirés
-              </Badge>
+              </Toggle>
             </div>
           </div>
           
           <div>
             <label className="text-sm font-medium mb-2 block">Type de transport</label>
             <div className="flex flex-wrap gap-2">
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-primary/10 ${selectedTypes.length === 0 ? 'bg-primary/10' : ''}`}
-                onClick={() => setSelectedTypes([])}
+              <Toggle 
+                pressed={selectedTypes.length === 0} 
+                onPressedChange={() => setSelectedTypes([])}
+                className="data-[state=on]:bg-primary/10"
               >
                 Tous
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-blue-500/10 text-blue-500 ${selectedTypes.includes('Maritime') ? 'bg-blue-500/10' : ''}`}
-                onClick={() => handleTypeToggle('Maritime')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedTypes.includes('Maritime')} 
+                onPressedChange={() => handleTypeToggle('Maritime')}
+                className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 gap-1"
               >
+                <Ship className="h-3.5 w-3.5" />
                 Maritime
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-green-500/10 text-green-500 ${selectedTypes.includes('Aérien') ? 'bg-green-500/10' : ''}`}
-                onClick={() => handleTypeToggle('Aérien')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedTypes.includes('Aérien')} 
+                onPressedChange={() => handleTypeToggle('Aérien')}
+                className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700 gap-1"
               >
+                <Plane className="h-3.5 w-3.5" />
                 Aérien
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-amber-500/10 text-amber-500 ${selectedTypes.includes('Routier') ? 'bg-amber-500/10' : ''}`}
-                onClick={() => handleTypeToggle('Routier')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedTypes.includes('Routier')} 
+                onPressedChange={() => handleTypeToggle('Routier')}
+                className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700 gap-1"
               >
+                <Truck className="h-3.5 w-3.5" />
                 Routier
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-purple-500/10 text-purple-500 ${selectedTypes.includes('Ferroviaire') ? 'bg-purple-500/10' : ''}`}
-                onClick={() => handleTypeToggle('Ferroviaire')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedTypes.includes('Ferroviaire')} 
+                onPressedChange={() => handleTypeToggle('Ferroviaire')}
+                className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700 gap-1"
               >
+                <Train className="h-3.5 w-3.5" />
                 Ferroviaire
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className={`cursor-pointer hover:bg-indigo-500/10 text-indigo-500 ${selectedTypes.includes('Multimodal') ? 'bg-indigo-500/10' : ''}`}
-                onClick={() => handleTypeToggle('Multimodal')}
+              </Toggle>
+              <Toggle 
+                pressed={selectedTypes.includes('Multimodal')} 
+                onPressedChange={() => handleTypeToggle('Multimodal')}
+                className="data-[state=on]:bg-indigo-100 data-[state=on]:text-indigo-700 gap-1"
               >
+                <Package className="h-3.5 w-3.5" />
                 Multimodal
-              </Badge>
+              </Toggle>
             </div>
           </div>
-          
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Période</label>
             <div className="flex gap-2">
@@ -264,7 +296,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <Calendar className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'P', { locale: fr }) : <span>Date début</span>}
+                    {startDate ? format(startDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date début</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -280,7 +312,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <Calendar className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'P', { locale: fr }) : <span>Date fin</span>}
+                    {endDate ? format(endDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date fin</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -294,76 +326,84 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
               </Popover>
             </div>
           </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Commercial</label>
+            <div className="relative">
+              <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Rechercher un commercial..." 
+                className="pl-10 h-10" 
+                value={commercialSearch}
+                onChange={(e) => setCommercialSearch(e.target.value)}
+              />
+              {commercialSearch && filteredCommercials.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+                  {filteredCommercials.map(commercial => (
+                    <div 
+                      key={commercial.id} 
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors"
+                      onClick={() => setCommercialSearch(commercial.name)}
+                    >
+                      {commercial.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4">
-          <label className="text-sm font-medium mb-2 block">Commercial</label>
-          <Select value={commercial} onValueChange={setCommercial}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tous les commerciaux" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Commerciaux</SelectLabel>
-                <SelectItem value="all">Tous les commerciaux</SelectItem>
-                <SelectItem value="jean">Jean Dupont</SelectItem>
-                <SelectItem value="marie">Marie Martin</SelectItem>
-                <SelectItem value="pierre">Pierre Durand</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="mt-4">
-          <label className="text-sm font-medium mb-2 block">Montant</label>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Montant (€)</label>
+            <div className="grid grid-cols-2 gap-4">
               <Input 
                 type="number" 
-                placeholder="Min (€)" 
+                placeholder="Min" 
                 value={minAmount}
                 onChange={(e) => setMinAmount(e.target.value)}
               />
-            </div>
-            <div>
               <Input 
                 type="number" 
-                placeholder="Max (€)" 
+                placeholder="Max" 
                 value={maxAmount}
                 onChange={(e) => setMaxAmount(e.target.value)}
               />
             </div>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2 mt-4">
-          <Switch 
-            id="save-filter" 
-            checked={saveFilter}
-            onCheckedChange={setSaveFilter}
-          />
-          <Label htmlFor="save-filter">Sauvegarder ce filtre</Label>
-        </div>
-        
-        {saveFilter && (
-          <div className="mt-2">
-            <Input 
-              placeholder="Nom du filtre" 
-              value={filterName}
-              onChange={(e) => setFilterName(e.target.value)}
-              className="w-full"
-            />
+
+          <div className="flex flex-col justify-end">
+            <div className="flex items-center space-x-2 mt-auto">
+              <Switch 
+                id="save-filter" 
+                checked={saveFilter}
+                onCheckedChange={setSaveFilter}
+              />
+              <Label htmlFor="save-filter">Sauvegarder ce filtre</Label>
+            </div>
+            
+            {saveFilter && (
+              <div className="mt-2">
+                <Input 
+                  placeholder="Nom du filtre" 
+                  value={filterName}
+                  onChange={(e) => setFilterName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
         
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-between mt-6">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleReset}
             className="gap-1"
           >
-            <X className="h-4 w-4" /> Réinitialiser
+            <RefreshCw className="h-4 w-4" /> Réinitialiser
           </Button>
           
           <div className="flex gap-2">
