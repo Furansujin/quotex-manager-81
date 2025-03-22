@@ -304,35 +304,27 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                             <TableHead>Transit</TableHead>
                             <TableHead>Niveau de service</TableHead>
                             <TableHead>Validité</TableHead>
-                            <TableHead className="text-right">Action</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {availablePrices.map((price) => (
                             <TableRow 
                               key={price.id}
-                              className={selectedPrice?.id === price.id ? "bg-muted/50" : ""}
+                              className={`cursor-pointer transition-colors ${selectedPrice?.id === price.id ? "bg-muted/50" : "hover:bg-muted/30"}`}
+                              onClick={() => handleSelectPrice(price)}
                             >
-                              <TableCell>{price.supplier}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center">
+                                  {selectedPrice?.id === price.id && (
+                                    <Check className="h-4 w-4 mr-2 text-primary" />
+                                  )}
+                                  {price.supplier}
+                                </div>
+                              </TableCell>
                               <TableCell>{price.price.toFixed(2)} {price.currency}</TableCell>
                               <TableCell>{price.transitTime}</TableCell>
                               <TableCell>{getServiceLevelBadge(price.service_level)}</TableCell>
                               <TableCell>{price.valid_until}</TableCell>
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant={selectedPrice?.id === price.id ? "default" : "outline"} 
-                                  size="sm"
-                                  onClick={() => handleSelectPrice(price)}
-                                >
-                                  {selectedPrice?.id === price.id ? (
-                                    <>
-                                      <Check className="h-4 w-4 mr-1" /> Sélectionné
-                                    </>
-                                  ) : (
-                                    "Sélectionner"
-                                  )}
-                                </Button>
-                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -460,34 +452,26 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                       <TableHead>Prix contractuel</TableHead>
                       <TableHead>Transit</TableHead>
                       <TableHead>Validité</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {fixedPrices.map((price) => (
                       <TableRow 
                         key={price.id}
-                        className={selectedPrice?.id === price.id ? "bg-muted/50" : ""}
+                        className={`cursor-pointer transition-colors ${selectedPrice?.id === price.id ? "bg-muted/50" : "hover:bg-muted/30"}`}
+                        onClick={() => handleSelectPrice(price)}
                       >
-                        <TableCell>{price.supplier}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {selectedPrice?.id === price.id && (
+                              <Check className="h-4 w-4 mr-2 text-primary" />
+                            )}
+                            {price.supplier}
+                          </div>
+                        </TableCell>
                         <TableCell>{price.price.toFixed(2)} {price.currency}</TableCell>
                         <TableCell>{price.transitTime}</TableCell>
                         <TableCell>{price.valid_until}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant={selectedPrice?.id === price.id ? "default" : "outline"} 
-                            size="sm"
-                            onClick={() => handleSelectPrice(price)}
-                          >
-                            {selectedPrice?.id === price.id ? (
-                              <>
-                                <Check className="h-4 w-4 mr-1" /> Sélectionné
-                              </>
-                            ) : (
-                              "Sélectionner"
-                            )}
-                          </Button>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
