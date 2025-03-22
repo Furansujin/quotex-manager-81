@@ -120,23 +120,23 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     if (type === 'start') {
       setStartDate(date);
       if (date) {
-        setStartDateInput(format(date, 'dd/MM/yyyy'));
+        setStartDateInput(format(date, 'dd/MM/yyyy', { locale: fr }));
       } else {
         setStartDateInput('');
       }
     } else {
       setEndDate(date);
       if (date) {
-        setEndDateInput(format(date, 'dd/MM/yyyy'));
+        setEndDateInput(format(date, 'dd/MM/yyyy', { locale: fr }));
       } else {
         setEndDateInput('');
       }
     }
     
-    // Attendre un peu avant d'appliquer les filtres pour permettre à l'état de se mettre à jour
+    // Apply filters after a short delay to allow state to update
     setTimeout(() => {
       applyCurrentFilters();
-    }, 0);
+    }, 50);
   };
 
   const handleDateInputChange = (type: 'start' | 'end', value: string) => {
@@ -623,13 +623,14 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                           <Calendar className="h-4 w-4" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
+                      <PopoverContent className="w-auto p-0 pointer-events-auto" align="end">
                         <CalendarComponent
                           mode="single"
                           selected={startDate}
                           onSelect={(date) => handleDateChange('start', date)}
                           initialFocus
                           className="p-3 pointer-events-auto"
+                          locale={fr}
                         />
                       </PopoverContent>
                     </Popover>
@@ -653,13 +654,14 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                           <Calendar className="h-4 w-4" />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="end">
+                      <PopoverContent className="w-auto p-0 pointer-events-auto" align="end">
                         <CalendarComponent
                           mode="single"
                           selected={endDate}
                           onSelect={(date) => handleDateChange('end', date)}
                           initialFocus
                           className="p-3 pointer-events-auto"
+                          locale={fr}
                         />
                       </PopoverContent>
                     </Popover>

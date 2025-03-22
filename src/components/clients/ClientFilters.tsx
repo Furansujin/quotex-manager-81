@@ -190,12 +190,14 @@ const ClientFilters = ({ show, onClose, onApplyFilters }: ClientFiltersProps) =>
                       {startDate ? format(startDate, 'PP', { locale: fr }) : "Sélectionner..."}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 pointer-events-auto">
                     <Calendar
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
                       initialFocus
+                      className="p-3 pointer-events-auto"
+                      locale={fr}
                     />
                   </PopoverContent>
                 </Popover>
@@ -212,12 +214,14 @@ const ClientFilters = ({ show, onClose, onApplyFilters }: ClientFiltersProps) =>
                       {endDate ? format(endDate, 'PP', { locale: fr }) : "Sélectionner..."}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 pointer-events-auto">
                     <Calendar
                       mode="single"
                       selected={endDate}
                       onSelect={setEndDate}
                       initialFocus
+                      className="p-3 pointer-events-auto"
+                      locale={fr}
                     />
                   </PopoverContent>
                 </Popover>

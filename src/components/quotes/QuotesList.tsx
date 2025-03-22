@@ -90,10 +90,11 @@ const QuotesList: React.FC<QuotesListProps> = ({
         variant="ghost" 
         size="sm" 
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           if (onSort) onSort(field);
         }}
-        className={`ml-1 p-0 h-6 w-6 hover:bg-transparent`}
+        className="ml-1 p-0 h-6 w-6 hover:bg-transparent"
       >
         {sortField === field && sortDirection === 'asc' && <ArrowUp className="h-3.5 w-3.5 text-primary" />}
         {sortField === field && sortDirection === 'desc' && <ArrowDown className="h-3.5 w-3.5 text-primary" />}
@@ -177,7 +178,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
                             <span className="sr-only">Relancer</span>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
+                        <PopoverContent className="w-auto p-0 pointer-events-auto" align="end">
                           <div className="p-2">
                             {renderFollowUpButton(quote)}
                           </div>
@@ -196,7 +197,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
                           <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuContent align="end" className="w-40 pointer-events-auto">
                         <DropdownMenuItem onClick={() => onEdit(quote.id)}>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Modifier</span>
