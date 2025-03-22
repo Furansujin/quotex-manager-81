@@ -9,7 +9,8 @@ import {
   Edit,
   Copy,
   Download,
-  FileText
+  FileText,
+  ArrowUpDown
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -41,9 +42,18 @@ export interface Shipment {
 interface ShipmentTableProps {
   shipments: Shipment[];
   onOpenShipment: (id: string) => void;
+  onSort?: (field: string) => void;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
 }
 
-const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment }) => {
+const ShipmentTable: React.FC<ShipmentTableProps> = ({ 
+  shipments, 
+  onOpenShipment, 
+  onSort, 
+  sortField, 
+  sortDirection 
+}) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -107,6 +117,13 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
       description: `Les documents de l'expédition ${id} sont en cours de téléchargement.`,
     });
   };
+  
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-4 w-4" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUpDown className="ml-1 h-4 w-4 text-primary" /> 
+      : <ArrowUpDown className="ml-1 h-4 w-4 text-primary rotate-180" />;
+  };
 
   return (
     <Card>
@@ -114,13 +131,27 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, onOpenShipment
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Expédition</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Dates</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Trajet</TableHead>
-              <TableHead>Fret</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('id')}>
+                N° Expédition {onSort && getSortIcon('id')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('client')}>
+                Client {onSort && getSortIcon('client')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('departureDate')}>
+                Dates {onSort && getSortIcon('departureDate')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('type')}>
+                Type {onSort && getSortIcon('type')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('origin')}>
+                Trajet {onSort && getSortIcon('origin')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('containers')}>
+                Fret {onSort && getSortIcon('containers')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('status')}>
+                Statut {onSort && getSortIcon('status')}
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>

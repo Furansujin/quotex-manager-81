@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -85,7 +84,13 @@ const supplierFormSchema = z.object({
   notes: z.string().optional()
 });
 
-const SuppliersList = () => {
+interface SuppliersListProps {
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (field: string) => void;
+}
+
+const SuppliersList: React.FC<SuppliersListProps> = ({ sortField, sortDirection, onSort }) => {
   const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -246,6 +251,13 @@ const SuppliersList = () => {
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) return <ArrowUpDown className="ml-1 h-4 w-4" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUpDown className="ml-1 h-4 w-4 text-primary" /> 
+      : <ArrowUpDown className="ml-1 h-4 w-4 text-primary rotate-180" />;
   };
 
   return (
@@ -636,12 +648,24 @@ const SuppliersList = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Catégorie</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead className="hidden md:table-cell">Email</TableHead>
-              <TableHead className="hidden md:table-cell">Téléphone</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('name')}>
+                Nom {onSort && getSortIcon('name')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('category')}>
+                Catégorie {onSort && getSortIcon('category')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('contactName')}>
+                Contact {onSort && getSortIcon('contactName')}
+              </TableHead>
+              <TableHead className="hidden md:table-cell cursor-pointer" onClick={() => onSort && onSort('email')}>
+                Email {onSort && getSortIcon('email')}
+              </TableHead>
+              <TableHead className="hidden md:table-cell cursor-pointer" onClick={() => onSort && onSort('phone')}>
+                Téléphone {onSort && getSortIcon('phone')}
+              </TableHead>
+              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('status')}>
+                Statut {onSort && getSortIcon('status')}
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
