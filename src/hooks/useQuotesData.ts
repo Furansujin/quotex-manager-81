@@ -140,12 +140,12 @@ export const useQuotesData = () => {
 
   // Filter quotes based on active tab, search term, and filters
   const filteredQuotes = quotes.filter(quote => {
-    // Filtre par onglet
+    // Filter by tab
     if (activeTab !== 'all' && quote.status !== activeTab) {
       return false;
     }
     
-    // Filtre par recherche texte
+    // Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
@@ -160,27 +160,33 @@ export const useQuotesData = () => {
       if (!matchesSearch) return false;
     }
     
-    // Filtres avancés
+    // Apply advanced filters
     if (activeFilters) {
-      // Filtre par status
+      // Filter by status
       if (activeFilters.status.length > 0 && !activeFilters.status.includes(quote.status)) {
         return false;
       }
       
-      // Filtre par type
+      // Filter by type
       if (activeFilters.types.length > 0 && !activeFilters.types.includes(quote.type)) {
         return false;
       }
       
-      // Filtre par commercial
+      // Filter by commercial
       if (activeFilters.commercial && activeFilters.commercial !== 'all') {
-        const commercialFirstName = quote.commercial?.split(' ')[0].toLowerCase();
-        if (commercialFirstName !== activeFilters.commercial) {
+        const commercialName = quote.commercial?.toLowerCase() || '';
+        const commercialFirstName = quote.commercial?.split(' ')[0].toLowerCase() || '';
+        
+        if (activeFilters.commercial === 'jean' && !commercialName.includes('jean')) {
+          return false;
+        } else if (activeFilters.commercial === 'marie' && !commercialName.includes('marie')) {
+          return false;
+        } else if (activeFilters.commercial === 'pierre' && !commercialName.includes('pierre')) {
           return false;
         }
       }
       
-      // Filtre par montant
+      // Filter by amount
       if (activeFilters.minAmount) {
         const amount = parseFloat(quote.amount.replace('€', '').replace(',', '').trim());
         if (amount < activeFilters.minAmount) {
@@ -195,26 +201,43 @@ export const useQuotesData = () => {
         }
       }
       
-      // Filtre par date
+      // Filter by date
       if (activeFilters.startDate) {
-        const quoteDate = new Date(quote.date.split('/').reverse().join('-'));
+        const quoteParts = quote.date.split('/');
+        const quoteDate = new Date(
+          parseInt(quoteParts[2]), // year
+          parseInt(quoteParts[1]) - 1, // month (0-indexed)
+          parseInt(quoteParts[0]) // day
+        );
+        
         if (quoteDate < activeFilters.startDate) {
           return false;
         }
       }
       
       if (activeFilters.endDate) {
-        const quoteDate = new Date(quote.date.split('/').reverse().join('-'));
-        if (quoteDate > activeFilters.endDate) {
+        const quoteParts = quote.date.split('/');
+        const quoteDate = new Date(
+          parseInt(quoteParts[2]), // year
+          parseInt(quoteParts[1]) - 1, // month (0-indexed)
+          parseInt(quoteParts[0]) // day
+        );
+        
+        // Adjust end date to include the entire day
+        const endDateAdjusted = new Date(activeFilters.endDate);
+        endDateAdjusted.setHours(23, 59, 59, 999);
+        
+        if (quoteDate > endDateAdjusted) {
           return false;
         }
       }
     }
     
-    // Si toutes les conditions sont passées, inclure le devis
+    // Include the quote if it passes all filters
     return true;
   });
 
+  // Apply filters handler
   const handleApplyFilters = (filters: QuoteFilterValues) => {
     setActiveFilters(filters);
     
@@ -234,6 +257,7 @@ export const useQuotesData = () => {
     }
   };
   
+  // Clear all filters
   const clearAllFilters = () => {
     setActiveFilters(null);
     setSearchTerm('');
@@ -244,14 +268,8 @@ export const useQuotesData = () => {
     });
   };
 
-  // Listen for new quotes added via useQuoteActions
+  // Listen for new quotes added via localStorage
   useEffect(() => {
-    // In a real app, this would be a subscription to a backend service
-    // or a websocket connection to get real-time updates
-    
-    // You could also use a more sophisticated state management solution
-    // like React Context, Redux, or Zustand
-    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'newQuote') {
         try {
