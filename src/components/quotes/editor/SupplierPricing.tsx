@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,6 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
   const [availablePrices, setAvailablePrices] = useState<SupplierPrice[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<SupplierPrice | null>(null);
   const [marginPercentage, setMarginPercentage] = useState<number>(15);
-  const [additionalFees, setAdditionalFees] = useState<number>(0);
   const [fixedPrices, setFixedPrices] = useState<SupplierPrice[]>([
     {
       id: 'fixed-1',
@@ -71,10 +71,9 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
     }
   ]);
 
-  // Calculate the final price with margin and additional fees
+  // Calculate the final price with margin only (removed additional fees)
   const calculateFinalPrice = (basePrice: number) => {
-    const withMargin = basePrice * (1 + marginPercentage / 100);
-    return withMargin + additionalFees;
+    return basePrice * (1 + marginPercentage / 100);
   };
 
   // Simulate fetching prices from API
@@ -332,31 +331,18 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-4">
-                              <div>
-                                <Label>Marge (%)</Label>
-                                <div className="flex items-center gap-4">
-                                  <Slider
-                                    value={[marginPercentage]}
-                                    onValueChange={(value) => setMarginPercentage(value[0])}
-                                    min={0}
-                                    max={50}
-                                    step={1}
-                                    className="flex-1"
-                                  />
-                                  <div className="w-12 text-right">{marginPercentage}%</div>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <Label>Frais additionnels</Label>
-                                <Input
-                                  type="number"
-                                  value={additionalFees}
-                                  onChange={(e) => setAdditionalFees(Number(e.target.value))}
+                            <div>
+                              <Label>Marge (%)</Label>
+                              <div className="flex items-center gap-4">
+                                <Slider
+                                  value={[marginPercentage]}
+                                  onValueChange={(value) => setMarginPercentage(value[0])}
                                   min={0}
-                                  className="mt-1"
+                                  max={50}
+                                  step={1}
+                                  className="flex-1"
                                 />
+                                <div className="w-12 text-right">{marginPercentage}%</div>
                               </div>
                             </div>
                             
@@ -369,10 +355,6 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                                 <div className="flex justify-between text-sm">
                                   <span>Marge ({marginPercentage}%):</span>
                                   <span>{(selectedPrice.price * marginPercentage / 100).toFixed(2)} {currency}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                  <span>Frais additionnels:</span>
-                                  <span>{additionalFees.toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="flex justify-between font-bold border-t pt-2 mt-2">
                                   <span>Prix final:</span>
@@ -460,31 +442,18 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Marge (%)</Label>
-                          <div className="flex items-center gap-4">
-                            <Slider
-                              value={[marginPercentage]}
-                              onValueChange={(value) => setMarginPercentage(value[0])}
-                              min={0}
-                              max={50}
-                              step={1}
-                              className="flex-1"
-                            />
-                            <div className="w-12 text-right">{marginPercentage}%</div>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label>Frais additionnels</Label>
-                          <Input
-                            type="number"
-                            value={additionalFees}
-                            onChange={(e) => setAdditionalFees(Number(e.target.value))}
+                      <div>
+                        <Label>Marge (%)</Label>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[marginPercentage]}
+                            onValueChange={(value) => setMarginPercentage(value[0])}
                             min={0}
-                            className="mt-1"
+                            max={50}
+                            step={1}
+                            className="flex-1"
                           />
+                          <div className="w-12 text-right">{marginPercentage}%</div>
                         </div>
                       </div>
                       
@@ -497,10 +466,6 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
                           <div className="flex justify-between text-sm">
                             <span>Marge ({marginPercentage}%):</span>
                             <span>{(selectedPrice.price * marginPercentage / 100).toFixed(2)} {currency}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Frais additionnels:</span>
-                            <span>{additionalFees.toFixed(2)} {currency}</span>
                           </div>
                           <div className="flex justify-between font-bold border-t pt-2 mt-2">
                             <span>Prix final:</span>
