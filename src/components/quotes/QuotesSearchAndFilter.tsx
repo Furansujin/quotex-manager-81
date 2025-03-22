@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Toggle } from '@/components/ui/toggle';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Search, 
   Filter, 
@@ -14,9 +19,28 @@ import {
   Plane,
   Truck,
   Train,
-  Package
+  Package,
+  UserCircle,
+  Calendar
 } from 'lucide-react';
-import QuoteFilters, { QuoteFilterValues } from './QuoteFilters';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+export interface QuoteFilterValues {
+  startDate?: Date;
+  endDate?: Date;
+  status: string[];
+  types: string[];
+  commercial?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  savedFilter?: boolean;
+  filterName?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
 
 interface QuotesSearchAndFilterProps {
   searchTerm: string;
@@ -39,6 +63,26 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
 }) => {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [commercialSearch, setCommercialSearch] = useState<string>('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [maxAmount, setMaxAmount] = useState<string>('');
+  const [autoApply, setAutoApply] = useState<boolean>(true);
+  
+  // Liste des commerciaux (à remplacer par des données réelles)
+  const commercials = [
+    { id: 'jean', name: 'Jean Dupont' },
+    { id: 'marie', name: 'Marie Martin' },
+    { id: 'pierre', name: 'Pierre Durand' }
+  ];
+  
+  // Filtrer les commerciaux en fonction de la recherche
+  const filteredCommercials = commercials.filter(commercial => 
+    commercial.name.toLowerCase().includes(commercialSearch.toLowerCase())
+  );
   
   // Handle sort toggle
   const handleSortToggle = (field: string) => {
@@ -55,15 +99,120 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     }
     
     // Apply sort to filters
-    if (activeFilters) {
+    if (activeFilters && autoApply) {
       const newFilters = { 
         ...activeFilters, 
         sortField: field !== sortField || sortDirection === 'desc' ? field : undefined,
-        sortDirection: field !== sortField ? 'asc' : 
-                       sortDirection === 'asc' ? 'desc' as const : undefined
+        sortDirection: field !== sortField ? ('asc' as const) : 
+                       sortDirection === 'asc' ? ('desc' as const) : undefined
       };
       onApplyFilters(newFilters);
     }
+  };
+
+  const handleStatusToggle = (status: string) => {
+    const newStatus = selectedStatus.includes(status)
+      ? selectedStatus.filter(s => s !== status)
+      : [...selectedStatus, status];
+    
+    setSelectedStatus(newStatus);
+    
+    if (autoApply) {
+      applyCurrentFilters(newStatus, selectedTypes);
+    }
+  };
+  
+  const handleTypeToggle = (type: string) => {
+    const newTypes = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type];
+    
+    setSelectedTypes(newTypes);
+    
+    if (autoApply) {
+      applyCurrentFilters(selectedStatus, newTypes);
+    }
+  };
+
+  const handleCommercialSelect = (commercial: string) => {
+    setCommercialSearch(commercial);
+    
+    if (autoApply) {
+      applyCurrentFilters();
+    }
+  };
+
+  const handleDateChange = (type: 'start' | 'end', date: Date | undefined) => {
+    if (type === 'start') {
+      setStartDate(date);
+    } else {
+      setEndDate(date);
+    }
+    
+    if (autoApply) {
+      applyCurrentFilters();
+    }
+  };
+
+  const handleAmountChange = (type: 'min' | 'max', value: string) => {
+    if (type === 'min') {
+      setMinAmount(value);
+    } else {
+      setMaxAmount(value);
+    }
+    
+    if (autoApply) {
+      applyCurrentFilters();
+    }
+  };
+
+  const applyCurrentFilters = (
+    statusOverride: string[] = selectedStatus, 
+    typesOverride: string[] = selectedTypes
+  ) => {
+    // Déterminer le commercial sélectionné
+    let selectedCommercial: string | undefined = undefined;
+    const matchedCommercial = commercials.find(c => 
+      c.name.toLowerCase() === commercialSearch.toLowerCase()
+    );
+    if (matchedCommercial) {
+      selectedCommercial = matchedCommercial.id;
+    } else if (commercialSearch.trim()) {
+      selectedCommercial = commercialSearch;
+    }
+    
+    // Construire l'objet de filtres
+    const filters: QuoteFilterValues = {
+      startDate,
+      endDate,
+      status: statusOverride,
+      types: typesOverride,
+      commercial: selectedCommercial,
+      minAmount: minAmount ? parseFloat(minAmount) : undefined,
+      maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
+      sortField: sortField || undefined,
+      sortDirection: sortDirection || undefined
+    };
+    
+    onApplyFilters(filters);
+  };
+  
+  const handleApplyFilters = () => {
+    applyCurrentFilters();
+  };
+  
+  const handleResetFilters = () => {
+    setSelectedStatus([]);
+    setSelectedTypes([]);
+    setCommercialSearch('');
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setMinAmount('');
+    setMaxAmount('');
+    setSortField(null);
+    setSortDirection(null);
+    
+    clearAllFilters();
   };
   
   // Format active status filters for display
@@ -93,16 +242,36 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
     );
   };
   
-  // Update local sort state when activeFilters change
-  React.useEffect(() => {
-    if (activeFilters?.sortField) {
-      setSortField(activeFilters.sortField);
-      setSortDirection(activeFilters.sortDirection || 'asc');
+  // Update local state when activeFilters change
+  useEffect(() => {
+    if (activeFilters) {
+      setSelectedStatus(activeFilters.status || []);
+      setSelectedTypes(activeFilters.types || []);
+      setStartDate(activeFilters.startDate);
+      setEndDate(activeFilters.endDate);
+      setCommercialSearch(activeFilters.commercial || '');
+      setMinAmount(activeFilters.minAmount?.toString() || '');
+      setMaxAmount(activeFilters.maxAmount?.toString() || '');
+      
+      if (activeFilters.sortField) {
+        setSortField(activeFilters.sortField);
+        setSortDirection(activeFilters.sortDirection || 'asc');
+      } else {
+        setSortField(null);
+        setSortDirection(null);
+      }
     } else {
+      setSelectedStatus([]);
+      setSelectedTypes([]);
+      setCommercialSearch('');
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setMinAmount('');
+      setMaxAmount('');
       setSortField(null);
       setSortDirection(null);
     }
-  }, [activeFilters?.sortField, activeFilters?.sortDirection]);
+  }, [activeFilters]);
   
   return (
     <div className="mb-6 space-y-4 animate-fade-in">
@@ -166,7 +335,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             <Button 
               variant="outline" 
               className="gap-2 px-4 h-11"
-              onClick={clearAllFilters}
+              onClick={handleResetFilters}
             >
               <RefreshCw className="h-4 w-4" />
               Réinitialiser
@@ -256,9 +425,9 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
           
           {(activeFilters?.startDate || activeFilters?.endDate) && (
             <Badge variant="outline" className="px-3 py-1.5 gap-1 bg-primary/5">
-              Période: {activeFilters.startDate && new Date(activeFilters.startDate).toLocaleDateString('fr')}
+              Période: {activeFilters.startDate && format(activeFilters.startDate, 'dd/MM/yyyy', { locale: fr })}
               {activeFilters.startDate && activeFilters.endDate && ' - '}
-              {activeFilters.endDate && new Date(activeFilters.endDate).toLocaleDateString('fr')}
+              {activeFilters.endDate && format(activeFilters.endDate, 'dd/MM/yyyy', { locale: fr })}
               <Button
                 variant="ghost"
                 size="icon"
@@ -328,11 +497,222 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
       
       {/* Filters panel */}
       {showAdvancedFilters && (
-        <QuoteFilters 
-          show={showAdvancedFilters} 
-          onClose={() => setShowAdvancedFilters(false)}
-          onApplyFilters={onApplyFilters}
-        />
+        <Card className="mb-8 bg-white border border-[#eee] shadow-sm animate-fade-in">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="text-sm font-medium mb-3 block text-gray-700">Statut</label>
+                <div className="flex flex-wrap gap-2">
+                  <Toggle 
+                    pressed={selectedStatus.length === 0} 
+                    onPressedChange={() => {
+                      setSelectedStatus([]);
+                      if (autoApply) applyCurrentFilters([], selectedTypes);
+                    }}
+                    className="data-[state=on]:bg-primary/10"
+                  >
+                    Tous
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedStatus.includes('pending')} 
+                    onPressedChange={() => handleStatusToggle('pending')}
+                    className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700"
+                  >
+                    En attente
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedStatus.includes('approved')} 
+                    onPressedChange={() => handleStatusToggle('approved')}
+                    className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700"
+                  >
+                    Approuvés
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedStatus.includes('rejected')} 
+                    onPressedChange={() => handleStatusToggle('rejected')}
+                    className="data-[state=on]:bg-red-100 data-[state=on]:text-red-700"
+                  >
+                    Rejetés
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedStatus.includes('expired')} 
+                    onPressedChange={() => handleStatusToggle('expired')}
+                    className="data-[state=on]:bg-gray-100 data-[state=on]:text-gray-700"
+                  >
+                    Expirés
+                  </Toggle>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-3 block text-gray-700">Type de transport</label>
+                <div className="flex flex-wrap gap-2">
+                  <Toggle 
+                    pressed={selectedTypes.length === 0} 
+                    onPressedChange={() => {
+                      setSelectedTypes([]);
+                      if (autoApply) applyCurrentFilters(selectedStatus, []);
+                    }}
+                    className="data-[state=on]:bg-primary/10"
+                  >
+                    Tous
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedTypes.includes('Maritime')} 
+                    onPressedChange={() => handleTypeToggle('Maritime')}
+                    className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 gap-1"
+                  >
+                    <Ship className="h-3.5 w-3.5" />
+                    Maritime
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedTypes.includes('Aérien')} 
+                    onPressedChange={() => handleTypeToggle('Aérien')}
+                    className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700 gap-1"
+                  >
+                    <Plane className="h-3.5 w-3.5" />
+                    Aérien
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedTypes.includes('Routier')} 
+                    onPressedChange={() => handleTypeToggle('Routier')}
+                    className="data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700 gap-1"
+                  >
+                    <Truck className="h-3.5 w-3.5" />
+                    Routier
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedTypes.includes('Ferroviaire')} 
+                    onPressedChange={() => handleTypeToggle('Ferroviaire')}
+                    className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700 gap-1"
+                  >
+                    <Train className="h-3.5 w-3.5" />
+                    Ferroviaire
+                  </Toggle>
+                  <Toggle 
+                    pressed={selectedTypes.includes('Multimodal')} 
+                    onPressedChange={() => handleTypeToggle('Multimodal')}
+                    className="data-[state=on]:bg-indigo-100 data-[state=on]:text-indigo-700 gap-1"
+                  >
+                    <Package className="h-3.5 w-3.5" />
+                    Multimodal
+                  </Toggle>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-3 block text-gray-700">Période</label>
+                <div className="flex gap-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date début</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={startDate}
+                        onSelect={(date) => handleDateChange('start', date)}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, 'dd/MM/yyyy', { locale: fr }) : <span>Date fin</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={endDate}
+                        onSelect={(date) => handleDateChange('end', date)}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div>
+                <label className="text-sm font-medium mb-3 block text-gray-700">Commercial</label>
+                <div className="relative">
+                  <UserCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Rechercher un commercial..." 
+                    className="pl-10 h-10 bg-white" 
+                    value={commercialSearch}
+                    onChange={(e) => setCommercialSearch(e.target.value)}
+                  />
+                  {commercialSearch && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+                      {filteredCommercials.map((commercial, i) => (
+                        <div 
+                          key={i} 
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleCommercialSelect(commercial.name)}
+                        >
+                          {commercial.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-3 block text-gray-700">Montant (€)</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <Input 
+                    type="number" 
+                    placeholder="Min" 
+                    className="h-10 bg-white"
+                    value={minAmount}
+                    onChange={(e) => handleAmountChange('min', e.target.value)}
+                  />
+                  <Input 
+                    type="number" 
+                    placeholder="Max" 
+                    className="h-10 bg-white"
+                    value={maxAmount}
+                    onChange={(e) => handleAmountChange('max', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    id="auto-apply" 
+                    checked={autoApply}
+                    onCheckedChange={setAutoApply}
+                  />
+                  <Label htmlFor="auto-apply" className="text-sm text-gray-700 cursor-pointer">
+                    Appliquer automatiquement
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {!autoApply && (
+              <div className="flex justify-end mt-8">
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={handleResetFilters}>Réinitialiser</Button>
+                  <Button onClick={handleApplyFilters}>Appliquer</Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
