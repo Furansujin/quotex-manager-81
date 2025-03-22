@@ -151,7 +151,7 @@ const QuoteItemsTable: React.FC<QuoteItemsTableProps> = ({
                           variant="success" 
                           className="whitespace-nowrap gap-1 flex items-center"
                         >
-                          <Percent className="h-3 w-3" /> {item.margin}%
+                          {item.margin}% <Percent className="h-3 w-3 ml-0.5" />
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="whitespace-nowrap">Non défini</Badge>
