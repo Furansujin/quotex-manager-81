@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, UserPlus, Building2, User, Calendar, Tag, Users, X, FileText, Mail, Phone, Building, MapPin } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Search, UserPlus, User, Calendar, Tag, Users, X, FileText, Mail, Phone, MapPin } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +18,6 @@ const mockClients = [
   {
     id: 'CL-001',
     name: 'Tech Supplies Inc',
-    type: 'Entreprise',
     industry: 'Technologie',
     contact: 'John Smith',
     email: 'john@techsupplies.com',
@@ -30,7 +28,6 @@ const mockClients = [
   {
     id: 'CL-002',
     name: 'Pharma Solutions',
-    type: 'Entreprise',
     industry: 'Pharmaceutique',
     contact: 'Marie Dupont',
     email: 'marie@pharmasol.com',
@@ -41,7 +38,6 @@ const mockClients = [
   {
     id: 'CL-003',
     name: 'Global Imports Ltd',
-    type: 'Entreprise',
     industry: 'Import/Export',
     contact: 'Carlos Rodriguez',
     email: 'carlos@globalimports.com',
@@ -52,7 +48,6 @@ const mockClients = [
   {
     id: 'CL-004',
     name: 'Eurotech GmbH',
-    type: 'Entreprise',
     industry: 'Électronique',
     contact: 'Hans Meyer',
     email: 'hans@eurotech.de',
@@ -63,7 +58,6 @@ const mockClients = [
   {
     id: 'CL-005',
     name: 'Fresh Foods SAS',
-    type: 'PME',
     industry: 'Agroalimentaire',
     contact: 'Jean Martin',
     email: 'jean.martin@freshfoods.fr',
@@ -87,14 +81,12 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<string>("all");
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const { toast } = useToast();
   
   // New client form state
   const [newClient, setNewClient] = useState({
     name: '',
-    type: 'Entreprise',
     industry: '',
     contact: '',
     email: '',
@@ -116,9 +108,6 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
         
       if (!matchesSearch) return false;
     }
-    
-    // Filtre par type
-    if (activeTab === "companies" && client.type !== "Entreprise" && client.type !== "PME") return false;
     
     // Filtre supplémentaire
     if (selectedFilter === "vip" && !client.tags.includes("VIP") && 
@@ -159,10 +148,10 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
       return;
     }
 
-    if (newClient.type === 'Entreprise' && !newClient.industry) {
+    if (!newClient.industry) {
       toast({
         title: "Champ requis",
-        description: "Le secteur d'activité est requis pour une entreprise.",
+        description: "Le secteur d'activité est requis.",
         variant: "destructive"
       });
       return;
@@ -232,195 +221,113 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
               </Button>
             </div>
             
-            <Tabs defaultValue="all" className="flex-1 flex flex-col overflow-hidden" value={activeTab} onValueChange={setActiveTab}>
-              <div className="flex justify-between items-center mb-4">
-                <TabsList>
-                  <TabsTrigger value="all">Tous les clients</TabsTrigger>
-                  <TabsTrigger value="companies">Entreprises</TabsTrigger>
-                </TabsList>
-                
-                <div className="flex gap-2">
-                  <Badge 
-                    variant={selectedFilter === "all" ? "default" : "outline"} 
-                    className="cursor-pointer"
-                    onClick={() => setSelectedFilter("all")}
-                  >
-                    Tous
-                  </Badge>
-                  <Badge 
-                    variant={selectedFilter === "recent" ? "default" : "outline"} 
-                    className="cursor-pointer"
-                    onClick={() => setSelectedFilter("recent")}
-                  >
-                    Récents
-                  </Badge>
-                  <Badge 
-                    variant={selectedFilter === "vip" ? "default" : "outline"} 
-                    className="cursor-pointer"
-                    onClick={() => setSelectedFilter("vip")}
-                  >
-                    VIP/Premium
-                  </Badge>
-                  <Badge 
-                    variant={selectedFilter === "international" ? "default" : "outline"} 
-                    className="cursor-pointer"
-                    onClick={() => setSelectedFilter("international")}
-                  >
-                    International
-                  </Badge>
-                  <Badge 
-                    variant={selectedFilter === "new" ? "default" : "outline"} 
-                    className="cursor-pointer"
-                    onClick={() => setSelectedFilter("new")}
-                  >
-                    Nouveaux
-                  </Badge>
-                </div>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-2">
+                <Badge 
+                  variant={selectedFilter === "all" ? "default" : "outline"} 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedFilter("all")}
+                >
+                  Tous
+                </Badge>
+                <Badge 
+                  variant={selectedFilter === "recent" ? "default" : "outline"} 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedFilter("recent")}
+                >
+                  Récents
+                </Badge>
+                <Badge 
+                  variant={selectedFilter === "vip" ? "default" : "outline"} 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedFilter("vip")}
+                >
+                  VIP/Premium
+                </Badge>
+                <Badge 
+                  variant={selectedFilter === "international" ? "default" : "outline"} 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedFilter("international")}
+                >
+                  International
+                </Badge>
+                <Badge 
+                  variant={selectedFilter === "new" ? "default" : "outline"} 
+                  className="cursor-pointer"
+                  onClick={() => setSelectedFilter("new")}
+                >
+                  Nouveaux
+                </Badge>
               </div>
-              
-              <TabsContent value="all" className="flex-1 overflow-hidden">
-                <ScrollArea className="h-[50vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
-                    {filteredClients.map((client) => (
-                      <Card 
-                        key={client.id} 
-                        className={cn(
-                          "cursor-pointer hover:border-primary transition-colors",
-                          selectedClientId === client.id ? "border-primary bg-primary/5" : ""
-                        )}
-                        onClick={() => handleSelectClient(client.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className={cn(
-                              "w-10 h-10 rounded-full flex items-center justify-center text-white",
-                              client.type === "Entreprise" ? "bg-blue-500" : "bg-emerald-500"
-                            )}>
-                              <Building2 className="h-5 w-5" />
+            </div>
+            
+            <ScrollArea className="h-[50vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
+                {filteredClients.map((client) => (
+                  <Card 
+                    key={client.id} 
+                    className={cn(
+                      "cursor-pointer hover:border-primary transition-colors",
+                      selectedClientId === client.id ? "border-primary bg-primary/5" : ""
+                    )}
+                    onClick={() => handleSelectClient(client.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium truncate">{client.name}</h3>
+                            <span className="text-xs text-muted-foreground">{client.id}</span>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground">{client.industry}</p>
+                          
+                          <div className="mt-2 flex flex-col gap-1">
+                            <div className="flex items-center text-sm">
+                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.contact}</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium truncate">{client.name}</h3>
-                                <span className="text-xs text-muted-foreground">{client.id}</span>
-                              </div>
-                              
-                              <p className="text-sm text-muted-foreground">{client.industry}</p>
-                              
-                              <div className="mt-2 flex flex-col gap-1">
-                                <div className="flex items-center text-sm">
-                                  <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>{client.contact}</span>
-                                </div>
-                                
-                                <div className="flex items-center text-sm">
-                                  <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>Dernière activité: {client.lastActivity}</span>
-                                </div>
-                                
-                                <div className="flex items-center text-sm">
-                                  <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>{client.quotesCount} devis</span>
-                                </div>
-                              </div>
-                              
-                              {client.tags.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  {client.tags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
+                            
+                            <div className="flex items-center text-sm">
+                              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>Dernière activité: {client.lastActivity}</span>
+                            </div>
+                            
+                            <div className="flex items-center text-sm">
+                              <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                              <span>{client.quotesCount} devis</span>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    
-                    {filteredClients.length === 0 && (
-                      <div className="col-span-3 py-8 text-center">
-                        <Users className="mx-auto h-8 w-8 text-muted-foreground/60" />
-                        <h3 className="mt-2 text-lg font-medium">Aucun client trouvé</h3>
-                        <p className="text-muted-foreground">
-                          Essayez d'ajuster votre recherche ou de créer un nouveau client
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="companies" className="flex-1 overflow-hidden">
-                <ScrollArea className="h-[50vh]">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
-                    {filteredClients.map((client) => (
-                      <Card 
-                        key={client.id} 
-                        className={cn(
-                          "cursor-pointer hover:border-primary transition-colors",
-                          selectedClientId === client.id ? "border-primary bg-primary/5" : ""
-                        )}
-                        onClick={() => handleSelectClient(client.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                              <Building2 className="h-5 w-5" />
+                          
+                          {client.tags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {client.tags.map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium truncate">{client.name}</h3>
-                                <span className="text-xs text-muted-foreground">{client.id}</span>
-                              </div>
-                              
-                              <p className="text-sm text-muted-foreground">{client.industry}</p>
-                              
-                              <div className="mt-2 flex flex-col gap-1">
-                                <div className="flex items-center text-sm">
-                                  <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>{client.contact}</span>
-                                </div>
-                                
-                                <div className="flex items-center text-sm">
-                                  <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>Dernière activité: {client.lastActivity}</span>
-                                </div>
-                                
-                                <div className="flex items-center text-sm">
-                                  <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                                  <span>{client.quotesCount} devis</span>
-                                </div>
-                              </div>
-                              
-                              {client.tags.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                  {client.tags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    
-                    {filteredClients.length === 0 && (
-                      <div className="col-span-3 py-8 text-center">
-                        <Building2 className="mx-auto h-8 w-8 text-muted-foreground/60" />
-                        <h3 className="mt-2 text-lg font-medium">Aucune entreprise trouvée</h3>
-                        <p className="text-muted-foreground">
-                          Essayez d'ajuster votre recherche ou de créer une nouvelle entreprise
-                        </p>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredClients.length === 0 && (
+                  <div className="col-span-3 py-8 text-center">
+                    <Users className="mx-auto h-8 w-8 text-muted-foreground/60" />
+                    <h3 className="mt-2 text-lg font-medium">Aucun client trouvé</h3>
+                    <p className="text-muted-foreground">
+                      Essayez d'ajuster votre recherche ou de créer un nouveau client
+                    </p>
                   </div>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
+                )}
+              </div>
+            </ScrollArea>
           </>
         ) : (
           <>
@@ -431,10 +338,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
             <div className="overflow-y-auto max-h-[70vh] px-1">
               <div className="space-y-6">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Informations générales</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nom / Raison sociale *</Label>
                       <Input 
@@ -447,55 +351,32 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="type">Type de client *</Label>
+                      <Label htmlFor="industry">Secteur d'activité *</Label>
                       <Select 
-                        value={newClient.type}
+                        value={newClient.industry}
                         onValueChange={(value) => {
-                          setNewClient(prev => ({ ...prev, type: value }));
+                          setNewClient(prev => ({ ...prev, industry: value }));
                         }}
                       >
-                        <SelectTrigger id="type">
-                          <SelectValue placeholder="Sélectionnez un type" />
+                        <SelectTrigger id="industry">
+                          <SelectValue placeholder="Sélectionnez un secteur" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Entreprise">Entreprise</SelectItem>
-                          <SelectItem value="PME">PME</SelectItem>
+                          <SelectItem value="Technologie">Technologie</SelectItem>
+                          <SelectItem value="Pharmaceutique">Pharmaceutique</SelectItem>
+                          <SelectItem value="Import/Export">Import/Export</SelectItem>
+                          <SelectItem value="Automobile">Automobile</SelectItem>
+                          <SelectItem value="Énergie">Énergie</SelectItem>
+                          <SelectItem value="Agroalimentaire">Agroalimentaire</SelectItem>
+                          <SelectItem value="Autre">Autre</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    {(newClient.type === 'Entreprise' || newClient.type === 'PME') && (
-                      <div className="space-y-2">
-                        <Label htmlFor="industry">Secteur d'activité *</Label>
-                        <Select 
-                          value={newClient.industry}
-                          onValueChange={(value) => {
-                            setNewClient(prev => ({ ...prev, industry: value }));
-                          }}
-                        >
-                          <SelectTrigger id="industry">
-                            <SelectValue placeholder="Sélectionnez un secteur" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Technologie">Technologie</SelectItem>
-                            <SelectItem value="Pharmaceutique">Pharmaceutique</SelectItem>
-                            <SelectItem value="Import/Export">Import/Export</SelectItem>
-                            <SelectItem value="Automobile">Automobile</SelectItem>
-                            <SelectItem value="Énergie">Énergie</SelectItem>
-                            <SelectItem value="Agroalimentaire">Agroalimentaire</SelectItem>
-                            <SelectItem value="Autre">Autre</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
                 
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Coordonnées</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <Label htmlFor="contact">Personne à contacter *</Label>
                       <Input 
@@ -568,7 +449,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
               </div>
             </div>
             
-            <CardFooter className="flex justify-between border-t p-4 mt-4">
+            <div className="flex justify-between border-t p-4 mt-4">
               <Button 
                 variant="outline" 
                 onClick={() => setShowNewClientForm(false)}
@@ -580,7 +461,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
               >
                 Créer le client
               </Button>
-            </CardFooter>
+            </div>
           </>
         )}
       </DialogContent>

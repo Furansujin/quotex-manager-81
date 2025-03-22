@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 
 interface ClientFormProps {
@@ -25,7 +24,6 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
     email: '',
     phone: '',
     address: '',
-    type: 'enterprise',
     tags: [] as string[],
     status: 'active',
     notes: ''
@@ -47,7 +45,6 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
             email: 'john@techsupplies.com',
             phone: '+33 1 23 45 67 89',
             address: '123 Tech Blvd, Paris, FR',
-            type: 'enterprise',
             tags: ['VIP', 'International'],
             status: 'active',
             notes: 'Client prioritaire, tarifs négociés'
@@ -65,10 +62,6 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
 
   const handleSwitchChange = (checked: boolean) => {
     setClient(prev => ({ ...prev, status: checked ? 'active' : 'inactive' }));
-  };
-
-  const handleTypeChange = (value: string) => {
-    setClient(prev => ({ ...prev, type: value }));
   };
 
   const addTag = (e: React.FormEvent) => {
@@ -114,7 +107,7 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nom de l'entreprise</Label>
+              <Label htmlFor="name">Nom du client</Label>
               <Input 
                 id="name" 
                 name="name" 
@@ -173,24 +166,6 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
             </div>
             
             <Separator />
-            
-            <div className="space-y-2">
-              <Label>Type de client</Label>
-              <RadioGroup value={client.type} onValueChange={handleTypeChange} className="flex space-x-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="enterprise" id="enterprise" />
-                  <Label htmlFor="enterprise" className="cursor-pointer">Entreprise</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="sme" id="sme" />
-                  <Label htmlFor="sme" className="cursor-pointer">PME</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="individual" id="individual" />
-                  <Label htmlFor="individual" className="cursor-pointer">Particulier</Label>
-                </div>
-              </RadioGroup>
-            </div>
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">

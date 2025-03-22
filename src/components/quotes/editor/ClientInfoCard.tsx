@@ -13,7 +13,6 @@ interface Client {
   email: string;
   phone: string;
   address: string;
-  type: string;
   status: string;
   lastQuote?: string;
   createdAt: string;
