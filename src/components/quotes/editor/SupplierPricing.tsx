@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -210,9 +209,14 @@ const SupplierPricing: React.FC<SupplierPricingProps> = ({
     }
   }, [origin, destination, type]);
 
-  // Handle selecting a price
+  // Handle selecting a price - modified to toggle selection
   const handleSelectPrice = (price: SupplierPrice) => {
-    setSelectedPrice(price);
+    // If the price is already selected, deselect it
+    if (selectedPrice && selectedPrice.id === price.id) {
+      setSelectedPrice(null);
+    } else {
+      setSelectedPrice(price);
+    }
   };
 
   // Handle adding the selected price to the quote
