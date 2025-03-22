@@ -245,9 +245,6 @@ const ClientFilters = ({ show, onClose, onApplyFilters }: ClientFiltersProps) =>
         </div>
         
         <SheetFooter className="pt-2">
-          <Button variant="outline" onClick={resetFilters}>
-            Réinitialiser
-          </Button>
           <Button onClick={applyFilters}>
             Appliquer les filtres
           </Button>

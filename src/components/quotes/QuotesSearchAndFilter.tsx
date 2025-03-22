@@ -9,7 +9,6 @@ import {
   Search, 
   Filter, 
   X, 
-  RefreshCw,
   Ship,
   Plane,
   Truck,
@@ -363,16 +362,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             )}
           </Button>
           
-          {hasActiveFilters() && (
-            <Button 
-              variant="outline" 
-              className="gap-2 px-4 h-11"
-              onClick={handleResetFilters}
-            >
-              <RefreshCw className="h-4 w-4" />
-              Réinitialiser
-            </Button>
-          )}
         </div>
       </div>
       
@@ -510,6 +499,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
         <Card className="mb-8 bg-white border border-[#eee] shadow-sm animate-fade-in">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Status filters */}
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Statut</label>
                 <div className="flex flex-wrap gap-2">
@@ -554,6 +544,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                 </div>
               </div>
               
+              {/* Transport type filters */}
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Type de transport</label>
                 <div className="flex flex-wrap gap-2">
@@ -610,6 +601,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                 </div>
               </div>
               
+              {/* Date filters */}
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Période</label>
                 <div className="grid grid-cols-2 gap-4">
@@ -677,6 +669,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              {/* Commercial filter */}
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Commercial</label>
                 <div className="relative">
@@ -704,6 +697,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
                 </div>
               </div>
               
+              {/* Amount filter */}
               <div>
                 <label className="text-sm font-medium mb-3 block text-gray-700">Montant (€)</label>
                 <div className="grid grid-cols-2 gap-4">
@@ -728,7 +722,6 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
 
               <div className="flex items-end justify-end">
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleResetFilters}>Réinitialiser</Button>
                   <Button onClick={handleApplyFilters}>Appliquer</Button>
                 </div>
               </div>
