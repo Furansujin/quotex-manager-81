@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -123,9 +122,6 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
   };
   
   const loadSavedFilter = (filterId: number) => {
-    // Simuler le chargement d'un filtre sauvegardé
-    // Dans une application réelle, vous récupéreriez les paramètres du filtre depuis une API
-    
     const filter = savedFilters.find(f => f.id === filterId);
     
     if (filter) {
@@ -150,7 +146,7 @@ const QuoteFilters: React.FC<QuoteFiltersProps> = ({ show, onClose, onApplyFilte
   if (!show) return null;
   
   return (
-    <Card className="absolute z-10 top-full mt-2 right-0 w-full md:w-[600px] shadow-lg">
+    <Card className="shadow-lg w-full md:w-[600px]">
       <CardContent className="p-4">
         {/* Filtres sauvegardés */}
         {savedFilters.length > 0 && (

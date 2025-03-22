@@ -47,7 +47,7 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             </Button>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
           <Button 
             variant={showAdvancedFilters || activeFilters ? "default" : "outline"} 
             className="gap-2"
@@ -76,11 +76,15 @@ const QuotesSearchAndFilter: React.FC<QuotesSearchAndFilterProps> = ({
             </Button>
           )}
           
-          <QuoteFilters 
-            show={showAdvancedFilters} 
-            onClose={() => setShowAdvancedFilters(false)}
-            onApplyFilters={onApplyFilters}
-          />
+          {showAdvancedFilters && (
+            <div className="absolute z-50 right-0 top-full mt-2">
+              <QuoteFilters 
+                show={showAdvancedFilters} 
+                onClose={() => setShowAdvancedFilters(false)}
+                onApplyFilters={onApplyFilters}
+              />
+            </div>
+          )}
         </div>
       </div>
 
