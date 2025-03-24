@@ -2,7 +2,6 @@
 import React from 'react';
 import { 
   Building, 
-  Mail, 
   MoreHorizontal, 
   Phone, 
   Trash2, 
@@ -88,7 +87,6 @@ const ClientsList = ({
           <TableRow>
             <TableHead>Nom</TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead className="hidden md:table-cell">Email</TableHead>
             <TableHead className="hidden md:table-cell">Téléphone</TableHead>
             <TableHead>Tags</TableHead>
             <TableHead>Statut</TableHead>
@@ -110,12 +108,6 @@ const ClientsList = ({
                 <div className="flex flex-col">
                   <span>{client.contactName}</span>
                   <span className="text-xs text-muted-foreground truncate max-w-[150px]">{client.address}</span>
-                </div>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate max-w-[150px]">{client.email}</span>
                 </div>
               </TableCell>
               <TableCell className="hidden md:table-cell">
