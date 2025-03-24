@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Search, Plus, Edit, Trash2, Calendar, ArrowUpDown, Tag, Euro, CalendarDays, Eye, Info, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, ArrowUpDown, Eye, Info, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
@@ -164,7 +163,7 @@ const SupplierPricing = () => {
   // Gestion de l'ajout d'un tarif
   const handleAddPrice = (values: z.infer<typeof priceFormSchema>) => {
     const newPrice: SupplierPrice = {
-      id: (prices.length + 1).toString(),
+      id: `price-${Date.now()}`, // Génère un ID unique basé sur le timestamp
       supplier: values.supplier,
       origin: values.origin,
       destination: values.destination,
@@ -178,7 +177,7 @@ const SupplierPricing = () => {
       contractRef: values.contractRef
     };
     
-    setPrices([...prices, newPrice]);
+    setPrices(prevPrices => [...prevPrices, newPrice]);
     setIsAddDialogOpen(false);
     form.reset();
     
@@ -223,7 +222,7 @@ const SupplierPricing = () => {
   const handleDeletePrice = () => {
     if (!priceToDelete) return;
     
-    setPrices(prices.filter(price => price.id !== priceToDelete.id));
+    setPrices(prevPrices => prevPrices.filter(price => price.id !== priceToDelete.id));
     setPriceToDelete(null);
     
     toast({
@@ -705,6 +704,7 @@ const SupplierPricing = () => {
         </Table>
       </div>
 
+      {/* Dialog pour voir et modifier les détails */}
       <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           {selectedPrice && (
@@ -777,40 +777,153 @@ const SupplierPricing = () => {
           )}
         </DialogContent>
       </Dialog>
-      
-      <AlertDialog 
-        open={!!priceToDelete} 
-        onOpenChange={(open) => !open && setPriceToDelete(null)}
+
+      {/* Dialog pour modifier un tarif */}
+      <Dialog 
+        open={!!editingPrice} 
+        onOpenChange={(open) => !open && setEditingPrice(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement le tarif
-              {priceToDelete && <span className="font-semibold"> {priceToDelete.origin} → {priceToDelete.destination}</span>}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePrice} className="bg-destructive text-destructive-foreground">
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {filteredPrices.length > 0 && (
-        <div className="flex justify-between items-center text-sm text-muted-foreground">
-          <div>
-            Affichage de {filteredPrices.length} tarif{filteredPrices.length > 1 ? 's' : ''}
-          </div>
-          <div className="flex items-center gap-1">
-            <RefreshCw className="h-3 w-3" /> Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default SupplierPricing;
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Modifier un tarif</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations du tarif
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleEditPrice)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="supplier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fournisseur</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un fournisseur" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {suppliers.map((supplier) => (
+                            <SelectItem key={supplier} value={supplier}>{supplier}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="transportType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type de transport</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="maritime">Maritime</SelectItem>
+                          <SelectItem value="aérien">Aérien</SelectItem>
+                          <SelectItem value="routier">Routier</SelectItem>
+                          <SelectItem value="ferroviaire">Ferroviaire</SelectItem>
+                          <SelectItem value="multimodal">Multimodal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="origin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Origine</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ville, Pays" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="destination"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Destination</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ville, Pays" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prix</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Devise</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner une devise" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency} value={currency}>{currency}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="transitTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Temps de transit</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 5-7 jours" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="validUntil"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Valide jusqu'au</FormLabel>
+                      <DatePicker
