@@ -19,7 +19,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
   return (
     <TableRow 
       key={shipment.id}
-      className={`cursor-pointer hover:bg-muted/50 transition-colors ${shipment.priority === 'haute' ? 'bg-red-50/30' : ''}`}
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={() => onOpenShipment(shipment.id)}
     >
       <TableCell className="py-4">
@@ -35,6 +35,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       <TableCell className="py-4">
         <div className="flex flex-col">
           <div className="font-medium">{shipment.client}</div>
+          {/* La balise ShipmentPriorityLabel est conservée mais retourne null désormais */}
           {shipment.priority && <ShipmentPriorityLabel priority={shipment.priority} />}
         </div>
       </TableCell>
