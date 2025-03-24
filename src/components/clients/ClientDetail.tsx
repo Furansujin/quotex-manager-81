@@ -1,6 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Ship, ArrowLeft, ExternalLink, Mail, Phone, MapPin, Tag, Link as LinkIcon } from 'lucide-react';
+import { 
+  X, 
+  FileText, 
+  Ship, 
+  ArrowLeft, 
+  ExternalLink, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Tag, 
+  Link as LinkIcon, 
+  Edit,
+  Power
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -32,9 +44,10 @@ interface Shipment {
 interface ClientDetailProps {
   clientId: string;
   onClose: () => void;
+  onEdit?: (clientId: string) => void;
 }
 
-const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
+const ClientDetail = ({ clientId, onClose, onEdit }: ClientDetailProps) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [client, setClient] = useState<any>(null);
@@ -160,6 +173,25 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
     navigate(`/shipments?id=${shipmentId}`);
   };
 
+  const handleEditClient = () => {
+    if (onEdit && client) {
+      onEdit(client.id);
+      onClose();
+    }
+  };
+
+  const toggleClientStatus = () => {
+    if (!client) return;
+    
+    const newStatus = client.status === 'active' ? 'inactive' : 'active';
+    setClient({...client, status: newStatus});
+    
+    toast({
+      title: `Client ${newStatus === 'active' ? 'activé' : 'désactivé'}`,
+      description: `Le statut du client ${client.name} a été mis à jour.`,
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-auto">
       <div className="bg-background rounded-lg shadow-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-10 duration-300">
@@ -180,9 +212,33 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
               {!loading && client && <p className="text-sm text-muted-foreground">{client.id}</p>}
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            {!loading && client && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={toggleClientStatus}
+                >
+                  <Power className="h-4 w-4" />
+                  {client.status === 'active' ? 'Désactiver' : 'Activer'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={handleEditClient}
+                >
+                  <Edit className="h-4 w-4" />
+                  Modifier
+                </Button>
+              </>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {loading ? (

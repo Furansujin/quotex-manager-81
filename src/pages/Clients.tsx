@@ -413,6 +413,7 @@ const Clients = () => {
         <ClientDetail
           clientId={selectedClientId}
           onClose={() => setSelectedClientId(null)}
+          onEdit={handleEditClient}
         />
       )}
     </div>
