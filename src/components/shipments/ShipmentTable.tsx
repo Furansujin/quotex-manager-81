@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Ship, 
@@ -8,9 +7,7 @@ import {
   MoreHorizontal,
   FileText,
   ArrowUp,
-  ArrowDown,
-  AlertTriangle,
-  BellRing 
+  ArrowDown
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +21,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Define shipment type for better type safety
 export interface Shipment {
@@ -102,44 +98,6 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
       default:
         return null;
     }
-  };
-
-  // Render alerts alongside the status information
-  const renderAlerts = (shipment: Shipment) => {
-    if (!shipment.hasDocumentIssues && !shipment.isWatched) return null;
-    
-    return (
-      <div className="flex items-center gap-1.5 mt-2">
-        {shipment.hasDocumentIssues && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="p-1 bg-amber-100 rounded-full inline-flex">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Documents manquants</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {shipment.isWatched && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="p-1 bg-blue-100 rounded-full inline-flex">
-                  <BellRing className="h-3.5 w-3.5 text-blue-600" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Notifications activées</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-    );
   };
 
   const handleEditShipment = (id: string) => {
@@ -226,7 +184,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
               <TableHead className="cursor-pointer group">
                 Trajet & Dates {renderSortIcon('departureDate')}
               </TableHead>
-              <TableHead className="cursor-pointer w-[120px] group">
+              <TableHead className="cursor-pointer w-[120px] group text-center">
                 Transport {renderSortIcon('type')}
               </TableHead>
               <TableHead className="cursor-pointer w-[120px] group">
@@ -288,7 +246,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                     </div>
                   </TableCell>
                   
-                  <TableCell className="py-4">
+                  <TableCell className="py-4 text-center">
                     <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
                                                        shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
                                                        'bg-amber-100 text-amber-700'}>
@@ -299,7 +257,6 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                   <TableCell className="py-4">
                     <div className="space-y-1.5">
                       {getStatusBadge(shipment.status)}
-                      {renderAlerts(shipment)}
                       <div className="w-full h-1.5 rounded-full bg-gray-100 mt-2">
                         <div 
                           className={`h-full rounded-full ${
