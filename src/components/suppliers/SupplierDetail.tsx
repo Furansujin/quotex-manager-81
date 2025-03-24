@@ -44,8 +44,7 @@ const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, onClose }) 
     address: '4 Quai d\'Arenc, 13002 Marseille',
     status: 'active',
     notes: 'Partenaire privilégié pour les routes maritimes Europe-Asie.',
-    website: 'https://www.cmacgm-group.com',
-    logo: '/placeholder.svg'
+    website: 'https://www.cmacgm-group.com'
   });
 
   const handleSave = () => {
@@ -195,56 +194,46 @@ const SupplierDetail: React.FC<SupplierDetailProps> = ({ supplierId, onClose }) 
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="w-full md:w-1/3">
-                        <img 
-                          src={supplierData.logo} 
-                          alt={supplierData.name} 
-                          className="rounded-md border w-full aspect-video object-contain bg-gray-50 p-2" 
-                        />
+                    <div className="w-full space-y-4">
+                      <div className="flex items-center">
+                        <Badge variant={supplierData.status === 'active' ? 'default' : 'destructive'} className="mr-2">
+                          {supplierData.status === 'active' ? 'Actif' : 'Inactif'}
+                        </Badge>
+                        <Badge variant="outline">{supplierData.category === 'maritime' ? 'Maritime' : supplierData.category === 'aerien' ? 'Aérien' : supplierData.category === 'routier' ? 'Routier' : supplierData.category === 'ferroviaire' ? 'Ferroviaire' : 'Multimodal'}</Badge>
                       </div>
                       
-                      <div className="w-full md:w-2/3 space-y-4">
-                        <div className="flex items-center">
-                          <Badge variant={supplierData.status === 'active' ? 'default' : 'destructive'} className="mr-2">
-                            {supplierData.status === 'active' ? 'Actif' : 'Inactif'}
-                          </Badge>
-                          <Badge variant="outline">{supplierData.category === 'maritime' ? 'Maritime' : supplierData.category === 'aerien' ? 'Aérien' : supplierData.category === 'routier' ? 'Routier' : supplierData.category === 'ferroviaire' ? 'Ferroviaire' : 'Multimodal'}</Badge>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Building className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Nom:</span>
+                          <span>{supplierData.name}</span>
                         </div>
                         
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Building className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">Nom:</span>
-                            <span>{supplierData.name}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 text-sm">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">Contact:</span>
-                            <span>{supplierData.contact} ({supplierData.phone})</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">Email:</span>
-                            <a href={`mailto:${supplierData.email}`} className="text-blue-600 hover:underline">{supplierData.email}</a>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">Adresse:</span>
-                            <span>{supplierData.address}</span>
-                          </div>
-                          
-                          {supplierData.website && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">Site Web:</span>
-                              <a href={supplierData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{supplierData.website}</a>
-                            </div>
-                          )}
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Contact:</span>
+                          <span>{supplierData.contact} ({supplierData.phone})</span>
                         </div>
+                        
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Email:</span>
+                          <a href={`mailto:${supplierData.email}`} className="text-blue-600 hover:underline">{supplierData.email}</a>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Adresse:</span>
+                          <span>{supplierData.address}</span>
+                        </div>
+                        
+                        {supplierData.website && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Site Web:</span>
+                            <a href={supplierData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{supplierData.website}</a>
+                          </div>
+                        )}
                       </div>
                     </div>
                     

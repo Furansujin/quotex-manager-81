@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Plus, Import } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import SuppliersList from '@/components/suppliers/SuppliersList';
 import SupplierFilters from '@/components/suppliers/SupplierFilters';
 import { useToast } from '@/hooks/use-toast';
@@ -89,11 +89,7 @@ const Suppliers = () => {
               <h1 className="text-2xl font-bold">Gestion des Fournisseurs</h1>
               <p className="text-muted-foreground">Gérez vos fournisseurs et leurs tarifs</p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setImportModalOpen(true)} className="flex items-center gap-2">
-                <Import className="h-4 w-4" />
-                <span className="hidden sm:inline">Importer</span>
-              </Button>
+            <div>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Nouveau Fournisseur</span>
@@ -118,15 +114,6 @@ const Suppliers = () => {
           />
         </div>
       </main>
-
-      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Importation de Données</DialogTitle>
-          </DialogHeader>
-          <SupplierImportPanel onClose={() => setImportModalOpen(false)} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -4,12 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Download, HelpCircle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, HelpCircle, AlertCircle, CheckCircle, Download } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -19,7 +17,6 @@ interface SupplierImportPanelProps {
 }
 
 const SupplierImportPanel: React.FC<SupplierImportPanelProps> = ({ onClose, supplierId }) => {
-  const [activeTab, setActiveTab] = useState('file');
   const [file, setFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -72,19 +69,10 @@ const SupplierImportPanel: React.FC<SupplierImportPanelProps> = ({ onClose, supp
 
   // Simuler l'importation
   const handleImport = () => {
-    if (activeTab === 'file' && !file) {
+    if (!file) {
       toast({
         title: "Aucun fichier sélectionné",
         description: "Veuillez sélectionner un fichier à importer",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (activeTab === 'paste' && !csvData.trim()) {
-      toast({
-        title: "Aucune donnée",
-        description: "Veuillez coller des données CSV",
         variant: "destructive"
       });
       return;
@@ -207,66 +195,34 @@ const SupplierImportPanel: React.FC<SupplierImportPanelProps> = ({ onClose, supp
         </div>
       </div>
       
-      <Tabs 
-        defaultValue="file" 
-        value={activeTab} 
-        onValueChange={setActiveTab} 
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="file" className="flex gap-2">
-            <Upload className="h-4 w-4" /> Fichier
-          </TabsTrigger>
-          <TabsTrigger value="paste" className="flex gap-2">
-            <FileText className="h-4 w-4" /> Coller des données
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="file" className="space-y-4">
-          <div className="grid w-full max-w-lg gap-2">
-            <Label htmlFor="csvFile">Sélectionner un fichier CSV ou Excel</Label>
-            <Input
-              id="csvFile"
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={handleFileChange}
-            />
-            
-            {file && (
-              <div className="mt-2 text-sm">
-                <p>Fichier sélectionné: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(2)} KB)</p>
-              </div>
-            )}
-          </div>
+      <div className="space-y-4">
+        <div className="grid w-full max-w-lg gap-2">
+          <Label htmlFor="csvFile" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" /> Sélectionner un fichier CSV ou Excel
+          </Label>
+          <Input
+            id="csvFile"
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleFileChange}
+          />
           
-          {file && csvData && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium mb-2">Aperçu du contenu:</h3>
-              <div className="bg-muted p-3 rounded-md overflow-auto max-h-[200px]">
-                <pre className="text-xs">{csvData.slice(0, 500)}{csvData.length > 500 ? '...' : ''}</pre>
-              </div>
+          {file && (
+            <div className="mt-2 text-sm">
+              <p>Fichier sélectionné: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(2)} KB)</p>
             </div>
           )}
-        </TabsContent>
+        </div>
         
-        <TabsContent value="paste" className="space-y-4">
-          <div className="grid w-full gap-2">
-            <Label htmlFor="csvText">Coller des données CSV</Label>
-            <Textarea
-              id="csvText"
-              placeholder="Collez vos données au format CSV ici..."
-              className="min-h-[200px] font-mono text-sm"
-              value={csvData}
-              onChange={(e) => setCsvData(e.target.value)}
-            />
+        {file && csvData && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium mb-2">Aperçu du contenu:</h3>
+            <div className="bg-muted p-3 rounded-md overflow-auto max-h-[200px]">
+              <pre className="text-xs">{csvData.slice(0, 500)}{csvData.length > 500 ? '...' : ''}</pre>
+            </div>
           </div>
-          
-          <div className="flex items-center p-2 bg-muted/50 rounded text-xs text-muted-foreground">
-            <HelpCircle className="h-4 w-4 mr-2" />
-            <p>Assurez-vous que vos données sont au format CSV, avec des virgules comme séparateurs et une ligne d'en-tête.</p>
-          </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
       
       {isImporting && (
         <div className="space-y-2">
@@ -334,7 +290,7 @@ const SupplierImportPanel: React.FC<SupplierImportPanelProps> = ({ onClose, supp
         </Button>
         <Button 
           onClick={handleImport} 
-          disabled={isImporting || (activeTab === 'file' && !file) || (activeTab === 'paste' && !csvData.trim())}
+          disabled={isImporting || !file}
         >
           {isImporting ? 'Importation en cours...' : 'Importer les données'}
         </Button>
