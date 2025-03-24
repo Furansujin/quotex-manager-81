@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -312,9 +313,27 @@ const Clients = () => {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Statut</label>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
-                      <Badge variant="default" className="cursor-pointer">Actif</Badge>
-                      <Badge variant="secondary" className="cursor-pointer">Inactif</Badge>
+                      <Badge 
+                        variant={activeTab === "all" ? "default" : "outline"} 
+                        className="cursor-pointer hover:bg-primary/10"
+                        onClick={() => setActiveTab("all")}
+                      >
+                        Tous
+                      </Badge>
+                      <Badge 
+                        variant={activeTab === "active" ? "default" : "outline"} 
+                        className="cursor-pointer"
+                        onClick={() => setActiveTab("active")}
+                      >
+                        Actif
+                      </Badge>
+                      <Badge 
+                        variant={activeTab === "inactive" ? "default" : "secondary"} 
+                        className="cursor-pointer"
+                        onClick={() => setActiveTab("inactive")}
+                      >
+                        Inactif
+                      </Badge>
                     </div>
                   </div>
                   
@@ -427,6 +446,7 @@ const Clients = () => {
           clientId={selectedClientId}
           onClose={() => setSelectedClientId(null)}
           onEdit={handleEditClient}
+          onStatusChange={handleClientStatusChange}
         />
       )}
     </div>

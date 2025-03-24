@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Save, ChevronRight, Tag, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -119,6 +120,14 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
     }, 1000);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Add tag when pressing Enter in the tag input field
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag(e as unknown as React.FormEvent);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -232,6 +241,7 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
                   <Input 
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Ajouter un tag..."
                     className="flex-1"
                   />

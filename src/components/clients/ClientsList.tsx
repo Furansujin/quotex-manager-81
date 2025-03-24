@@ -151,6 +151,13 @@ const ClientsList = ({
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem onClick={(e) => {
                       e.stopPropagation();
+                      onEdit(client.id);
+                    }}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation();
                       onDelete(client.id);
                     }}>
                       <Trash2 className="h-4 w-4 mr-2" />
