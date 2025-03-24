@@ -148,7 +148,7 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
       description: `Redirection vers le devis ${quoteId}`,
     });
     onClose();
-    navigate(`/quotes/${quoteId}`);
+    navigate(`/quotes?id=${quoteId}`);
   };
 
   const handleShipmentClick = (shipmentId: string) => {
@@ -157,7 +157,7 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
       description: `Redirection vers l'expédition ${shipmentId}`,
     });
     onClose();
-    navigate(`/shipments/${shipmentId}`);
+    navigate(`/shipments?id=${shipmentId}`);
   };
 
   return (
