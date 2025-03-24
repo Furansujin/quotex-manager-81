@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, SendHorizontal, Printer, FileText, ArrowRight, AlertCircle } from 'lucide-react';
+import { Save, SendHorizontal, Printer, FileText, ArrowRight, AlertCircle, File } from 'lucide-react';
 
 interface QuoteActionButtonsProps {
   onClose: () => void;
@@ -9,6 +9,7 @@ interface QuoteActionButtonsProps {
   handlePrint: () => Promise<void>;
   handleSend: () => Promise<void>;
   handleSave: () => Promise<void>;
+  handleSaveAsDraft?: () => Promise<void>;
   handleFollowUp?: () => void;
   isGeneratingPdf: boolean;
   isPrinting: boolean;
@@ -16,6 +17,7 @@ interface QuoteActionButtonsProps {
   itemsExist: boolean;
   showFollowUp?: boolean;
   hasCargoDetails?: boolean;
+  isDraft?: boolean;
 }
 
 const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
@@ -24,13 +26,15 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
   handlePrint,
   handleSend,
   handleSave,
+  handleSaveAsDraft,
   handleFollowUp,
   isGeneratingPdf,
   isPrinting,
   isSaving,
   itemsExist,
   showFollowUp = false,
-  hasCargoDetails = false
+  hasCargoDetails = false,
+  isDraft = false
 }) => {
   return (
     <div className="flex justify-between">
@@ -55,6 +59,18 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
             <AlertCircle className="h-4 w-4 mr-1" />
             <span className="hidden md:inline">Détails marchandise non complétés</span>
           </div>
+        )}
+        
+        {handleSaveAsDraft && (
+          <Button 
+            variant="outline" 
+            onClick={handleSaveAsDraft}
+            disabled={isSaving}
+            className="gap-2"
+          >
+            <File className="h-4 w-4" />
+            {isSaving ? 'Sauvegarde...' : (isDraft ? 'Mettre à jour' : 'Enregistrer brouillon')}
+          </Button>
         )}
         
         <Button 
@@ -93,7 +109,7 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
           className="gap-2"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+          {isSaving ? 'Sauvegarde...' : (isDraft ? 'Finaliser' : 'Sauvegarder')}
         </Button>
       </div>
     </div>

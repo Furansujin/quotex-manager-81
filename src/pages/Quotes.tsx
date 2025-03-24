@@ -203,6 +203,7 @@ const Quotes = () => {
           <Tabs defaultValue="all" className="w-full" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="all">Tous les devis</TabsTrigger>
+              <TabsTrigger value="draft">Brouillons</TabsTrigger>
               <TabsTrigger value="pending">En attente</TabsTrigger>
               <TabsTrigger value="approved">Approuvés</TabsTrigger>
               <TabsTrigger value="rejected">Rejetés</TabsTrigger>
@@ -219,6 +220,18 @@ const Quotes = () => {
                 renderFollowUpButton={(quote) => (
                   quote.status === 'pending' && <QuoteFollowUpButton quote={quote} />
                 )}
+                onSort={handleSortToggle}
+                sortField={sortField}
+                sortDirection={sortDirection}
+              />
+            </TabsContent>
+            
+            <TabsContent value="draft" className="space-y-4">
+              <QuotesList 
+                quotes={filteredQuotes} 
+                onEdit={handleEditQuote} 
+                onDuplicate={handleDuplicateQuote} 
+                onDownload={handleDownloadQuote}
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}

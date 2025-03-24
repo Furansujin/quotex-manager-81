@@ -58,6 +58,21 @@ export const useQuotesData = () => {
   const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([
     { 
+      id: "QT-2023-0143", 
+      client: "Eurotech GmbH", 
+      clientId: "CL-004",
+      date: "25/05/2023", 
+      origin: "Munich, DE", 
+      destination: "Lyon, FR",
+      status: "draft",
+      amount: "€ 1,250.00",
+      type: "Routier",
+      commercial: "Pierre Durand",
+      lastModified: "25/05/2023",
+      validUntil: "25/06/2023",
+      notes: "Brouillon - à compléter avec détails supplémentaires"
+    },
+    { 
       id: "QT-2023-0142", 
       client: "Tech Supplies Inc", 
       clientId: "CL-001",

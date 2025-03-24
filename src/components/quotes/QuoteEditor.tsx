@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +30,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showSupplierPricing, setShowSupplierPricing] = useState(false);
+  const [isDraft, setIsDraft] = useState(false);
 
   const {
     isEditing,
@@ -110,6 +110,16 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     }
   }, [origin, destination]);
 
+  // Check if the quote is a draft
+  useEffect(() => {
+    if (quoteId) {
+      const existingQuote = quotes.find(q => q.id === quoteId);
+      if (existingQuote && existingQuote.status === 'draft') {
+        setIsDraft(true);
+      }
+    }
+  }, [quoteId, quotes]);
+
   // Fonction pour vérifier si les détails de marchandise sont remplis
   const hasCargoDetails = () => {
     return !!(cargoDescription && cargoType && cargoNature && 
@@ -161,7 +171,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
         }),
         origin,
         destination,
-        status: isEditing ? "approved" : "pending",
+        status: isDraft ? "pending" : (isEditing ? "approved" : "pending"),
         amount: `€ ${calculateTotal().toFixed(2)}`,
         type,
         commercial: "Jean Dupont", // Hardcoded for now
@@ -198,6 +208,80 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'enregistrement du devis.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveAsDraft = async () => {
+    // Basic validation - only client is required for draft
+    if (!client) {
+      toast({
+        title: "Champ requis",
+        description: "Veuillez sélectionner un client pour ce devis.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      // Prepare quote data for draft
+      const quoteData = {
+        id: quoteId,
+        client,
+        clientId: clientDetails?.id || clientId || "UNKNOWN",
+        date: new Date().toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        origin: origin || "",
+        destination: destination || "",
+        status: "draft",
+        amount: `€ ${items.length > 0 ? calculateTotal().toFixed(2) : "0.00"}`,
+        type: type || "Maritime",
+        commercial: "Jean Dupont", // Hardcoded for now
+        validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        notes,
+        // Include cargo details if they exist
+        cargoDetails: cargoDescription ? {
+          description: cargoDescription,
+          type: cargoType,
+          nature: cargoNature,
+          dimensions: {
+            length: cargoLength,
+            width: cargoWidth,
+            height: cargoHeight,
+            weight: cargoWeight,
+            volume: cargoVolume
+          },
+          packaging: cargoPackaging,
+          packageCount: cargoPackageCount
+        } : undefined
+      };
+      
+      // Save the quote as draft
+      await saveQuote(quoteData);
+      
+      toast({
+        title: "Brouillon enregistré",
+        description: "Le devis a été sauvegardé comme brouillon.",
+      });
+      
+      // Close the editor
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'enregistrement du brouillon.",
         variant: "destructive"
       });
     } finally {
@@ -441,7 +525,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
 
   return (
     <QuoteEditorLayout 
-      title={isEditing ? 'Modifier le devis' : 'Nouveau devis'} 
+      title={isDraft ? 'Modifier le brouillon' : (isEditing ? 'Modifier le devis' : 'Nouveau devis')} 
       onClose={onClose}
     >
       <div className="p-6 space-y-6">
@@ -576,13 +660,15 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
           handlePrint={handlePrint}
           handleSend={handleSend}
           handleSave={handleSave}
+          handleSaveAsDraft={handleSaveAsDraft}
           handleFollowUp={handleFollowUp}
           isGeneratingPdf={isGeneratingPdf}
           isPrinting={isPrinting}
           isSaving={isSaving}
           itemsExist={items.length > 0}
-          showFollowUp={isEditing && quoteId !== undefined}
+          showFollowUp={isEditing && quoteId !== undefined && !isDraft}
           hasCargoDetails={hasCargoDetails()}
+          isDraft={isDraft}
         />
       </div>
 

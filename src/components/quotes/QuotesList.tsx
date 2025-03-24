@@ -11,7 +11,8 @@ import {
   ArrowRight, 
   MoreHorizontal, 
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  File
 } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
 import { 
@@ -52,6 +53,8 @@ const QuotesList: React.FC<QuotesListProps> = ({
   // Helper function to get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'draft':
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700 hover:bg-gray-200">Brouillon</Badge>;
       case 'pending':
         return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-200">En attente</Badge>;
       case 'approved':
@@ -162,7 +165,12 @@ const QuotesList: React.FC<QuotesListProps> = ({
                 onMouseEnter={() => setHoveredRow(quote.id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
-                <TableCell className="font-medium">{quote.id}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-1">
+                    {quote.status === 'draft' && <File className="h-3.5 w-3.5 text-gray-500" />}
+                    {quote.id}
+                  </div>
+                </TableCell>
                 <TableCell>{quote.client}</TableCell>
                 <TableCell>{quote.date}</TableCell>
                 <TableCell>{getTypeBadge(quote.type)}</TableCell>
