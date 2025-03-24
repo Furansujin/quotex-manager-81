@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -927,3 +928,91 @@ const SupplierPricing = () => {
                     <FormItem className="flex flex-col">
                       <FormLabel>Valide jusqu'au</FormLabel>
                       <DatePicker
+                        date={field.value}
+                        setDate={field.onChange}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="serviceLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Niveau de service</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un niveau" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="express">Express</SelectItem>
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="economy">Économique</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="contractRef"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Référence contrat</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: CTR-2023-001" {...field} value={field.value || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Notes additionnelles" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="submit">Enregistrer</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* AlertDialog pour confirmer la suppression */}
+      <AlertDialog open={!!priceToDelete} onOpenChange={(open) => !open && setPriceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce tarif ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePrice}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default SupplierPricing;
