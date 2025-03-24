@@ -45,7 +45,7 @@ const Finance = () => {
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false);
-  const [viewMode, setViewMode<'dashboard' | 'invoices'>('dashboard');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'invoices'>('dashboard');
   const { toast } = useToast();
 
   const invoiceSummary = calculateInvoiceSummary(invoices);
@@ -57,7 +57,6 @@ const Finance = () => {
   const handleApplyFilters = (filters: FinanceFilterValues) => {
     setActiveFilters(filters);
     
-    // Si des filtres de statut sont appliqués, on peut basculer sur l'onglet correspondant
     if (filters.status && filters.status.length === 1) {
       setActiveTab(filters.status[0] as InvoiceStatus | 'all');
     } else if (filters.status && filters.status.length === 0) {
@@ -69,7 +68,6 @@ const Finance = () => {
       description: "Les factures ont été filtrées selon vos critères.",
     });
 
-    // Filter invoices based on applied filters
     filterInvoices(filters);
   };
   
@@ -89,7 +87,6 @@ const Finance = () => {
     let newField = field;
     
     if (activeFilters?.sortField === field) {
-      // Basculer la direction: asc -> desc -> null
       if (activeFilters.sortDirection === 'asc') {
         newDirection = 'desc';
       } else if (activeFilters.sortDirection === 'desc') {
@@ -97,7 +94,6 @@ const Finance = () => {
         newDirection = null;
       }
     } else {
-      // Nouveau champ, commencer par ascendant
       newDirection = 'asc';
     }
     
@@ -110,7 +106,6 @@ const Finance = () => {
     handleApplyFilters(newFilters);
   };
 
-  // Filter invoices based on applied filters and search term
   const filterInvoices = (filters: FinanceFilterValues | null) => {
     if (!filters && !searchTerm) {
       setFilteredInvoices(invoices);
@@ -119,7 +114,6 @@ const Finance = () => {
 
     let filtered = [...invoices];
 
-    // Apply search term filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(invoice => 
@@ -128,17 +122,14 @@ const Finance = () => {
       );
     }
 
-    // Apply status filter
     if (filters?.status && filters.status.length > 0) {
       filtered = filtered.filter(invoice => filters.status.includes(invoice.status));
     }
 
-    // Apply client type filter
     if (filters?.clientTypes && filters.clientTypes.length > 0) {
       filtered = filtered.filter(invoice => filters.clientTypes.includes(invoice.clientType || ''));
     }
 
-    // Apply date filters
     if (filters?.startDate) {
       filtered = filtered.filter(invoice => {
         const invoiceDate = new Date(invoice.issueDate);
@@ -153,7 +144,6 @@ const Finance = () => {
       });
     }
 
-    // Apply amount filters
     if (filters?.minAmount !== undefined) {
       filtered = filtered.filter(invoice => invoice.amount >= filters.minAmount!);
     }
@@ -162,14 +152,12 @@ const Finance = () => {
       filtered = filtered.filter(invoice => invoice.amount <= filters.maxAmount!);
     }
 
-    // Apply commercial filter
     if (filters?.commercial) {
       filtered = filtered.filter(invoice => 
         invoice.commercial?.toLowerCase().includes(filters.commercial!.toLowerCase())
       );
     }
 
-    // Apply sorting
     if (filters?.sortField && filters?.sortDirection) {
       filtered.sort((a, b) => {
         const field = filters.sortField as keyof Invoice;
@@ -177,7 +165,6 @@ const Finance = () => {
         let valueA = a[field];
         let valueB = b[field];
         
-        // Handle special cases for date fields
         if (field === 'issueDate' || field === 'dueDate') {
           valueA = new Date(valueA as string).getTime();
           valueB = new Date(valueB as string).getTime();
@@ -196,11 +183,9 @@ const Finance = () => {
     setFilteredInvoices(filtered);
   };
 
-  // Handle tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value as InvoiceStatus | 'all');
     
-    // Update filters to reflect tab change
     const newFilters = { 
       ...activeFilters || { clientTypes: [] },
       status: value === 'all' ? [] : [value]
@@ -209,7 +194,6 @@ const Finance = () => {
     handleApplyFilters(newFilters);
   };
 
-  // Add new invoice
   const handleAddInvoice = (invoice: Invoice) => {
     const newInvoice = {
       ...invoice,
@@ -227,24 +211,20 @@ const Finance = () => {
     setIsNewInvoiceOpen(false);
   };
 
-  // Open invoice detail
   const handleSelectInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsInvoiceDetailOpen(true);
   };
 
-  // Navigate from dashboard to specific tab
   const handleDashboardNavigation = (tab: string) => {
     setViewMode('invoices');
     handleTabChange(tab);
   };
 
-  // Update invoices when filters change
   useEffect(() => {
     filterInvoices(activeFilters);
   }, [searchTerm, activeFilters]);
 
-  // Rendu des icônes de tri
   const renderSortIcon = (field: string) => {
     if (activeFilters?.sortField === field) {
       if (activeFilters.sortDirection === 'asc') {
@@ -263,7 +243,6 @@ const Finance = () => {
 
       <main className="pt-16 md:pl-64">
         <div className="container mx-auto p-4 md:p-6 animate-fade-in">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold">Gestion Financière</h1>
@@ -285,7 +264,6 @@ const Finance = () => {
             </div>
           </div>
 
-          {/* View Mode Toggle */}
           <div className="flex space-x-2 mb-6">
             <Button 
               variant={viewMode === 'dashboard' ? 'default' : 'outline'}
@@ -301,7 +279,6 @@ const Finance = () => {
             </Button>
           </div>
 
-          {/* Dashboard View */}
           {viewMode === 'dashboard' && (
             <FinanceDashboard 
               invoices={invoices}
@@ -311,7 +288,6 @@ const Finance = () => {
             />
           )}
 
-          {/* Invoices View */}
           {viewMode === 'invoices' && (
             <>
               <FinanceFilters
@@ -355,7 +331,6 @@ const Finance = () => {
         </div>
       </main>
 
-      {/* Dialogs */}
       <NewInvoiceDialog
         isOpen={isNewInvoiceOpen}
         onClose={() => setIsNewInvoiceOpen(false)}
