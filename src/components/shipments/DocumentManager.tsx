@@ -13,7 +13,8 @@ import {
   FileCheck,
   ClipboardCheck,
   Search,
-  ExternalLink
+  ExternalLink,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,11 +48,11 @@ interface Document {
   name: string;
   uploaded: boolean;
   date: string;
-  mandatory: boolean;
   status?: 'valid' | 'pending' | 'rejected';
   type?: string;
   size?: string;
   validUntil?: string;
+  fileUrl?: string; // URL pour prévisualiser le document
 }
 
 interface DocumentManagerProps {
@@ -64,26 +65,26 @@ interface DocumentManagerProps {
 
 const DocumentTypes = {
   'maritime': [
-    { name: 'Connaissement maritime (B/L)', mandatory: true },
-    { name: 'Facture commerciale', mandatory: true },
-    { name: 'Liste de colisage', mandatory: true },
-    { name: 'Certificat d\'origine', mandatory: false },
-    { name: 'Certificat phytosanitaire', mandatory: false },
-    { name: 'Déclaration d\'exportation', mandatory: true },
-    { name: 'Certificat d\'assurance', mandatory: false },
+    { name: 'Connaissement maritime (B/L)' },
+    { name: 'Facture commerciale' },
+    { name: 'Liste de colisage' },
+    { name: 'Certificat d\'origine' },
+    { name: 'Certificat phytosanitaire' },
+    { name: 'Déclaration d\'exportation' },
+    { name: 'Certificat d\'assurance' },
   ],
   'aérien': [
-    { name: 'Lettre de transport aérien (LTA)', mandatory: true },
-    { name: 'Facture commerciale', mandatory: true },
-    { name: 'Liste de colisage', mandatory: true },
-    { name: 'Certificat d\'origine', mandatory: false },
-    { name: 'Certificat de conformité', mandatory: false },
+    { name: 'Lettre de transport aérien (LTA)' },
+    { name: 'Facture commerciale' },
+    { name: 'Liste de colisage' },
+    { name: 'Certificat d\'origine' },
+    { name: 'Certificat de conformité' },
   ],
   'routier': [
-    { name: 'Lettre de voiture CMR', mandatory: true },
-    { name: 'Facture commerciale', mandatory: true },
-    { name: 'Liste de colisage', mandatory: true },
-    { name: 'Certificat d\'origine', mandatory: false },
+    { name: 'Lettre de voiture CMR' },
+    { name: 'Facture commerciale' },
+    { name: 'Liste de colisage' },
+    { name: 'Certificat d\'origine' },
   ],
 };
 
@@ -100,13 +101,13 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
   const [showAiAssistDialog, setShowAiAssistDialog] = useState(false);
   const [newDocumentType, setNewDocumentType] = useState('');
   const [documentDescription, setDocumentDescription] = useState('');
-  const [isMandatory, setIsMandatory] = useState(false);
   const [docSearchTerm, setDocSearchTerm] = useState('');
   const [activeDocTab, setActiveDocTab] = useState('all');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [highlightMissing, setHighlightMissing] = useState(true);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
   
   // Template documents for quick access
   const templateDocuments = [
@@ -124,14 +125,13 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
         return doc.name.toLowerCase().includes(docSearchTerm.toLowerCase());
       }
       if (activeDocTab === 'all') return true;
-      if (activeDocTab === 'mandatory') return doc.mandatory;
-      if (activeDocTab === 'missing') return doc.mandatory && !doc.uploaded;
       if (activeDocTab === 'uploaded') return doc.uploaded;
+      if (activeDocTab === 'pending') return doc.status === 'pending';
       return true;
     });
   
-  const mandatoryDocCount = documents.filter(doc => doc.mandatory).length;
-  const uploadedMandatoryDocCount = documents.filter(doc => doc.mandatory && doc.uploaded).length;
+  const uploadedDocCount = documents.filter(doc => doc.uploaded).length;
+  const totalDocCount = documents.length;
   
   const handleAddDocument = () => {
     if (!newDocumentType) {
@@ -145,7 +145,6 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
     
     const newDoc: Partial<Document> = {
       name: newDocumentType === 'other' ? documentDescription : newDocumentType,
-      mandatory: isMandatory,
       uploaded: false,
       date: "",
     };
@@ -162,7 +161,6 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
     // Reset form
     setNewDocumentType('');
     setDocumentDescription('');
-    setIsMandatory(false);
     setShowAddDocumentDialog(false);
   };
   
@@ -246,11 +244,8 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
 
   // Simplifier l'interface d'ajout de document
   const quickAddDocument = (docType: string) => {
-    const isStandardDoc = DocumentTypes[shipmentType].find(doc => doc.name === docType);
-    
     const newDoc: Partial<Document> = {
       name: docType,
-      mandatory: isStandardDoc?.mandatory || false,
       uploaded: false,
       date: "",
     };
@@ -293,6 +288,12 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
     };
     input.click();
   };
+  
+  // Prévisualiser un document
+  const handleViewDocument = (doc: Document) => {
+    setSelectedDocument(doc);
+    setShowDocumentPreview(true);
+  };
 
   return (
     <div className="space-y-4">
@@ -300,7 +301,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
         <div>
           <h3 className="text-lg font-semibold mb-1">Documents d'expédition</h3>
           <p className="text-sm text-muted-foreground">
-            {uploadedMandatoryDocCount}/{mandatoryDocCount} documents obligatoires téléversés
+            {uploadedDocCount}/{totalDocCount} documents téléversés
           </p>
         </div>
         
@@ -350,11 +351,10 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
         </div>
         
         <Tabs value={activeDocTab} onValueChange={setActiveDocTab} className="w-full sm:w-auto">
-          <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+          <TabsList className="grid grid-cols-3 w-full sm:w-auto">
             <TabsTrigger value="all">Tous</TabsTrigger>
-            <TabsTrigger value="mandatory">Obligatoires</TabsTrigger>
-            <TabsTrigger value="missing">Manquants</TabsTrigger>
             <TabsTrigger value="uploaded">Téléversés</TabsTrigger>
+            <TabsTrigger value="pending">En attente</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -365,7 +365,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
           <div className="text-center py-8 border rounded-md">
             <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">Aucun document trouvé</p>
-            {activeDocTab === 'missing' && documents.length > 0 && (
+            {activeDocTab !== 'all' && documents.length > 0 && (
               <Button variant="ghost" size="sm" className="mt-2" onClick={() => setActiveDocTab('all')}>
                 Voir tous les documents
               </Button>
@@ -376,41 +376,19 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
             <div 
               key={doc.id} 
               className={`flex items-center justify-between p-3 border rounded-md transition-colors ${
-                highlightMissing && doc.mandatory && !doc.uploaded 
-                  ? 'border-amber-300 bg-amber-50' 
-                  : doc.uploaded && doc.status === 'valid'
+                doc.uploaded && doc.status === 'valid'
                   ? 'border-green-200 bg-green-50'
                   : doc.uploaded && doc.status === 'rejected'
                   ? 'border-red-200 bg-red-50'
+                  : doc.uploaded && doc.status === 'pending'
+                  ? 'border-amber-200 bg-amber-50'
                   : ''
               }`}
             >
               <div className="flex items-center gap-3">
                 {getDocumentIcon(doc)}
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium">{doc.name}</p>
-                    {doc.mandatory && (
-                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800">
-                        Obligatoire
-                      </Badge>
-                    )}
-                    {doc.uploaded && doc.status === 'valid' && (
-                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
-                        Validé
-                      </Badge>
-                    )}
-                    {doc.uploaded && doc.status === 'pending' && (
-                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700">
-                        En attente
-                      </Badge>
-                    )}
-                    {doc.uploaded && doc.status === 'rejected' && (
-                      <Badge variant="outline" className="text-xs bg-red-100 text-red-700">
-                        Refusé
-                      </Badge>
-                    )}
-                  </div>
+                  <p className="font-medium">{doc.name}</p>
                   {doc.uploaded ? (
                     <div className="text-xs text-muted-foreground">
                       <span>Téléversé le {doc.date}</span>
@@ -418,21 +396,32 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
                       {doc.size && <span>{doc.size}</span>}
                     </div>
                   ) : (
-                    <p className="text-xs text-amber-600">Document non téléversé</p>
+                    <p className="text-xs text-muted-foreground">Document non téléversé</p>
                   )}
                 </div>
               </div>
               <div className="flex gap-2">
                 {doc.uploaded ? (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="gap-1 text-blue-600" 
-                    onClick={() => onDownloadDocument && onDownloadDocument(doc.id)}
-                  >
-                    <Download className="h-4 w-4" />
-                    <span className="hidden sm:inline">Télécharger</span>
-                  </Button>
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 text-blue-600" 
+                      onClick={() => handleViewDocument(doc)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="hidden sm:inline">Voir</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 text-green-600" 
+                      onClick={() => onDownloadDocument && onDownloadDocument(doc.id)}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">Télécharger</span>
+                    </Button>
+                  </>
                 ) : (
                   <Button 
                     variant="ghost" 
@@ -450,68 +439,26 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
         )}
       </div>
       
-      {/* Section pour ajouter des documents manquants obligatoires en un clic */}
-      {activeDocTab === 'missing' && filteredDocuments.length === 0 && documents.length > 0 && (
-        <div className="mt-4 p-4 border rounded-md bg-gray-50">
-          <h4 className="font-medium mb-2">Tous les documents obligatoires sont téléversés</h4>
-          <p className="text-sm text-muted-foreground mb-3">
-            Vous avez fourni tous les documents obligatoires pour cette expédition.
-          </p>
-          <Button variant="outline" size="sm" onClick={() => setActiveDocTab('all')}>
-            Voir tous les documents
-          </Button>
-        </div>
-      )}
-      
-      {activeDocTab === 'missing' && filteredDocuments.length === 0 && documents.length === 0 && (
+      {/* Section pour ajouter des documents rapidement */}
+      {activeDocTab === 'all' && filteredDocuments.length === 0 && documents.length === 0 && (
         <div className="mt-4 p-4 border rounded-md bg-blue-50 border-blue-200">
-          <h4 className="font-medium mb-2 text-blue-800">Ajoutez les documents obligatoires</h4>
+          <h4 className="font-medium mb-2 text-blue-800">Ajoutez des documents à cette expédition</h4>
           <p className="text-sm text-blue-700 mb-3">
-            Aucun document n'a encore été ajouté pour cette expédition. Voici les documents obligatoires pour le transport {shipmentType}:
+            Aucun document n'a encore été ajouté. Voici les documents recommandés pour le transport {shipmentType}:
           </p>
           <div className="flex flex-wrap gap-2 mb-3">
-            {DocumentTypes[shipmentType]
-              .filter(doc => doc.mandatory)
-              .map((doc, index) => (
-                <Button 
-                  key={index} 
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-white" 
-                  onClick={() => quickAddDocument(doc.name)}
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  {doc.name}
-                </Button>
-              ))}
-          </div>
-          <Button variant="ghost" size="sm" className="text-blue-700" onClick={() => setActiveDocTab('all')}>
-            Voir tous les types de documents
-          </Button>
-        </div>
-      )}
-      
-      {/* Ajout rapide pour documents manquants obligatoires */}
-      {activeDocTab === 'missing' && filteredDocuments.length > 0 && (
-        <div className="mt-4 p-4 border rounded-md bg-amber-50 border-amber-200">
-          <h4 className="font-medium text-amber-800 mb-2">Téléverser rapidement les documents manquants</h4>
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-white gap-1"
-              onClick={() => {
-                // Simuler le téléversement de tous les documents manquants
-                filteredDocuments.forEach(doc => {
-                  if (!doc.uploaded && doc.mandatory) {
-                    quickUploadDocument(doc.id);
-                  }
-                });
-              }}
-            >
-              <Upload className="h-4 w-4" />
-              Téléverser tous les documents manquants
-            </Button>
+            {DocumentTypes[shipmentType].map((doc, index) => (
+              <Button 
+                key={index} 
+                variant="outline" 
+                size="sm" 
+                className="bg-white" 
+                onClick={() => quickAddDocument(doc.name)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {doc.name}
+              </Button>
+            ))}
           </div>
         </div>
       )}
@@ -609,7 +556,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
               
               <Checkbox id="suggest-missing" defaultChecked />
               <label htmlFor="suggest-missing" className="text-sm cursor-pointer">
-                Identifier les documents manquants
+                Identifier les documents recommandés manquants
               </label>
             </div>
             
@@ -632,6 +579,9 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajouter un document</DialogTitle>
+            <DialogDescription>
+              Sélectionnez le type de document que vous souhaitez ajouter
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -643,7 +593,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
                 <SelectContent>
                   {DocumentTypes[shipmentType].map((doc, index) => (
                     <SelectItem key={index} value={doc.name}>
-                      {doc.name} {doc.mandatory && "(Obligatoire)"}
+                      {doc.name}
                     </SelectItem>
                   ))}
                   <SelectItem value="other">Autre document...</SelectItem>
@@ -661,17 +611,6 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
                 />
               </div>
             )}
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="mandatory-doc"
-                checked={isMandatory}
-                onCheckedChange={(checked) => setIsMandatory(checked === true)}
-              />
-              <label htmlFor="mandatory-doc" className="text-sm">
-                Document obligatoire
-              </label>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDocumentDialog(false)}>
@@ -680,6 +619,62 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
             <Button onClick={handleAddDocument}>
               Ajouter
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Prévisualisation du document */}
+      <Dialog open={showDocumentPreview} onOpenChange={setShowDocumentPreview}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{selectedDocument?.name}</DialogTitle>
+            <DialogDescription>
+              Aperçu du document
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden rounded-md border h-full">
+            {selectedDocument && (
+              selectedDocument.fileUrl ? (
+                <iframe 
+                  src={selectedDocument.fileUrl} 
+                  className="w-full h-full" 
+                  title={selectedDocument.name}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <div className="text-center p-6">
+                    <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Aperçu non disponible</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Ce document peut être téléchargé, mais l'aperçu n'est pas disponible.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => onDownloadDocument && onDownloadDocument(selectedDocument.id)}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Télécharger le document
+                    </Button>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDocumentPreview(false)}>
+              Fermer
+            </Button>
+            {selectedDocument && (
+              <Button 
+                variant="default" 
+                onClick={() => onDownloadDocument && onDownloadDocument(selectedDocument.id)}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Télécharger
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -700,13 +695,9 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
           Tout télécharger
         </Button>
         
-        {documents.some(d => d.mandatory && !d.uploaded) ? (
-          <Badge variant="outline" className="bg-amber-100 text-amber-700">
-            Documents obligatoires manquants
-          </Badge>
-        ) : documents.length > 0 ? (
-          <Badge variant="outline" className="bg-green-100 text-green-700">
-            Tous les documents obligatoires sont présents
+        {documents.length > 0 ? (
+          <Badge variant="outline" className="bg-blue-100 text-blue-700">
+            {uploadedDocCount}/{totalDocCount} documents téléversés
           </Badge>
         ) : (
           <Badge variant="outline" className="bg-blue-100 text-blue-700">
