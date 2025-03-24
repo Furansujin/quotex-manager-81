@@ -1,4 +1,3 @@
-
 // Vous pouvez importer DocumentManager ici pour l'utiliser dans le composant
 import DocumentManager from './DocumentManager';
 
@@ -620,7 +619,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                       onChange={(e) => setNoteText(e.target.value)}
                     />
                     <div className="flex justify-end">
-                      <Button className="gap-1" onClick={handleAddNote}>
+                      <Button onClick={handleAddNote} className="gap-1">
                         <Plus className="h-4 w-4" />
                         Ajouter une note
                       </Button>
@@ -649,62 +648,14 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Dialog open={showReportIssueForm} onOpenChange={setShowReportIssueForm}>
-                    <DialogTrigger asChild>
-                      <Button variant="destructive" className="gap-1 w-full md:w-auto">
-                        <AlertTriangle className="h-4 w-4" />
-                        Signaler un problème
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Signaler un problème</DialogTitle>
-                        <DialogDescription>
-                          Décrivez le problème rencontré avec cette expédition
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Titre</label>
-                          <Input 
-                            placeholder="Ex: Retard de livraison" 
-                            value={issueForm.title}
-                            onChange={(e) => setIssueForm({...issueForm, title: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Description</label>
-                          <Textarea 
-                            placeholder="Décrivez le problème rencontré..." 
-                            className="min-h-24"
-                            value={issueForm.description}
-                            onChange={(e) => setIssueForm({...issueForm, description: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Priorité</label>
-                          <Select 
-                            value={issueForm.priority}
-                            onValueChange={(value) => setIssueForm({...issueForm, priority: value as 'low' | 'medium' | 'high' | 'urgent'})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionnez un niveau de priorité" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="low">Faible</SelectItem>
-                              <SelectItem value="medium">Moyenne</SelectItem>
-                              <SelectItem value="high">Élevée</SelectItem>
-                              <SelectItem value="urgent">Urgente</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowReportIssueForm(false)}>Annuler</Button>
-                        <Button variant="destructive" onClick={handleReportIssue}>Signaler</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                  <Button 
+                    variant="destructive" 
+                    className="gap-1 w-full md:w-auto" 
+                    onClick={() => setShowReportIssueForm(true)}
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    Signaler un problème
+                  </Button>
                   
                   <div className="space-y-4 pt-4">
                     <div className="p-3 border border-amber-200 bg-amber-50 rounded-md">
@@ -745,6 +696,61 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <Dialog open={showReportIssueForm} onOpenChange={setShowReportIssueForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Signaler un problème</DialogTitle>
+            <DialogDescription>
+              Décrivez le problème rencontré avec cette expédition
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Titre</label>
+              <Input 
+                placeholder="Ex: Retard de livraison" 
+                value={issueForm.title}
+                onChange={(e) => setIssueForm({...issueForm, title: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea 
+                placeholder="Décrivez le problème rencontré..." 
+                className="min-h-24"
+                value={issueForm.description}
+                onChange={(e) => setIssueForm({...issueForm, description: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Priorité</label>
+              <Select 
+                value={issueForm.priority}
+                onValueChange={(value) => setIssueForm({...issueForm, priority: value as 'low' | 'medium' | 'high' | 'urgent'})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez un niveau de priorité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Faible</SelectItem>
+                  <SelectItem value="medium">Moyenne</SelectItem>
+                  <SelectItem value="high">Élevée</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReportIssueForm(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={handleReportIssue}>Signaler</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Other dialogs */}
+      
     </div>
   );
 };
