@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import ClientForm from '@/components/clients/ClientForm';
 import ClientsList from '@/components/clients/ClientsList';
+import ClientDetail from '@/components/clients/ClientDetail';
 
 const Clients = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +26,7 @@ const Clients = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Exemple de données clients
@@ -183,6 +185,10 @@ const Clients = () => {
       // Otherwise, add it
       return [...prev, tag];
     });
+  };
+
+  const handleClientClick = (clientId: string) => {
+    setSelectedClientId(clientId);
   };
 
   const clearAllFilters = () => {
@@ -369,6 +375,7 @@ const Clients = () => {
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
                 onTagClick={handleTagClick}
+                onClientClick={handleClientClick}
               />
             </TabsContent>
             
@@ -378,6 +385,7 @@ const Clients = () => {
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
                 onTagClick={handleTagClick}
+                onClientClick={handleClientClick}
               />
             </TabsContent>
             
@@ -387,6 +395,7 @@ const Clients = () => {
                 onEdit={handleEditClient} 
                 onDelete={handleDeleteClient}
                 onTagClick={handleTagClick}
+                onClientClick={handleClientClick}
               />
             </TabsContent>
           </Tabs>
@@ -397,6 +406,13 @@ const Clients = () => {
         <ClientForm 
           clientId={editingClientId} 
           onClose={() => setShowClientForm(false)} 
+        />
+      )}
+
+      {selectedClientId && (
+        <ClientDetail
+          clientId={selectedClientId}
+          onClose={() => setSelectedClientId(null)}
         />
       )}
     </div>

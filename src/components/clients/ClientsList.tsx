@@ -48,9 +48,16 @@ interface ClientsListProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onTagClick?: (tag: string) => void;
+  onClientClick?: (id: string) => void;
 }
 
-const ClientsList = ({ clients, onEdit, onDelete, onTagClick }: ClientsListProps) => {
+const ClientsList = ({ 
+  clients, 
+  onEdit, 
+  onDelete, 
+  onTagClick,
+  onClientClick 
+}: ClientsListProps) => {
   if (clients.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -71,10 +78,25 @@ const ClientsList = ({ clients, onEdit, onDelete, onTagClick }: ClientsListProps
     }
   };
 
+  const handleClientCardClick = (id: string) => {
+    if (onClientClick) {
+      onClientClick(id);
+    }
+  };
+
+  const handleCardButtonClick = (e: React.MouseEvent) => {
+    // Empêcher la propagation pour éviter de déclencher le clic sur la carte
+    e.stopPropagation();
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {clients.map((client) => (
-        <Card key={client.id} className="overflow-hidden">
+        <Card 
+          key={client.id} 
+          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleClientCardClick(client.id)}
+        >
           <CardContent className="p-0">
             <div className="flex items-center p-4 pb-2">
               <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-medium mr-3">
@@ -85,27 +107,38 @@ const ClientsList = ({ clients, onEdit, onDelete, onTagClick }: ClientsListProps
                   <h3 className="font-medium truncate">{client.name}</h3>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={handleCardButtonClick}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onEdit(client.id)}>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(client.id);
+                      }}>
                         <Edit className="h-4 w-4 mr-2" />
                         Modifier
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDelete(client.id)}>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(client.id);
+                      }}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Supprimer
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                         <FileText className="h-4 w-4 mr-2" />
                         Créer un devis
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                         <Ship className="h-4 w-4 mr-2" />
                         Créer un envoi
                       </DropdownMenuItem>
@@ -183,11 +216,22 @@ const ClientsList = ({ clients, onEdit, onDelete, onTagClick }: ClientsListProps
             )}
 
             <div className="flex border-t divide-x">
-              <Button variant="ghost" className="flex-1 rounded-none py-2 h-10" onClick={() => onEdit(client.id)}>
+              <Button 
+                variant="ghost" 
+                className="flex-1 rounded-none py-2 h-10" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(client.id);
+                }}
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Modifier
               </Button>
-              <Button variant="ghost" className="flex-1 rounded-none py-2 h-10">
+              <Button 
+                variant="ghost" 
+                className="flex-1 rounded-none py-2 h-10"
+                onClick={handleCardButtonClick}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Devis
               </Button>
