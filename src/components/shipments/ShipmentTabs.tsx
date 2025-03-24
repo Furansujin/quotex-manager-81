@@ -85,27 +85,57 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
                 <div key={i} className="aspect-square border rounded-md p-2 text-center">
                   <div className="text-sm font-medium">{i + 1}</div>
                   {i === 4 && (
-                    <div className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1">
+                    <div 
+                      className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1 cursor-pointer hover:bg-blue-200 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenShipment("SHP-0089");
+                      }}
+                    >
                       SHP-0089
                     </div>
                   )}
                   {i === 8 && (
-                    <div className="mt-1 text-xs bg-green-100 text-green-800 rounded-sm p-1">
+                    <div 
+                      className="mt-1 text-xs bg-green-100 text-green-800 rounded-sm p-1 cursor-pointer hover:bg-green-200 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenShipment("SHP-0087");
+                      }}
+                    >
                       SHP-0087
                     </div>
                   )}
                   {i === 14 && (
-                    <div className="mt-1 text-xs bg-amber-100 text-amber-800 rounded-sm p-1">
+                    <div 
+                      className="mt-1 text-xs bg-amber-100 text-amber-800 rounded-sm p-1 cursor-pointer hover:bg-amber-200 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenShipment("SHP-0092");
+                      }}
+                    >
                       SHP-0092
                     </div>
                   )}
                   {i === 18 && (
-                    <div className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1">
+                    <div 
+                      className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1 cursor-pointer hover:bg-blue-200 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenShipment("SHP-0095");
+                      }}
+                    >
                       SHP-0095
                     </div>
                   )}
                   {i === 22 && (
-                    <div className="mt-1 text-xs bg-red-100 text-red-800 rounded-sm p-1">
+                    <div 
+                      className="mt-1 text-xs bg-red-100 text-red-800 rounded-sm p-1 cursor-pointer hover:bg-red-200 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenShipment("SHP-0097");
+                      }}
+                    >
                       SHP-0097
                     </div>
                   )}
