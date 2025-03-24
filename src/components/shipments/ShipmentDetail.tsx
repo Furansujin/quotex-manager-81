@@ -1,3 +1,4 @@
+
 // Vous pouvez importer DocumentManager ici pour l'utiliser dans le composant
 import DocumentManager from './DocumentManager';
 
@@ -796,4 +797,202 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                           className="gap-1" 
                           onClick={handleAddNote}
                           disabled={!newNote.trim()}
-                          size
+                          size="default"
+                        >
+                          Ajouter la note
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 mt-6">
+                      {filteredNotes.length === 0 ? (
+                        <div className="text-center text-muted-foreground p-4">
+                          Aucune note correspondant à votre filtre.
+                        </div>
+                      ) : (
+                        filteredNotes.map(note => (
+                          <div 
+                            key={note.id} 
+                            className={`border rounded-lg p-4 ${note.isPrivate ? 'bg-amber-50 border-amber-200' : 'bg-background'}`}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{note.author}</span>
+                                {note.isPrivate && (
+                                  <Badge variant="outline" className="bg-amber-100 text-amber-700">Privé</Badge>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">{note.date}</span>
+                            </div>
+                            <p className="whitespace-pre-wrap">{note.text}</p>
+                            {note.attachments && note.attachments.length > 0 && (
+                              <div className="mt-2 border-t pt-2">
+                                <p className="text-xs text-muted-foreground mb-1">Pièces jointes:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {note.attachments.map((attachment, idx) => (
+                                    <div key={idx} className="text-xs text-blue-600 underline cursor-pointer">
+                                      {attachment}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-primary" />
+                      Problèmes et alertes
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Select value={issueStatusFilter} onValueChange={setIssueStatusFilter}>
+                        <SelectTrigger className="w-[130px] h-8">
+                          <SelectValue placeholder="Statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tous les statuts</SelectItem>
+                          <SelectItem value="open">Ouverts</SelectItem>
+                          <SelectItem value="inProgress">En cours</SelectItem>
+                          <SelectItem value="resolved">Résolus</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={issueSort} onValueChange={setIssueSort}>
+                        <SelectTrigger className="w-[130px] h-8">
+                          <SelectValue placeholder="Trier par" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dateDesc">Date (récent)</SelectItem>
+                          <SelectItem value="dateAsc">Date (ancien)</SelectItem>
+                          <SelectItem value="priorityDesc">Priorité</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <CardDescription>Signalez et suivez les problèmes liés à cette expédition</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="space-y-3 border rounded-lg p-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Titre du problème</label>
+                        <Input 
+                          placeholder="Ex: Retard de livraison" 
+                          value={newIssue.title}
+                          onChange={(e) => setNewIssue({...newIssue, title: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Description</label>
+                        <Textarea 
+                          placeholder="Décrivez le problème rencontré..." 
+                          className="min-h-20 resize-none"
+                          value={newIssue.description}
+                          onChange={(e) => setNewIssue({...newIssue, description: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Priorité</label>
+                        <Select 
+                          value={newIssue.priority} 
+                          onValueChange={(value) => setNewIssue({...newIssue, priority: value as Issue['priority']})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner la priorité" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Faible</SelectItem>
+                            <SelectItem value="medium">Moyenne</SelectItem>
+                            <SelectItem value="high">Élevée</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-end mt-4">
+                        <Button 
+                          onClick={handleAddIssue}
+                          disabled={!newIssue.title.trim() || !newIssue.description.trim()}
+                        >
+                          Signaler le problème
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 mt-6">
+                      {filteredIssues.length === 0 ? (
+                        <div className="text-center text-muted-foreground p-4">
+                          Aucun problème correspondant à votre filtre.
+                        </div>
+                      ) : (
+                        filteredIssues.map(issue => (
+                          <div key={issue.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="font-medium text-lg mb-1">{issue.title}</div>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {getIssueStatusBadge(issue.status)}
+                                  {getIssuePriorityBadge(issue.priority)}
+                                  {issue.tags && issue.tags.map(tag => (
+                                    <Badge key={tag} variant="outline" className="bg-blue-50 text-blue-700">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {issue.status !== 'open' && (
+                                    <DropdownMenuItem onClick={() => handleUpdateIssueStatus(issue.id, 'open')}>
+                                      Marquer comme ouvert
+                                    </DropdownMenuItem>
+                                  )}
+                                  {issue.status !== 'inProgress' && (
+                                    <DropdownMenuItem onClick={() => handleUpdateIssueStatus(issue.id, 'inProgress')}>
+                                      Marquer en cours
+                                    </DropdownMenuItem>
+                                  )}
+                                  {issue.status !== 'resolved' && (
+                                    <DropdownMenuItem onClick={() => handleUpdateIssueStatus(issue.id, 'resolved')}>
+                                      Marquer comme résolu
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            <p className="text-muted-foreground mb-3">{issue.description}</p>
+                            <div className="flex justify-between items-center text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <span>Par {issue.author}</span>
+                                {issue.assignee && <span>• Assigné à: {issue.assignee}</span>}
+                              </div>
+                              <span>{issue.date}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default ShipmentDetail;
