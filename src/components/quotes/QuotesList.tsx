@@ -111,6 +111,11 @@ const QuotesList: React.FC<QuotesListProps> = ({
     );
   }
 
+  const handleRowClick = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    onEdit(id);
+  };
+
   return (
     <Card>
       <div className="overflow-x-auto">
@@ -153,7 +158,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
               <TableRow 
                 key={quote.id}
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => onEdit(quote.id)}
+                onClick={(e) => handleRowClick(quote.id, e)}
                 onMouseEnter={() => setHoveredRow(quote.id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >

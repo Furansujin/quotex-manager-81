@@ -14,11 +14,16 @@ interface ShipmentRowProps {
 }
 
 const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) => {
+  const handleRowClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onOpenShipment(shipment.id);
+  };
+
   return (
     <TableRow 
       key={shipment.id}
       className="cursor-pointer hover:bg-muted/50 transition-colors"
-      onClick={() => onOpenShipment(shipment.id)}
+      onClick={handleRowClick}
     >
       <TableCell>
         <div className="flex flex-col">

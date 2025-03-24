@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -13,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import QuoteFollowUpButton from '@/components/quotes/QuoteFollowUpButton';
 import { useToast } from '@/hooks/use-toast';
 import QuotesSearchAndFilter from '@/components/quotes/QuotesSearchAndFilter';
+import { useLocation } from 'react-router-dom';
 
 const Quotes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,6 +50,17 @@ const Quotes = () => {
   // State for sorting
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  const location = useLocation();
+
+  // Check for quote ID in URL query parameters
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const quoteId = queryParams.get('id');
+    
+    if (quoteId) {
+      handleEditQuote(quoteId);
+    }
+  }, [location.search, handleEditQuote]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

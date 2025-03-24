@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import ShipmentDetail from '@/components/shipments/ShipmentDetail';
@@ -9,6 +9,7 @@ import ShipmentTabs from '@/components/shipments/ShipmentTabs';
 import ShipmentPageHeader from '@/components/shipments/ShipmentPageHeader';
 import { useShipmentData } from '@/components/shipments/useShipmentData';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
 
 interface ShipmentFilterValues {
   status: string[];
@@ -32,6 +33,17 @@ const Shipments = () => {
   const [showNewShipmentForm, setShowNewShipmentForm] = useState(false);
   const { toast } = useToast();
   const { shipments } = useShipmentData();
+  const location = useLocation();
+
+  // Check for shipment ID in URL query parameters
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const shipmentId = queryParams.get('id');
+    
+    if (shipmentId) {
+      setSelectedShipment(shipmentId);
+    }
+  }, [location.search]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
