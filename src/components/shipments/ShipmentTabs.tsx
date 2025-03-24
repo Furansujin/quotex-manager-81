@@ -1,9 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ShipmentTable from './ShipmentTable';
 import { Shipment } from './ShipmentTable';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { format, addMonths, subMonths } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ShipmentTabsProps {
   activeTab: string;
@@ -24,6 +29,18 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
   sortField,
   sortDirection
 }) => {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  
+  const nextMonth = () => {
+    setCurrentDate(addMonths(currentDate, 1));
+  };
+
+  const previousMonth = () => {
+    setCurrentDate(subMonths(currentDate, 1));
+  };
+
+  const currentMonthStr = format(currentDate, 'MMMM yyyy', { locale: fr });
+
   return (
     <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab} value={activeTab}>
       <TabsList className="mb-4">
@@ -71,7 +88,16 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
       <TabsContent value="calendar">
         <Card>
           <CardContent className="p-6">
-            <h3 className="font-medium mb-4">Vue calendrier des expéditions</h3>
+            <div className="flex items-center justify-between mb-6">
+              <Button variant="outline" size="icon" onClick={previousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="font-medium text-center capitalize">{currentMonthStr}</h3>
+              <Button variant="outline" size="icon" onClick={nextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
             <div className="grid grid-cols-7 gap-1 mt-2">
               <div className="p-2 text-center font-medium text-sm">Lun</div>
               <div className="p-2 text-center font-medium text-sm">Mar</div>
