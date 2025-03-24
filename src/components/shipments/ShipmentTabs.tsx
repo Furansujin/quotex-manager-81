@@ -5,8 +5,7 @@ import ShipmentTable from './ShipmentTable';
 import { Shipment } from './ShipmentTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, addMonths, subMonths, getDaysInMonth, startOfMonth, getDay, setDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -40,6 +39,74 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
   };
 
   const currentMonthStr = format(currentDate, 'MMMM yyyy', { locale: fr });
+  
+  // Get days in the current month
+  const daysInMonth = getDaysInMonth(currentDate);
+  const firstDayOfMonth = startOfMonth(currentDate);
+  // Day of the week for the first day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  // We convert to 0 = Monday, ..., 6 = Sunday for our calendar
+  const firstDayOfWeek = getDay(firstDayOfMonth) === 0 ? 6 : getDay(firstDayOfMonth) - 1;
+  
+  // Calculate empty cells before the first day of the month
+  const emptyStartCells = Array.from({ length: firstDayOfWeek }, (_, index) => (
+    <div key={`empty-start-${index}`} className="aspect-square border rounded-md p-2 text-center bg-gray-50"></div>
+  ));
+  
+  // Generate the days cells for the current month
+  const dayCells = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const dayDate = setDate(currentDate, day);
+    
+    // Simple mock data mapping for shipments based on the day
+    let shipmentInfo = null;
+    
+    if (day === 4) {
+      shipmentInfo = {
+        id: "SHP-0089",
+        color: "blue"
+      };
+    } else if (day === 8) {
+      shipmentInfo = {
+        id: "SHP-0087",
+        color: "green"
+      };
+    } else if (day === 14) {
+      shipmentInfo = {
+        id: "SHP-0092",
+        color: "amber"
+      };
+    } else if (day === 18) {
+      shipmentInfo = {
+        id: "SHP-0095",
+        color: "blue"
+      };
+    } else if (day === 22) {
+      shipmentInfo = {
+        id: "SHP-0097",
+        color: "red"
+      };
+    }
+    
+    return (
+      <div key={`day-${day}`} className="aspect-square border rounded-md p-2 text-center">
+        <div className="text-sm font-medium">{day}</div>
+        {shipmentInfo && (
+          <div 
+            className={`mt-1 text-xs bg-${shipmentInfo.color}-100 text-${shipmentInfo.color}-800 rounded-sm p-1 cursor-pointer hover:bg-${shipmentInfo.color}-200 transition-colors`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenShipment(shipmentInfo.id);
+            }}
+          >
+            {shipmentInfo.id}
+          </div>
+        )}
+      </div>
+    );
+  });
+  
+  // Combine empty cells and day cells
+  const calendarCells = [...emptyStartCells, ...dayCells];
 
   return (
     <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab} value={activeTab}>
@@ -107,66 +174,7 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
               <div className="p-2 text-center font-medium text-sm">Sam</div>
               <div className="p-2 text-center font-medium text-sm">Dim</div>
               
-              {Array.from({ length: 31 }).map((_, i) => (
-                <div key={i} className="aspect-square border rounded-md p-2 text-center">
-                  <div className="text-sm font-medium">{i + 1}</div>
-                  {i === 4 && (
-                    <div 
-                      className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1 cursor-pointer hover:bg-blue-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenShipment("SHP-0089");
-                      }}
-                    >
-                      SHP-0089
-                    </div>
-                  )}
-                  {i === 8 && (
-                    <div 
-                      className="mt-1 text-xs bg-green-100 text-green-800 rounded-sm p-1 cursor-pointer hover:bg-green-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenShipment("SHP-0087");
-                      }}
-                    >
-                      SHP-0087
-                    </div>
-                  )}
-                  {i === 14 && (
-                    <div 
-                      className="mt-1 text-xs bg-amber-100 text-amber-800 rounded-sm p-1 cursor-pointer hover:bg-amber-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenShipment("SHP-0092");
-                      }}
-                    >
-                      SHP-0092
-                    </div>
-                  )}
-                  {i === 18 && (
-                    <div 
-                      className="mt-1 text-xs bg-blue-100 text-blue-800 rounded-sm p-1 cursor-pointer hover:bg-blue-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenShipment("SHP-0095");
-                      }}
-                    >
-                      SHP-0095
-                    </div>
-                  )}
-                  {i === 22 && (
-                    <div 
-                      className="mt-1 text-xs bg-red-100 text-red-800 rounded-sm p-1 cursor-pointer hover:bg-red-200 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenShipment("SHP-0097");
-                      }}
-                    >
-                      SHP-0097
-                    </div>
-                  )}
-                </div>
-              ))}
+              {calendarCells}
             </div>
           </CardContent>
         </Card>
