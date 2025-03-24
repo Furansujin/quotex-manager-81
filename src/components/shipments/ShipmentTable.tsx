@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Ship, 
@@ -118,32 +119,11 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     });
   };
   
-  const handleWatchShipment = (id: string) => {
-    toast({
-      title: "Suivi activé",
-      description: `Vous recevrez des notifications pour l'expédition ${id}.`,
-    });
-  };
-  
-  const handleUnwatchShipment = (id: string) => {
-    toast({
-      title: "Suivi désactivé",
-      description: `Vous ne recevrez plus de notifications pour l'expédition ${id}.`,
-    });
-  };
-  
   const handleViewTrackingDetails = (id: string) => {
     onOpenShipment(id);
     toast({
       title: "Détails de suivi",
       description: `Consultation des détails de suivi pour l'expédition ${id}.`,
-    });
-  };
-  
-  const handleMarkAsPriority = (id: string) => {
-    toast({
-      title: "Priorité modifiée",
-      description: `L'expédition ${id} a été marquée comme prioritaire.`,
     });
   };
   
@@ -217,8 +197,8 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                     <div className="flex items-center gap-2">
                       {getShipmentIcon(shipment.type)}
                       <div className="flex flex-col">
-                        <span className="font-medium">{shipment.id}</span>
-                        <span className="text-sm text-muted-foreground">{shipment.containers}</span>
+                        <span className="font-medium truncate">{shipment.id}</span>
+                        <span className="text-xs text-muted-foreground">{shipment.containers}</span>
                       </div>
                     </div>
                   </TableCell>
@@ -297,19 +277,6 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadShipment(shipment.id)}>
                             Télécharger les documents
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {shipment.isWatched ? (
-                            <DropdownMenuItem onClick={() => handleUnwatchShipment(shipment.id)}>
-                              Désactiver les notifications
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleWatchShipment(shipment.id)}>
-                              Activer les notifications
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleMarkAsPriority(shipment.id)}>
-                            Marquer comme prioritaire
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
