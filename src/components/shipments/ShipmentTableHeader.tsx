@@ -46,8 +46,10 @@ const ShipmentTableHeader: React.FC<ShipmentTableHeaderProps> = ({
         <TableHead className="cursor-pointer group">
           Client {renderSortIcon('client')}
         </TableHead>
-        <TableHead className="cursor-pointer w-[120px] group text-center">
-          Transport {renderSortIcon('type')}
+        <TableHead className="cursor-pointer w-[120px] group">
+          <div className="flex items-center justify-center">
+            Transport {renderSortIcon('type')}
+          </div>
         </TableHead>
         <TableHead className="cursor-pointer group">
           Trajet & Dates {renderSortIcon('departureDate')}

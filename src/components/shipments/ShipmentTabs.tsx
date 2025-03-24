@@ -108,6 +108,15 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
   // Combine empty cells and day cells
   const calendarCells = [...emptyStartCells, ...dayCells];
 
+  // Filtrer les expéditions en fonction de l'onglet actif
+  const filteredShipments = shipments.filter(shipment => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'active') return shipment.status === 'en cours';
+    if (activeTab === 'completed') return shipment.status === 'terminée';
+    if (activeTab === 'delayed') return shipment.status === 'retardée';
+    return true;
+  });
+
   return (
     <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab} value={activeTab}>
       <TabsList className="mb-4">
@@ -129,27 +138,33 @@ const ShipmentTabs: React.FC<ShipmentTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="active">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-muted-foreground">Affichage des expéditions en cours</p>
-          </CardContent>
-        </Card>
+        <ShipmentTable 
+          shipments={filteredShipments} 
+          onOpenShipment={onOpenShipment}
+          onSort={onSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
+        />
       </TabsContent>
       
       <TabsContent value="completed">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-muted-foreground">Affichage des expéditions terminées</p>
-          </CardContent>
-        </Card>
+        <ShipmentTable 
+          shipments={filteredShipments} 
+          onOpenShipment={onOpenShipment}
+          onSort={onSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
+        />
       </TabsContent>
       
       <TabsContent value="delayed">
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-muted-foreground">Affichage des expéditions retardées</p>
-          </CardContent>
-        </Card>
+        <ShipmentTable 
+          shipments={filteredShipments} 
+          onOpenShipment={onOpenShipment}
+          onSort={onSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
+        />
       </TabsContent>
       
       <TabsContent value="calendar">
