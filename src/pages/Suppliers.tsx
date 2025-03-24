@@ -7,8 +7,6 @@ import { Plus } from 'lucide-react';
 import SuppliersList from '@/components/suppliers/SuppliersList';
 import SupplierFilters from '@/components/suppliers/SupplierFilters';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import SupplierImportPanel from '@/components/suppliers/SupplierImportPanel';
 
 interface SupplierFilterValues {
   types: string[];
@@ -25,7 +23,6 @@ const Suppliers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<SupplierFilterValues | null>(null);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const { toast } = useToast();
 
   const toggleSidebar = () => {
