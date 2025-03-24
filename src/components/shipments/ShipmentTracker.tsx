@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -161,16 +160,6 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
     return <Clock className="h-5 w-5 text-blue-600" />;
   };
 
-  const getProgressBarColor = () => {
-    switch (status) {
-      case 'en cours': return 'bg-amber-500';
-      case 'terminée': return 'bg-green-500';
-      case 'planifiée': return 'bg-blue-500';
-      case 'retardée': return 'bg-red-500';
-      default: return 'bg-primary';
-    }
-  };
-
   const handleEditStop = (index: number) => {
     setEditingStop({
       index,
@@ -285,7 +274,7 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
         <div className="text-right">
           <p className="text-sm text-muted-foreground">Progression</p>
           <div className="flex items-center gap-2">
-            <Progress value={progress} className={`w-24 h-2 ${getProgressBarColor()}`} />
+            <Progress value={progress} className="w-24 h-2" />
             <span className="text-sm font-medium">{progress}%</span>
           </div>
         </div>
