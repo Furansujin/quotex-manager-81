@@ -7,7 +7,8 @@ import {
   Calendar,
   MoreHorizontal,
   FileText,
-  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   AlertTriangle,
   BellRing 
 } from 'lucide-react';
@@ -150,11 +151,26 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     });
   };
   
-  const getSortIcon = (field: string) => {
-    if (sortField !== field) return <ArrowUpDown className="ml-1 h-4 w-4" />;
-    return sortDirection === 'asc' 
-      ? <ArrowUpDown className="ml-1 h-4 w-4 text-primary" /> 
-      : <ArrowUpDown className="ml-1 h-4 w-4 text-primary rotate-180" />;
+  // Fonction pour rendre les icônes de tri - updated to match QuotesList style
+  const renderSortIcon = (field: string) => {
+    if (!onSort) return null;
+    
+    return (
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (onSort) onSort(field);
+        }}
+        className="ml-1 p-0 h-6 w-6 hover:bg-transparent"
+      >
+        {sortField === field && sortDirection === 'asc' && <ArrowUp className="h-3.5 w-3.5 text-primary" />}
+        {sortField === field && sortDirection === 'desc' && <ArrowDown className="h-3.5 w-3.5 text-primary" />}
+        {sortField !== field && <div className="h-3.5 w-3.5 opacity-0 group-hover:opacity-30">↕</div>}
+      </Button>
+    );
   };
 
   return (
@@ -163,20 +179,20 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer w-[150px]" onClick={() => onSort && onSort('id')}>
-                Référence {onSort && getSortIcon('id')}
+              <TableHead className="cursor-pointer w-[150px] group">
+                Référence {renderSortIcon('id')}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('client')}>
-                Client {onSort && getSortIcon('client')}
+              <TableHead className="cursor-pointer group">
+                Client {renderSortIcon('client')}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('departureDate')}>
-                Trajet & Dates {onSort && getSortIcon('departureDate')}
+              <TableHead className="cursor-pointer group">
+                Trajet & Dates {renderSortIcon('departureDate')}
               </TableHead>
-              <TableHead className="cursor-pointer w-[120px]" onClick={() => onSort && onSort('type')}>
-                Transport {onSort && getSortIcon('type')}
+              <TableHead className="cursor-pointer w-[120px] group">
+                Transport {renderSortIcon('type')}
               </TableHead>
-              <TableHead className="cursor-pointer w-[120px]" onClick={() => onSort && onSort('status')}>
-                Statut {onSort && getSortIcon('status')}
+              <TableHead className="cursor-pointer w-[120px] group">
+                Statut {renderSortIcon('status')}
               </TableHead>
               <TableHead className="cursor-pointer w-[100px]">Alerte</TableHead>
               <TableHead className="text-right w-[80px]">Actions</TableHead>
