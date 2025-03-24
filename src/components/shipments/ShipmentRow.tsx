@@ -3,7 +3,6 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Shipment } from './ShipmentTable';
-import ShipmentTypeIcon from './ShipmentTypeIcon';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
 import ShipmentPriorityLabel from './ShipmentPriorityLabel';
 import ShipmentProgressBar from './ShipmentProgressBar';
@@ -23,12 +22,9 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       onClick={() => onOpenShipment(shipment.id)}
     >
       <TableCell className="py-4">
-        <div className="flex items-center gap-2">
-          <ShipmentTypeIcon type={shipment.type} />
-          <div className="flex flex-col">
-            <span className="font-medium truncate">{shipment.id}</span>
-            <span className="text-xs text-muted-foreground">{shipment.containers}</span>
-          </div>
+        <div className="flex flex-col">
+          <span className="font-medium truncate">{shipment.id}</span>
+          <span className="text-xs text-muted-foreground">{shipment.containers}</span>
         </div>
       </TableCell>
       
@@ -39,6 +35,14 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
           {shipment.priority && <ShipmentPriorityLabel priority={shipment.priority} />}
         </div>
       </TableCell>
+
+      <TableCell className="py-4 text-center">
+        <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
+                                           shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
+                                           'bg-amber-100 text-amber-700'}>
+          {shipment.type}
+        </Badge>
+      </TableCell>
       
       <TableCell className="py-4">
         <ShipmentRouteInfo
@@ -47,14 +51,6 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
           departureDate={shipment.departureDate}
           arrivalDate={shipment.arrivalDate}
         />
-      </TableCell>
-      
-      <TableCell className="py-4 text-center">
-        <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
-                                           shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
-                                           'bg-amber-100 text-amber-700'}>
-          {shipment.type}
-        </Badge>
       </TableCell>
       
       <TableCell className="py-4">

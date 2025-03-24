@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface ShipmentPageHeaderProps {
   onNewShipment: () => void;
@@ -15,10 +15,6 @@ const ShipmentPageHeader: React.FC<ShipmentPageHeaderProps> = ({ onNewShipment }
         <p className="text-muted-foreground">Suivi et gestion des expéditions en cours</p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" className="gap-2">
-          <Calendar className="h-4 w-4" />
-          Planifier
-        </Button>
         <Button 
           className="gap-2" 
           onClick={onNewShipment}
