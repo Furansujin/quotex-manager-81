@@ -1,27 +1,10 @@
 
-import React, { useState } from 'react';
-import { 
-  Ship, 
-  Truck, 
-  PlaneTakeoff,
-  Calendar,
-  MoreHorizontal,
-  FileText,
-  ArrowUp,
-  ArrowDown
-} from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import React from 'react';
+import { Table, TableBody } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import ShipmentTableHeader from './ShipmentTableHeader';
+import ShipmentRow from './ShipmentRow';
+import ShipmentEmptyState from './ShipmentEmptyState';
 
 // Define shipment type for better type safety
 export interface Shipment {
@@ -55,234 +38,26 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
   sortField, 
   sortDirection 
 }) => {
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const getShipmentIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'maritime':
-        return <Ship className="h-4 w-4 text-blue-600" />;
-      case 'routier':
-        return <Truck className="h-4 w-4 text-amber-600" />;
-      case 'aérien':
-        return <PlaneTakeoff className="h-4 w-4 text-green-600" />;
-      default:
-        return <Ship className="h-4 w-4 text-primary" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'en cours':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-200">En cours</Badge>;
-      case 'terminée':
-        return <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-200">Terminée</Badge>;
-      case 'planifiée':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-200">Planifiée</Badge>;
-      case 'retardée':
-        return <Badge variant="outline" className="bg-red-100 text-red-700 hover:bg-red-200">Retardée</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getPriorityLabel = (priority?: 'haute' | 'moyenne' | 'basse') => {
-    if (!priority) return null;
-    
-    switch (priority) {
-      case 'haute':
-        return <span className="text-red-600 text-sm font-medium ml-2">• Prioritaire</span>;
-      case 'moyenne':
-        return <span className="text-amber-600 text-sm font-medium ml-2">• Moyenne</span>;
-      case 'basse':
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  const handleEditShipment = (id: string) => {
-    onOpenShipment(id);
-  };
-
-  const handleDuplicateShipment = (id: string) => {
-    toast({
-      title: "Expédition dupliquée",
-      description: `L'expédition ${id} a été dupliquée avec succès.`,
-    });
-  };
-
-  const handleDownloadShipment = (id: string) => {
-    toast({
-      title: "Téléchargement en cours",
-      description: `Les documents de l'expédition ${id} sont en cours de téléchargement.`,
-    });
-  };
-  
-  const handleViewTrackingDetails = (id: string) => {
-    onOpenShipment(id);
-    toast({
-      title: "Détails de suivi",
-      description: `Consultation des détails de suivi pour l'expédition ${id}.`,
-    });
-  };
-  
-  // Fonction pour rendre les icônes de tri - updated to match QuotesList style
-  const renderSortIcon = (field: string) => {
-    if (!onSort) return null;
-    
-    return (
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (onSort) onSort(field);
-        }}
-        className="ml-1 p-0 h-6 w-6 hover:bg-transparent"
-      >
-        {sortField === field && sortDirection === 'asc' && <ArrowUp className="h-3.5 w-3.5 text-primary" />}
-        {sortField === field && sortDirection === 'desc' && <ArrowDown className="h-3.5 w-3.5 text-primary" />}
-        {sortField !== field && <div className="h-3.5 w-3.5 opacity-0 group-hover:opacity-30">↕</div>}
-      </Button>
-    );
-  };
-
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="cursor-pointer w-[150px] group">
-                Référence {renderSortIcon('id')}
-              </TableHead>
-              <TableHead className="cursor-pointer group">
-                Client {renderSortIcon('client')}
-              </TableHead>
-              <TableHead className="cursor-pointer group">
-                Trajet & Dates {renderSortIcon('departureDate')}
-              </TableHead>
-              <TableHead className="cursor-pointer w-[120px] group text-center">
-                Transport {renderSortIcon('type')}
-              </TableHead>
-              <TableHead className="cursor-pointer w-[120px] group">
-                Statut {renderSortIcon('status')}
-              </TableHead>
-              <TableHead className="text-right w-[80px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+          <ShipmentTableHeader 
+            onSort={onSort} 
+            sortField={sortField} 
+            sortDirection={sortDirection} 
+          />
+          
           <TableBody>
             {shipments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <FileText className="h-10 w-10 text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground text-base">Aucune expédition trouvée</p>
-                    <p className="text-sm text-muted-foreground mt-1">Créez une nouvelle expédition ou modifiez vos filtres de recherche</p>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <ShipmentEmptyState />
             ) : (
               shipments.map((shipment) => (
-                <TableRow 
+                <ShipmentRow 
                   key={shipment.id}
-                  className={`cursor-pointer hover:bg-muted/50 transition-colors ${shipment.priority === 'haute' ? 'bg-red-50/30' : ''}`}
-                  onClick={() => onOpenShipment(shipment.id)}
-                  onMouseEnter={() => setHoveredRow(shipment.id)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                >
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-2">
-                      {getShipmentIcon(shipment.type)}
-                      <div className="flex flex-col">
-                        <span className="font-medium truncate">{shipment.id}</span>
-                        <span className="text-xs text-muted-foreground">{shipment.containers}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell className="py-4">
-                    <div className="flex flex-col">
-                      <div className="font-medium">{shipment.client}</div>
-                      {shipment.priority && getPriorityLabel(shipment.priority)}
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell className="py-4">
-                    <div className="flex flex-col">
-                      <div className="font-medium mb-1">{shipment.origin} → {shipment.destination}</div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>Départ: {shipment.departureDate}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>Arrivée: {shipment.arrivalDate}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell className="py-4 text-center">
-                    <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
-                                                       shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
-                                                       'bg-amber-100 text-amber-700'}>
-                      {shipment.type}
-                    </Badge>
-                  </TableCell>
-                  
-                  <TableCell className="py-4">
-                    <div className="space-y-1.5">
-                      {getStatusBadge(shipment.status)}
-                      <div className="w-full h-1.5 rounded-full bg-gray-100 mt-2">
-                        <div 
-                          className={`h-full rounded-full ${
-                            shipment.status === 'en cours' ? 'bg-amber-500' :
-                            shipment.status === 'terminée' ? 'bg-green-500' :
-                            shipment.status === 'planifiée' ? 'bg-blue-500' :
-                            'bg-red-500'
-                          }`}
-                          style={{ width: `${shipment.progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell className="text-right py-4">
-                    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuItem onClick={() => handleEditShipment(shipment.id)}>
-                            Modifier l'expédition
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewTrackingDetails(shipment.id)}>
-                            Consulter le suivi
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleDuplicateShipment(shipment.id)}>
-                            Dupliquer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadShipment(shipment.id)}>
-                            Télécharger les documents
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                  shipment={shipment} 
+                  onOpenShipment={onOpenShipment} 
+                />
               ))
             )}
           </TableBody>
