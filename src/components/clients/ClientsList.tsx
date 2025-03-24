@@ -2,18 +2,13 @@
 import React from 'react';
 import { 
   Building, 
-  Edit, 
-  FileText, 
   Mail, 
-  MapPin, 
   MoreHorizontal, 
   Phone, 
-  Ship, 
-  Tag, 
   Trash2, 
-  UserCircle,
-  Link,
-  Eye
+  FileText, 
+  Ship,
+  Link
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Client {
   id: string;
@@ -98,8 +92,6 @@ const ClientsList = ({
             <TableHead className="hidden md:table-cell">Téléphone</TableHead>
             <TableHead>Tags</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead className="text-center">Devis</TableHead>
-            <TableHead className="text-center">Envois</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -111,15 +103,8 @@ const ClientsList = ({
               onClick={() => onClientClick && onClientClick(client.id)}
             >
               <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-medium text-xs">
-                    {client.logo}
-                  </div>
-                  <div>
-                    <div className="font-medium">{client.name}</div>
-                    <div className="text-xs text-muted-foreground">{client.id}</div>
-                  </div>
-                </div>
+                <div className="font-medium">{client.name}</div>
+                <div className="text-xs text-muted-foreground">{client.id}</div>
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
@@ -159,90 +144,38 @@ const ClientsList = ({
                   {client.status === 'active' ? 'Actif' : 'Inactif'}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">
-                <div className="font-medium">{client.quotesCount}</div>
-                <div className="text-xs text-muted-foreground">Devis</div>
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="font-medium">{client.shipmentsCount}</div>
-                <div className="text-xs text-muted-foreground">Envois</div>
-              </TableCell>
               <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-end gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onClientClick && onClientClick(client.id);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Voir les détails</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(client.id);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Modifier</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(client.id);
-                      }}>
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Créer un devis
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                        <Ship className="h-4 w-4 mr-2" />
-                        Créer un envoi
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(client.id);
+                    }}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Créer un devis
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      <Ship className="h-4 w-4 mr-2" />
+                      Créer un envoi
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
