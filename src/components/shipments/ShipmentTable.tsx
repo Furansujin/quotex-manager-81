@@ -10,7 +10,13 @@ import {
   Copy,
   Download,
   FileText,
-  ArrowUpDown
+  ArrowUpDown,
+  Bell,
+  BellRing,
+  Eye,
+  Bookmark,
+  BookmarkCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +26,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Define shipment type for better type safety
 export interface Shipment {
@@ -37,6 +45,9 @@ export interface Shipment {
   progress: number;
   type: string;
   containers: string;
+  priority?: 'haute' | 'moyenne' | 'basse';
+  hasDocumentIssues?: boolean;
+  isWatched?: boolean;
 }
 
 interface ShipmentTableProps {
@@ -85,6 +96,21 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     }
   };
 
+  const getPriorityBadge = (priority?: 'haute' | 'moyenne' | 'basse') => {
+    if (!priority) return null;
+    
+    switch (priority) {
+      case 'haute':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Priorité Haute</Badge>;
+      case 'moyenne':
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Priorité Moyenne</Badge>;
+      case 'basse':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Priorité Basse</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const getProgressColor = (status: string) => {
     switch (status) {
       case 'en cours':
@@ -118,6 +144,36 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     });
   };
   
+  const handleWatchShipment = (id: string) => {
+    toast({
+      title: "Suivi activé",
+      description: `Vous recevrez des notifications pour l'expédition ${id}.`,
+    });
+  };
+  
+  const handleUnwatchShipment = (id: string) => {
+    toast({
+      title: "Suivi désactivé",
+      description: `Vous ne recevrez plus de notifications pour l'expédition ${id}.`,
+    });
+  };
+  
+  const handleViewTrackingDetails = (id: string) => {
+    onOpenShipment(id);
+    // Automatically switch to tracking tab
+    toast({
+      title: "Détails de suivi",
+      description: `Consultation des détails de suivi pour l'expédition ${id}.`,
+    });
+  };
+  
+  const handleMarkAsPriority = (id: string) => {
+    toast({
+      title: "Priorité modifiée",
+      description: `L'expédition ${id} a été marquée comme prioritaire.`,
+    });
+  };
+  
   const getSortIcon = (field: string) => {
     if (sortField !== field) return <ArrowUpDown className="ml-1 h-4 w-4" />;
     return sortDirection === 'asc' 
@@ -131,7 +187,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('id')}>
+              <TableHead className="cursor-pointer w-[140px]" onClick={() => onSort && onSort('id')}>
                 N° Expédition {onSort && getSortIcon('id')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => onSort && onSort('client')}>
@@ -170,7 +226,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
               shipments.map((shipment) => (
                 <TableRow 
                   key={shipment.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  className={`cursor-pointer hover:bg-muted/50 transition-colors ${shipment.priority === 'haute' ? 'bg-red-50/30' : ''}`}
                   onClick={() => onOpenShipment(shipment.id)}
                   onMouseEnter={() => setHoveredRow(shipment.id)}
                   onMouseLeave={() => setHoveredRow(null)}
@@ -178,7 +234,45 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {getShipmentIcon(shipment.type)}
-                      {shipment.id}
+                      <span>{shipment.id}</span>
+                      <div className="flex items-center gap-0.5">
+                        {shipment.hasDocumentIssues && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Documents manquants</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {shipment.isWatched && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <BellRing className="h-3.5 w-3.5 text-blue-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Notifications activées</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {shipment.priority === 'haute' && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <BookmarkCheck className="h-3.5 w-3.5 text-red-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Priorité haute</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>{shipment.client}</TableCell>
@@ -211,7 +305,10 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                   <TableCell>{shipment.containers}</TableCell>
                   <TableCell>
                     <div className="space-y-2">
-                      {getStatusBadge(shipment.status)}
+                      <div className="flex gap-2 items-center flex-wrap">
+                        {getStatusBadge(shipment.status)}
+                        {shipment.priority && getPriorityBadge(shipment.priority)}
+                      </div>
                       <div className="w-full h-1.5 rounded-full overflow-hidden">
                         <div 
                           className={`h-full ${getProgressColor(shipment.status)}`}
@@ -233,11 +330,16 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                             <span className="sr-only">Actions</span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuItem onClick={() => handleEditShipment(shipment.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             <span>Modifier</span>
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewTrackingDetails(shipment.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            <span>Consulter le suivi</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleDuplicateShipment(shipment.id)}>
                             <Copy className="mr-2 h-4 w-4" />
                             <span>Dupliquer</span>
@@ -245,6 +347,22 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                           <DropdownMenuItem onClick={() => handleDownloadShipment(shipment.id)}>
                             <Download className="mr-2 h-4 w-4" />
                             <span>Télécharger</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {shipment.isWatched ? (
+                            <DropdownMenuItem onClick={() => handleUnwatchShipment(shipment.id)}>
+                              <Bell className="mr-2 h-4 w-4" />
+                              <span>Désactiver les notifications</span>
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleWatchShipment(shipment.id)}>
+                              <BellRing className="mr-2 h-4 w-4" />
+                              <span>Activer les notifications</span>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleMarkAsPriority(shipment.id)}>
+                            <Bookmark className="mr-2 h-4 w-4" />
+                            <span>Marquer comme prioritaire</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

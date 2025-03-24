@@ -18,7 +18,11 @@ import {
   MoreHorizontal,
   Pencil,
   Trash,
-  CheckCircle
+  CheckCircle,
+  Link,
+  ExternalLink,
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,10 +38,14 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ShipmentTrackerProps {
   shipmentType: 'maritime' | 'aérien' | 'routier';
@@ -59,6 +67,22 @@ interface ShipmentTrackerProps {
   }[];
 }
 
+interface TrackingProvider {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  type: 'maritime' | 'aérien' | 'routier' | 'multi';
+}
+
+const trackingProviders: TrackingProvider[] = [
+  { id: 'marinetraffic', name: 'MarineTraffic', icon: <Ship className="h-4 w-4" />, type: 'maritime' },
+  { id: 'flightaware', name: 'FlightAware', icon: <PlaneTakeoff className="h-4 w-4" />, type: 'aérien' },
+  { id: 'fleetmanager', name: 'FleetManager', icon: <Truck className="h-4 w-4" />, type: 'routier' },
+  { id: 'shipgo', name: 'ShipGo', icon: <Container className="h-4 w-4" />, type: 'multi' },
+  { id: 'tracktrace', name: 'Track & Trace', icon: <MapPin className="h-4 w-4" />, type: 'multi' },
+  { id: 'custom', name: 'Service personnalisé', icon: <Link className="h-4 w-4" />, type: 'multi' },
+];
+
 const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
   shipmentType,
   status,
@@ -75,6 +99,13 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
   const [editingStop, setEditingStop] = useState<{index: number, data: any} | null>(null);
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
   const [newEvent, setNewEvent] = useState({ date: '', description: '', type: 'info' });
+  const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [autoSync, setAutoSync] = useState(true);
+  const [integrationTab, setIntegrationTab] = useState('providers');
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
+  const [trackingProviderConnected, setTrackingProviderConnected] = useState(false);
   
   const getIcon = () => {
     switch (shipmentType) {
@@ -181,6 +212,74 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
       setNewEvent({ date: '', description: '', type: 'info' });
     }
   };
+  
+  const handleConnectProvider = () => {
+    if (!selectedProvider) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un fournisseur de suivi.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const now = new Date();
+    setLastSyncTime(now.toLocaleTimeString());
+    setTrackingProviderConnected(true);
+    
+    toast({
+      title: "Service connecté",
+      description: `Le suivi a été connecté à ${trackingProviders.find(p => p.id === selectedProvider)?.name}.`
+    });
+    
+    setShowIntegrationDialog(false);
+  };
+  
+  const handleAddTrackingNumber = () => {
+    if (!trackingNumber) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un numéro de suivi valide.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    toast({
+      title: "Numéro de suivi ajouté",
+      description: `Le numéro de suivi ${trackingNumber} a été ajouté à l'expédition.`
+    });
+    
+    const now = new Date();
+    setLastSyncTime(now.toLocaleTimeString());
+    setTrackingProviderConnected(true);
+    setShowIntegrationDialog(false);
+  };
+  
+  const handleSyncNow = () => {
+    toast({
+      title: "Synchronisation en cours",
+      description: "Mise à jour des informations de suivi..."
+    });
+    
+    // Simuler une synchronisation
+    setTimeout(() => {
+      const now = new Date();
+      setLastSyncTime(now.toLocaleTimeString());
+      
+      toast({
+        title: "Synchronisation terminée",
+        description: "Les informations de suivi ont été mises à jour."
+      });
+    }, 1500);
+  };
+  
+  const handleOptimizeRoute = () => {
+    toast({
+      title: "Itinéraire optimisé",
+      description: "L'itinéraire a été recalculé pour un trajet optimal."
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg">
@@ -247,18 +346,178 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
         </Card>
       </div>
       
+      {/* Intégration avec services de tracking */}
+      <div className="mb-6">
+        <Card className={`border ${trackingProviderConnected ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                {trackingProviderConnected ? (
+                  <>
+                    <Zap className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium">Suivi automatique activé</p>
+                      <p className="text-sm text-muted-foreground">
+                        Dernière synchronisation: {lastSyncTime}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Link className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Activer le suivi automatique</p>
+                      <p className="text-sm text-muted-foreground">
+                        Connectez-vous à un service de tracking pour des mises à jour en temps réel
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                {trackingProviderConnected && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-1" 
+                    onClick={handleSyncNow}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Synchroniser
+                  </Button>
+                )}
+                <Dialog open={showIntegrationDialog} onOpenChange={setShowIntegrationDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant={trackingProviderConnected ? "outline" : "default"} 
+                      size="sm"
+                    >
+                      {trackingProviderConnected ? "Configurer" : "Connecter"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[525px]">
+                    <DialogHeader>
+                      <DialogTitle>Configuration du tracking</DialogTitle>
+                      <DialogDescription>
+                        Connectez cette expédition à un service de suivi ou ajoutez manuellement un numéro de tracking.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <Tabs value={integrationTab} onValueChange={setIntegrationTab} className="mt-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="providers">Services de suivi</TabsTrigger>
+                        <TabsTrigger value="manual">Numéro de tracking</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="providers" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Sélectionnez un service</label>
+                          <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisir un service de suivi" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {trackingProviders
+                                .filter(provider => provider.type === 'multi' || provider.type === shipmentType)
+                                .map(provider => (
+                                  <SelectItem key={provider.id} value={provider.id} className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                      {provider.icon}
+                                      <span>{provider.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Référence d'expédition</label>
+                          <Input placeholder="Référence sur la plateforme du transporteur" />
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Switch 
+                            id="auto-sync"
+                            checked={autoSync}
+                            onCheckedChange={setAutoSync}
+                          />
+                          <label htmlFor="auto-sync" className="text-sm font-medium">
+                            Synchroniser automatiquement (toutes les 2 heures)
+                          </label>
+                        </div>
+                        
+                        <div className="pt-2">
+                          <Button variant="outline" size="sm" className="mr-2" onClick={() => window.open("https://example.com", "_blank")}>
+                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                            Voir la documentation
+                          </Button>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="manual" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Numéro de tracking</label>
+                          <Input 
+                            placeholder="Saisissez le numéro de suivi" 
+                            value={trackingNumber}
+                            onChange={(e) => setTrackingNumber(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Transporteur</label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez le transporteur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="cma-cgm">CMA CGM</SelectItem>
+                              <SelectItem value="maersk">Maersk</SelectItem>
+                              <SelectItem value="msc">MSC</SelectItem>
+                              <SelectItem value="dhl">DHL</SelectItem>
+                              <SelectItem value="fedex">FedEx</SelectItem>
+                              <SelectItem value="ups">UPS</SelectItem>
+                              <SelectItem value="other">Autre</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Switch 
+                            id="show-tracking"
+                            defaultChecked={true}
+                          />
+                          <label htmlFor="show-tracking" className="text-sm font-medium">
+                            Afficher le lien de suivi au client
+                          </label>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                    
+                    <DialogFooter className="mt-4">
+                      <Button variant="outline" onClick={() => setShowIntegrationDialog(false)}>Annuler</Button>
+                      <Button onClick={integrationTab === 'providers' ? handleConnectProvider : handleAddTrackingNumber}>
+                        {trackingProviderConnected ? "Mettre à jour" : "Connecter"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Parcours de l'expédition</h3>
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => {
-              toast({
-                title: "Parcours optimisé",
-                description: "Le parcours a été recalculé et optimisé."
-              });
-            }}
+            onClick={handleOptimizeRoute}
             className="text-xs"
           >
             <MapPin className="h-3 w-3 mr-1" />
@@ -438,6 +697,49 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditStopDialog(false)}>Annuler</Button>
             <Button onClick={saveEditedStop}>Enregistrer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'ajout d'événement */}
+      <Dialog open={showAddEventDialog} onOpenChange={setShowAddEventDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un événement</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date</label>
+              <Input 
+                type="date" 
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Input 
+                placeholder="Description de l'événement..." 
+                value={newEvent.description}
+                onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type</label>
+              <select 
+                className="w-full p-2 border rounded-md"
+                value={newEvent.type}
+                onChange={(e) => setNewEvent({...newEvent, type: e.target.value as any})}
+              >
+                <option value="info">Information</option>
+                <option value="warning">Avertissement</option>
+                <option value="success">Succès</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddEventDialog(false)}>Annuler</Button>
+            <Button onClick={addNewEvent}>Ajouter</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

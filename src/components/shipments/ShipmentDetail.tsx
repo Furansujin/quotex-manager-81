@@ -1,3 +1,6 @@
+// Vous pouvez importer DocumentManager ici pour l'utiliser dans le composant
+import DocumentManager from './DocumentManager';
+
 // La partie ci-dessous fixe le problème de type
 // Remplacez la définition du type ShipmentType
 type ShipmentType = "maritime" | "aérien" | "routier" | "ferroviaire";
@@ -517,169 +520,19 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                 />
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Options de suivi automatique</CardTitle>
-                <CardDescription>Connectez cette expédition à un service de tracking externe</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button variant="outline" className="gap-2 flex-1">
-                      <Ship className="h-4 w-4" />
-                      Connecter à MarineTraffic
-                    </Button>
-                    <Button variant="outline" className="gap-2 flex-1">
-                      <Truck className="h-4 w-4" />
-                      Connecter à FleetManager
-                    </Button>
-                    <Button variant="outline" className="gap-2 flex-1">
-                      <PlaneTakeoff className="h-4 w-4" />
-                      Connecter à FlightAware
-                    </Button>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md">
-                    <h4 className="font-medium mb-2">Renseignez manuellement un numéro de tracking</h4>
-                    <div className="flex gap-3">
-                      <Input placeholder="Numéro de tracking..." className="flex-1" />
-                      <Button>Ajouter</Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
           
           <TabsContent value="documents" className="space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Documents d'expédition</CardTitle>
-                  <CardDescription>
-                    Documents associés à cette expédition 
-                    ({documents.filter(d => d.uploaded).length}/{documents.length} téléversés)
-                  </CardDescription>
-                </div>
-                <Dialog open={showAddDocumentDialog} onOpenChange={setShowAddDocumentDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Ajouter un document
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Ajouter un document</DialogTitle>
-                      <DialogDescription>
-                        Choisissez le type de document à ajouter à cette expédition.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Type de document</label>
-                        <select className="w-full p-2 border rounded-md">
-                          {requiredDocuments[shipment.type].map((doc, index) => (
-                            <option key={index} value={doc.name}>{doc.name}</option>
-                          ))}
-                          <option value="other">Autre document...</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Description (optionnel)</label>
-                        <Input placeholder="Description du document..." />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Document obligatoire?</label>
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" id="mandatory" />
-                          <label htmlFor="mandatory">Document requis pour cette expédition</label>
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowAddDocumentDialog(false)}>Annuler</Button>
-                      <Button onClick={handleAddDocument}>Ajouter</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className={`flex items-center justify-between p-3 border rounded-md ${doc.mandatory && !doc.uploaded ? 'border-amber-300 bg-amber-50' : ''}`}>
-                      <div className="flex items-center gap-2">
-                        <FileText className={`h-5 w-5 ${doc.uploaded ? 'text-green-600' : 'text-muted-foreground'}`} />
-                        <div>
-                          <p className="font-medium flex items-center gap-2">
-                            {doc.name}
-                            {doc.mandatory && (
-                              <Badge variant="outline" className="text-xs bg-amber-100 text-amber-800">Obligatoire</Badge>
-                            )}
-                          </p>
-                          {doc.uploaded ? (
-                            <p className="text-xs text-muted-foreground">Téléversé le {doc.date}</p>
-                          ) : (
-                            <p className="text-xs text-amber-600">Document non téléversé</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {doc.uploaded ? (
-                          <Button variant="outline" size="sm" className="gap-1" onClick={() => handleDownloadDocument(doc.name)}>
-                            <Download className="h-4 w-4" />
-                            Télécharger
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" className="gap-1" onClick={() => handleUploadDocument(doc.id)}>
-                            <Upload className="h-4 w-4" />
-                            Téléverser
-                          </Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              <span>Renommer</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Copy className="mr-2 h-4 w-4" />
-                              <span>Dupliquer</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash className="mr-2 h-4 w-4" />
-                              <span>Supprimer</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent className="p-6">
+                <DocumentManager 
+                  documents={documents}
+                  shipmentType={shipment.type as "maritime" | "aérien" | "routier"}
+                  onUploadDocument={handleUploadDocument}
+                  onDownloadDocument={(docId) => handleDownloadDocument(documents.find(d => d.id === docId)?.name || 'document')}
+                  onAddDocument={handleAddDocument}
+                />
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" className="gap-2" onClick={() => handleDownloadDocument("tous les documents")}>
-                  <Download className="h-4 w-4" />
-                  Tout télécharger
-                </Button>
-                <div className="flex items-center gap-2">
-                  {documents.some(d => d.mandatory && !d.uploaded) ? (
-                    <Badge variant="outline" className="bg-amber-100 text-amber-700">
-                      Documents obligatoires manquants
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-green-100 text-green-700">
-                      Tous les documents obligatoires sont présents
-                    </Badge>
-                  )}
-                </div>
-              </CardFooter>
             </Card>
           </TabsContent>
           
