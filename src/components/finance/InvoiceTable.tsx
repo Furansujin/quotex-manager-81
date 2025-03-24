@@ -13,12 +13,14 @@ interface InvoiceTableProps {
   invoices: Invoice[];
   renderSortIcon: (field: string) => React.ReactNode;
   handleSortToggle: (field: string) => void;
+  onSelectInvoice: (invoice: Invoice) => void;
 }
 
 const InvoiceTable: React.FC<InvoiceTableProps> = ({ 
   invoices, 
   renderSortIcon, 
-  handleSortToggle 
+  handleSortToggle,
+  onSelectInvoice
 }) => {
   const formatDate = (dateString: string) => {
     try {
@@ -55,7 +57,8 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
         invoices.map((invoice, index) => (
           <div 
             key={invoice.id} 
-            className={`grid grid-cols-6 gap-4 p-3 text-sm hover:bg-muted/30 ${index !== invoices.length - 1 ? 'border-b' : ''}`}
+            className={`grid grid-cols-6 gap-4 p-3 text-sm hover:bg-muted/30 ${index !== invoices.length - 1 ? 'border-b' : ''} cursor-pointer`}
+            onClick={() => onSelectInvoice(invoice)}
           >
             <div className="font-medium">{invoice.id}</div>
             <div>{invoice.client}</div>

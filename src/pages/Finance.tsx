@@ -6,30 +6,22 @@ import { Button } from '@/components/ui/button';
 import { 
   Download, 
   FileSpreadsheet, 
-  Euro, 
-  CalendarRange,
-  BarChart4,
-  PieChart,
-  TrendingUp,
-  AlertTriangle,
-  FileText,
   Plus,
   ArrowUp,
   ArrowDown,
-  Receipt,
-  Calculator
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import FinanceFilters from '@/components/finance/FinanceFilters';
 import FinanceStats from '@/components/finance/FinanceStats';
 import FinanceCharts from '@/components/finance/FinanceCharts';
+import FinanceDashboard from '@/components/finance/FinanceDashboard';
 import InvoiceTable from '@/components/finance/InvoiceTable';
+import InvoiceDetail from '@/components/finance/InvoiceDetail';
 import NewInvoiceDialog from '@/components/finance/NewInvoiceDialog';
 import { Invoice, InvoiceStatus } from '@/components/finance/types/financeTypes';
-import { mockInvoices } from '@/components/finance/data/mockData';
+import { mockInvoices, calculateInvoiceSummary } from '@/components/finance/data/mockData';
 
 interface FinanceFilterValues {
   status: string[];
@@ -52,7 +44,12 @@ const Finance = () => {
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>(mockInvoices);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'dashboard' | 'invoices'>('dashboard');
   const { toast } = useToast();
+
+  const invoiceSummary = calculateInvoiceSummary(invoices);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -231,6 +228,18 @@ const Finance = () => {
     setIsNewInvoiceOpen(false);
   };
 
+  // Open invoice detail
+  const handleSelectInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsInvoiceDetailOpen(true);
+  };
+
+  // Navigate from dashboard to specific tab
+  const handleDashboardNavigation = (tab: string) => {
+    setViewMode('invoices');
+    handleTabChange(tab);
+  };
+
   // Update invoices when filters change
   useEffect(() => {
     filterInvoices(activeFilters);
@@ -255,6 +264,7 @@ const Finance = () => {
 
       <main className="pt-16 md:pl-64">
         <div className="container mx-auto p-4 md:p-6 animate-fade-in">
+          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold">Gestion Financière</h1>
@@ -276,52 +286,85 @@ const Finance = () => {
             </div>
           </div>
 
-          <FinanceStats />
+          {/* View Mode Toggle */}
+          <div className="flex space-x-2 mb-6">
+            <Button 
+              variant={viewMode === 'dashboard' ? 'default' : 'outline'}
+              onClick={() => setViewMode('dashboard')}
+            >
+              Tableau de bord
+            </Button>
+            <Button 
+              variant={viewMode === 'invoices' ? 'default' : 'outline'}
+              onClick={() => setViewMode('invoices')}
+            >
+              Factures
+            </Button>
+          </div>
 
-          <FinanceCharts />
+          {/* Dashboard View */}
+          {viewMode === 'dashboard' && (
+            <FinanceDashboard 
+              invoiceSummary={invoiceSummary}
+              onNavigate={handleDashboardNavigation}
+            />
+          )}
 
-          <FinanceFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            showAdvancedFilters={showAdvancedFilters}
-            setShowAdvancedFilters={setShowAdvancedFilters}
-            activeFilters={activeFilters}
-            onApplyFilters={handleApplyFilters}
-            clearAllFilters={clearAllFilters}
-          />
+          {/* Invoices View */}
+          {viewMode === 'invoices' && (
+            <>
+              <FinanceFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                showAdvancedFilters={showAdvancedFilters}
+                setShowAdvancedFilters={setShowAdvancedFilters}
+                activeFilters={activeFilters}
+                onApplyFilters={handleApplyFilters}
+                clearAllFilters={clearAllFilters}
+              />
 
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Factures</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">Toutes</TabsTrigger>
-                  <TabsTrigger value="paid">Payées</TabsTrigger>
-                  <TabsTrigger value="pending">En attente</TabsTrigger>
-                  <TabsTrigger value="overdue">En retard</TabsTrigger>
-                </TabsList>
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Factures</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="all">Toutes</TabsTrigger>
+                      <TabsTrigger value="paid">Payées</TabsTrigger>
+                      <TabsTrigger value="pending">En attente</TabsTrigger>
+                      <TabsTrigger value="overdue">En retard</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value={activeTab} className="space-y-4">
-                  <InvoiceTable 
-                    invoices={filteredInvoices} 
-                    renderSortIcon={renderSortIcon} 
-                    handleSortToggle={handleSortToggle} 
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+                    <TabsContent value={activeTab} className="space-y-4">
+                      <InvoiceTable 
+                        invoices={filteredInvoices} 
+                        renderSortIcon={renderSortIcon} 
+                        handleSortToggle={handleSortToggle} 
+                        onSelectInvoice={handleSelectInvoice}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </main>
 
+      {/* Dialogs */}
       <NewInvoiceDialog
         isOpen={isNewInvoiceOpen}
         onClose={() => setIsNewInvoiceOpen(false)}
         onSubmit={handleAddInvoice}
+      />
+
+      <InvoiceDetail 
+        invoice={selectedInvoice}
+        isOpen={isInvoiceDetailOpen}
+        onClose={() => setIsInvoiceDetailOpen(false)}
       />
     </div>
   );

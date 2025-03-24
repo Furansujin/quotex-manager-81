@@ -14,6 +14,8 @@ export const mockInvoices: Invoice[] = [
     commercial: "Jean Dupont",
     shipmentRef: "SHIP-2023-0123",
     notes: "Livraison en 2 parties",
+    taxAmount: 850,
+    paymentTerm: "30 jours"
   },
   { 
     id: "INV-2023-0044", 
@@ -26,6 +28,8 @@ export const mockInvoices: Invoice[] = [
     status: "pending",
     commercial: "Marie Martin",
     shipmentRef: "SHIP-2023-0119",
+    taxAmount: 568.10,
+    paymentTerm: "30 jours"
   },
   { 
     id: "INV-2023-0043", 
@@ -39,6 +43,8 @@ export const mockInvoices: Invoice[] = [
     commercial: "Pierre Durand",
     shipmentRef: "SHIP-2023-0115",
     notes: "Transport maritime spécial",
+    taxAmount: 724.15,
+    paymentTerm: "30 jours"
   },
   { 
     id: "INV-2023-0042", 
@@ -51,6 +57,8 @@ export const mockInvoices: Invoice[] = [
     status: "paid",
     commercial: "Jean Dupont",
     shipmentRef: "SHIP-2023-0111",
+    taxAmount: 296,
+    paymentTerm: "30 jours"
   },
   { 
     id: "INV-2023-0041", 
@@ -63,6 +71,8 @@ export const mockInvoices: Invoice[] = [
     status: "overdue",
     commercial: "Marie Martin",
     shipmentRef: "SHIP-2023-0107",
+    taxAmount: 596.05,
+    paymentTerm: "30 jours"
   },
 ];
 
@@ -90,4 +100,40 @@ export const getStatusVariant = (status: string): string => {
     default:
       return 'default';
   }
+};
+
+export const calculateInvoiceSummary = (invoices: Invoice[]) => {
+  return invoices.reduce((summary, invoice) => {
+    const totalWithTax = invoice.totalAmount || 
+      (invoice.taxAmount ? invoice.amount + invoice.taxAmount : invoice.amount);
+    
+    summary.totalAmount += totalWithTax;
+    
+    // Update amounts by status
+    if (invoice.status === 'paid') {
+      summary.paidAmount += totalWithTax;
+      summary.count.paid += 1;
+    } else if (invoice.status === 'pending') {
+      summary.pendingAmount += totalWithTax;
+      summary.count.pending += 1;
+    } else if (invoice.status === 'overdue') {
+      summary.overdueAmount += totalWithTax;
+      summary.count.overdue += 1;
+    }
+    
+    summary.count.total += 1;
+    
+    return summary;
+  }, {
+    totalAmount: 0,
+    paidAmount: 0,
+    pendingAmount: 0,
+    overdueAmount: 0,
+    count: {
+      total: 0,
+      paid: 0,
+      pending: 0,
+      overdue: 0
+    }
+  });
 };

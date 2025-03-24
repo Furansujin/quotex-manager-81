@@ -28,3 +28,16 @@ export interface FinanceStatistic {
   iconBgColor: string;
   iconColor: string;
 }
+
+export interface InvoiceSummary {
+  totalAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  overdueAmount: number;
+  count: {
+    total: number;
+    paid: number;
+    pending: number;
+    overdue: number;
+  };
+}
