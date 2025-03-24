@@ -6,21 +6,13 @@ import {
   PlaneTakeoff,
   Calendar,
   MoreHorizontal,
-  Edit,
-  Copy,
-  Download,
   FileText,
   ArrowUpDown,
-  Bell,
-  BellRing,
-  Eye,
-  Bookmark,
-  BookmarkCheck,
-  AlertTriangle
+  AlertTriangle,
+  BellRing 
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -96,33 +88,18 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     }
   };
 
-  const getPriorityBadge = (priority?: 'haute' | 'moyenne' | 'basse') => {
+  const getPriorityLabel = (priority?: 'haute' | 'moyenne' | 'basse') => {
     if (!priority) return null;
     
     switch (priority) {
       case 'haute':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Priorité Haute</Badge>;
+        return <span className="text-red-600 text-sm font-medium ml-2">• Prioritaire</span>;
       case 'moyenne':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Priorité Moyenne</Badge>;
+        return <span className="text-amber-600 text-sm font-medium ml-2">• Moyenne</span>;
       case 'basse':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Priorité Basse</Badge>;
+        return null;
       default:
         return null;
-    }
-  };
-
-  const getProgressColor = (status: string) => {
-    switch (status) {
-      case 'en cours':
-        return 'bg-amber-500';
-      case 'terminée':
-        return 'bg-green-500';
-      case 'planifiée':
-        return 'bg-blue-500';
-      case 'retardée':
-        return 'bg-red-500';
-      default:
-        return 'bg-primary';
     }
   };
 
@@ -160,7 +137,6 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
   
   const handleViewTrackingDetails = (id: string) => {
     onOpenShipment(id);
-    // Automatically switch to tracking tab
     toast({
       title: "Détails de suivi",
       description: `Consultation des détails de suivi pour l'expédition ${id}.`,
@@ -182,39 +158,34 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="cursor-pointer w-[140px]" onClick={() => onSort && onSort('id')}>
-                N° Expédition {onSort && getSortIcon('id')}
+              <TableHead className="cursor-pointer w-[150px]" onClick={() => onSort && onSort('id')}>
+                Référence {onSort && getSortIcon('id')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => onSort && onSort('client')}>
                 Client {onSort && getSortIcon('client')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => onSort && onSort('departureDate')}>
-                Dates {onSort && getSortIcon('departureDate')}
+                Trajet & Dates {onSort && getSortIcon('departureDate')}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('type')}>
-                Type {onSort && getSortIcon('type')}
+              <TableHead className="cursor-pointer w-[120px]" onClick={() => onSort && onSort('type')}>
+                Transport {onSort && getSortIcon('type')}
               </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('origin')}>
-                Trajet {onSort && getSortIcon('origin')}
-              </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('containers')}>
-                Fret {onSort && getSortIcon('containers')}
-              </TableHead>
-              <TableHead className="cursor-pointer" onClick={() => onSort && onSort('status')}>
+              <TableHead className="cursor-pointer w-[120px]" onClick={() => onSort && onSort('status')}>
                 Statut {onSort && getSortIcon('status')}
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="cursor-pointer w-[100px]">Alerte</TableHead>
+              <TableHead className="text-right w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shipments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center">
+                <TableCell colSpan={7} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center text-center">
                     <FileText className="h-10 w-10 text-muted-foreground mb-3" />
                     <p className="text-muted-foreground text-base">Aucune expédition trouvée</p>
@@ -231,100 +202,105 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                   onMouseEnter={() => setHoveredRow(shipment.id)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
-                  <TableCell className="font-medium">
+                  <TableCell className="py-4">
                     <div className="flex items-center gap-2">
                       {getShipmentIcon(shipment.type)}
-                      <span>{shipment.id}</span>
-                      <div className="flex items-center gap-0.5">
-                        {shipment.hasDocumentIssues && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Documents manquants</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        {shipment.isWatched && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <BellRing className="h-3.5 w-3.5 text-blue-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Notifications activées</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        {shipment.priority === 'haute' && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <BookmarkCheck className="h-3.5 w-3.5 text-red-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Priorité haute</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{shipment.id}</span>
+                        <span className="text-sm text-muted-foreground">{shipment.containers}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{shipment.client}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-blue-600" />
-                        <span className="font-medium">Départ:</span> {shipment.departureDate}
-                      </span>
-                      <span className="text-sm flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-green-600" />
-                        <span className="font-medium">Arrivée:</span> {shipment.arrivalDate}
-                      </span>
+                  
+                  <TableCell className="py-4">
+                    <div className="flex flex-col">
+                      <div className="font-medium">{shipment.client}</div>
+                      {shipment.priority && getPriorityLabel(shipment.priority)}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  
+                  <TableCell className="py-4">
+                    <div className="flex flex-col">
+                      <div className="font-medium mb-1">{shipment.origin} → {shipment.destination}</div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>Départ: {shipment.departureDate}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>Arrivée: {shipment.arrivalDate}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell className="py-4">
                     <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
                                                        shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
                                                        'bg-amber-100 text-amber-700'}>
                       {shipment.type}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="max-w-[100px] truncate">{shipment.origin}</span>
-                      <span>→</span>
-                      <span className="max-w-[100px] truncate">{shipment.destination}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{shipment.containers}</TableCell>
-                  <TableCell>
-                    <div className="space-y-2">
-                      <div className="flex gap-2 items-center flex-wrap">
-                        {getStatusBadge(shipment.status)}
-                        {shipment.priority && getPriorityBadge(shipment.priority)}
-                      </div>
-                      <div className="w-full h-1.5 rounded-full overflow-hidden">
+                  
+                  <TableCell className="py-4">
+                    <div className="space-y-1.5">
+                      {getStatusBadge(shipment.status)}
+                      <div className="w-full h-1.5 rounded-full bg-gray-100 mt-2">
                         <div 
-                          className={`h-full ${getProgressColor(shipment.status)}`}
+                          className={`h-full rounded-full ${
+                            shipment.status === 'en cours' ? 'bg-amber-500' :
+                            shipment.status === 'terminée' ? 'bg-green-500' :
+                            shipment.status === 'planifiée' ? 'bg-blue-500' :
+                            'bg-red-500'
+                          }`}
                           style={{ width: `${shipment.progress}%` }}
                         ></div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
+                  
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-2">
+                      {shipment.hasDocumentIssues && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="p-1 bg-amber-100 rounded-full">
+                                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Documents manquants</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      {shipment.isWatched && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="p-1 bg-blue-100 rounded-full">
+                                <BellRing className="h-4 w-4 text-blue-600" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Notifications activées</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell className="text-right py-4">
+                    <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className={`h-8 px-2 transition-opacity ${hoveredRow === shipment.id ? 'opacity-100' : 'opacity-70'}`}
+                            className="h-8 w-8 p-0"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Actions</span>
@@ -332,37 +308,30 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuItem onClick={() => handleEditShipment(shipment.id)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Modifier</span>
+                            Modifier l'expédition
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleViewTrackingDetails(shipment.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>Consulter le suivi</span>
+                            Consulter le suivi
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleDuplicateShipment(shipment.id)}>
-                            <Copy className="mr-2 h-4 w-4" />
-                            <span>Dupliquer</span>
+                            Dupliquer
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDownloadShipment(shipment.id)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            <span>Télécharger</span>
+                            Télécharger les documents
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {shipment.isWatched ? (
                             <DropdownMenuItem onClick={() => handleUnwatchShipment(shipment.id)}>
-                              <Bell className="mr-2 h-4 w-4" />
-                              <span>Désactiver les notifications</span>
+                              Désactiver les notifications
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => handleWatchShipment(shipment.id)}>
-                              <BellRing className="mr-2 h-4 w-4" />
-                              <span>Activer les notifications</span>
+                              Activer les notifications
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => handleMarkAsPriority(shipment.id)}>
-                            <Bookmark className="mr-2 h-4 w-4" />
-                            <span>Marquer comme prioritaire</span>
+                            Marquer comme prioritaire
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
