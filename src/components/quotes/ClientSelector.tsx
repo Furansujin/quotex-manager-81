@@ -1,10 +1,18 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, UserPlus, User, Calendar, Tag, Users, X, FileText, Mail, Phone, MapPin } from 'lucide-react';
+import { 
+  Search, 
+  UserPlus, 
+  User, 
+  X, 
+  Building, 
+  MoreHorizontal, 
+  Phone, 
+  Link 
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -12,6 +20,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Mocked clients data
 const mockClients = [
@@ -21,9 +37,12 @@ const mockClients = [
     industry: 'Technologie',
     contact: 'John Smith',
     email: 'john@techsupplies.com',
+    phone: '+33 1 23 45 67 89',
+    address: '123 Tech Avenue, Paris',
     lastActivity: '22/05/2023',
     quotesCount: 12,
-    tags: ['VIP', 'International']
+    tags: ['VIP', 'International'],
+    status: 'active'
   },
   {
     id: 'CL-002',
@@ -31,9 +50,12 @@ const mockClients = [
     industry: 'Pharmaceutique',
     contact: 'Marie Dupont',
     email: 'marie@pharmasol.com',
+    phone: '+33 1 23 45 67 90',
+    address: '45 Avenue Foch, Lyon',
     lastActivity: '21/05/2023',
     quotesCount: 8,
-    tags: ['Prioritaire']
+    tags: ['Prioritaire'],
+    status: 'active'
   },
   {
     id: 'CL-003',
@@ -41,9 +63,12 @@ const mockClients = [
     industry: 'Import/Export',
     contact: 'Carlos Rodriguez',
     email: 'carlos@globalimports.com',
+    phone: '+33 1 23 45 67 91',
+    address: '78 Rue de Commerce, Marseille',
     lastActivity: '20/05/2023',
     quotesCount: 15,
-    tags: ['International']
+    tags: ['International'],
+    status: 'active'
   },
   {
     id: 'CL-004',
@@ -51,9 +76,12 @@ const mockClients = [
     industry: 'Électronique',
     contact: 'Hans Meyer',
     email: 'hans@eurotech.de',
+    phone: '+33 1 23 45 67 92',
+    address: '15 Rue de l\'Innovation, Strasbourg',
     lastActivity: '19/05/2023',
     quotesCount: 5,
-    tags: ['International', 'Premium']
+    tags: ['International', 'Premium'],
+    status: 'active'
   },
   {
     id: 'CL-005',
@@ -61,9 +89,12 @@ const mockClients = [
     industry: 'Agroalimentaire',
     contact: 'Jean Martin',
     email: 'jean.martin@freshfoods.fr',
+    phone: '+33 1 23 45 67 93',
+    address: '42 Avenue des Champs, Bordeaux',
     lastActivity: '18/05/2023',
     quotesCount: 2,
-    tags: ['Nouveau']
+    tags: ['Nouveau'],
+    status: 'inactive'
   },
 ];
 
@@ -124,6 +155,19 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
     const client = mockClients.find(c => c.id === clientId);
     if (client) {
       onSelectClient(client.id, client.name);
+    }
+  };
+
+  // Handle tag click
+  const handleTagClick = (tag: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Set filter based on tag
+    if (tag === 'VIP' || tag === 'Premium' || tag === 'Prioritaire') {
+      setSelectedFilter('vip');
+    } else if (tag === 'International') {
+      setSelectedFilter('international');
+    } else if (tag === 'Nouveau') {
+      setSelectedFilter('new');
     }
   };
 
@@ -262,68 +306,76 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
             </div>
             
             <ScrollArea className="h-[50vh]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
-                {filteredClients.map((client) => (
-                  <Card 
-                    key={client.id} 
-                    className={cn(
-                      "cursor-pointer hover:border-primary transition-colors",
-                      selectedClientId === client.id ? "border-primary bg-primary/5" : ""
-                    )}
-                    onClick={() => handleSelectClient(client.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium truncate">{client.name}</h3>
-                            <span className="text-xs text-muted-foreground">{client.id}</span>
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead className="hidden md:table-cell">Téléphone</TableHead>
+                      <TableHead>Tags</TableHead>
+                      <TableHead>Statut</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.map((client) => (
+                      <TableRow 
+                        key={client.id}
+                        className={cn(
+                          "hover:bg-muted/50 cursor-pointer",
+                          selectedClientId === client.id ? "bg-primary/10" : ""
+                        )}
+                        onClick={() => handleSelectClient(client.id)}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="font-medium">{client.name}</div>
+                          <div className="text-xs text-muted-foreground">{client.id}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{client.contact}</span>
+                            <span className="text-xs text-muted-foreground truncate max-w-[150px]">{client.address}</span>
                           </div>
-                          
-                          <p className="text-sm text-muted-foreground">{client.industry}</p>
-                          
-                          <div className="mt-2 flex flex-col gap-1">
-                            <div className="flex items-center text-sm">
-                              <User className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                              <span>{client.contact}</span>
-                            </div>
-                            
-                            <div className="flex items-center text-sm">
-                              <Calendar className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                              <span>Dernière activité: {client.lastActivity}</span>
-                            </div>
-                            
-                            <div className="flex items-center text-sm">
-                              <FileText className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                              <span>{client.quotesCount} devis</span>
-                            </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{client.phone}</span>
                           </div>
-                          
-                          {client.tags.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {client.tags.map((tag, index) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {client.tags.map((tag, index) => (
+                              <Badge 
+                                key={index} 
+                                variant="outline" 
+                                className="text-xs cursor-pointer hover:bg-primary/10 flex items-center gap-1"
+                                onClick={(e) => handleTagClick(tag, e)}
+                              >
+                                <Link className="h-3 w-3" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                            {client.status === 'active' ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
                 
                 {filteredClients.length === 0 && (
-                  <div className="col-span-3 py-8 text-center">
-                    <Users className="mx-auto h-8 w-8 text-muted-foreground/60" />
-                    <h3 className="mt-2 text-lg font-medium">Aucun client trouvé</h3>
-                    <p className="text-muted-foreground">
-                      Essayez d'ajuster votre recherche ou de créer un nouveau client
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <Building className="h-12 w-12 text-muted-foreground mb-3" />
+                    <h3 className="font-medium text-lg mb-1">Aucun client trouvé</h3>
+                    <p className="text-muted-foreground mb-4 max-w-md">
+                      Aucun client ne correspond à vos critères de recherche ou aucun client n'a été créé.
                     </p>
+                    <Button onClick={() => setShowNewClientForm(true)}>Créer un client</Button>
                   </div>
                 )}
               </div>
