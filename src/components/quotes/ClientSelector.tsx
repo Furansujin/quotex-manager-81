@@ -11,7 +11,9 @@ import {
   Building, 
   MoreHorizontal, 
   Phone, 
-  Link 
+  Link,
+  Mail,
+  MapPin
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -328,8 +330,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
                         onClick={() => handleSelectClient(client.id)}
                       >
                         <TableCell className="font-medium">
-                          <div className="font-medium">{client.name}</div>
-                          <div className="text-xs text-muted-foreground">{client.id}</div>
+                          {client.name}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">

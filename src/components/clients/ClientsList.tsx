@@ -101,8 +101,7 @@ const ClientsList = ({
               onClick={() => onClientClick && onClientClick(client.id)}
             >
               <TableCell className="font-medium">
-                <div className="font-medium">{client.name}</div>
-                <div className="text-xs text-muted-foreground">{client.id}</div>
+                {client.name}
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
