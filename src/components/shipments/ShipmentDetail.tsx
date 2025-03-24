@@ -108,6 +108,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     description: '', 
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent' 
   });
+  const [noteText, setNoteText] = useState('');
 
   // Données factices pour la démonstration
   const shipment = {
@@ -183,6 +184,20 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     { id: 4, name: "Certificat d'origine", uploaded: false, date: "", mandatory: false }
   ]);
 
+  // État pour stocker les notes
+  const [notes, setNotes] = useState([
+    {
+      author: "Marie Martin",
+      date: "24/05/2023 14:32",
+      content: "Le client a été informé du retard de 2 jours dû aux contrôles douaniers supplémentaires. Il comprend la situation."
+    },
+    {
+      author: "Jean Dupont",
+      date: "22/05/2023 09:15",
+      content: "Expedition prise en charge par le transporteur maritime Ocean Line Express. Départ confirmé pour aujourd'hui à 14h00."
+    }
+  ]);
+
   const handleDownloadDocument = (docType: string) => {
     toast({
       title: `Téléchargement du document`,
@@ -191,10 +206,30 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
   };
 
   const handleAddNote = () => {
-    toast({
-      title: "Note ajoutée",
-      description: "Votre note a été ajoutée à l'expédition."
-    });
+    if (noteText.trim()) {
+      const currentDate = new Date();
+      const formattedDate = `${currentDate.toLocaleDateString('fr-FR')} ${currentDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      
+      const newNote = {
+        author: "Utilisateur actuel",
+        date: formattedDate,
+        content: noteText
+      };
+      
+      setNotes([newNote, ...notes]);
+      setNoteText('');
+      
+      toast({
+        title: "Note ajoutée",
+        description: "Votre note a été ajoutée à l'expédition."
+      });
+    } else {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir le texte de la note",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddStop = () => {
@@ -578,7 +613,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
               <CardContent>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Textarea placeholder="Ajoutez une note interne sur cette expédition..." className="min-h-32" />
+                    <Textarea 
+                      placeholder="Ajoutez une note interne sur cette expédition..." 
+                      className="min-h-32"
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                    />
                     <div className="flex justify-end">
                       <Button className="gap-1" onClick={handleAddNote}>
                         <Plus className="h-4 w-4" />
@@ -588,21 +628,15 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                   </div>
                   
                   <div className="space-y-4 pt-4 border-t">
-                    <div className="p-3 border rounded-md">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-medium">Marie Martin</p>
-                        <p className="text-sm text-muted-foreground">24/05/2023 14:32</p>
+                    {notes.map((note, index) => (
+                      <div key={index} className="p-3 border rounded-md">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium">{note.author}</p>
+                          <p className="text-sm text-muted-foreground">{note.date}</p>
+                        </div>
+                        <p className="text-sm">{note.content}</p>
                       </div>
-                      <p className="text-sm">Le client a été informé du retard de 2 jours dû aux contrôles douaniers supplémentaires. Il comprend la situation.</p>
-                    </div>
-                    
-                    <div className="p-3 border rounded-md">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-medium">Jean Dupont</p>
-                        <p className="text-sm text-muted-foreground">22/05/2023 09:15</p>
-                      </div>
-                      <p className="text-sm">Expedition prise en charge par le transporteur maritime Ocean Line Express. Départ confirmé pour aujourd'hui à 14h00.</p>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -651,7 +685,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                           <label className="text-sm font-medium">Priorité</label>
                           <Select 
                             value={issueForm.priority}
-                            onValueChange={(value) => setIssueForm({...issueForm, priority: value as any})}
+                            onValueChange={(value) => setIssueForm({...issueForm, priority: value as 'low' | 'medium' | 'high' | 'urgent'})}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Sélectionnez un niveau de priorité" />
