@@ -6,7 +6,7 @@ import DocumentManager from './DocumentManager';
 type ShipmentType = "maritime" | "aérien" | "routier" | "ferroviaire";
 
 import React, { useState } from 'react';
-import { X, MapPin, Calendar, Clock, Truck, Ship, PlaneTakeoff, Train, Package, FileText, User, Phone, Mail, Building, Download, MessageSquare, Plus, AlertTriangle, Edit, Trash, CheckCircle, Upload, Copy, MoreHorizontal } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Truck, Ship, PlaneTakeoff, Train, Package, FileText, User, Phone, Mail, Building, Download, MessageSquare, Plus, AlertTriangle, Edit, Trash, CheckCircle, Upload, Copy, MoreHorizontal, Maximize, Minimize } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,6 +99,7 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
   const [showAddStopDialog, setShowAddStopDialog] = useState(false);
   const [newStop, setNewStop] = useState({ location: '', date: '', status: 'upcoming' });
   const [showAddDocumentDialog, setShowAddDocumentDialog] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Données factices pour la démonstration
   const shipment = {
@@ -239,18 +240,27 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     });
   };
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-background rounded-lg shadow-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+    <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto ${isFullscreen ? 'p-0' : 'p-4'}`}>
+      <div className={`bg-background rounded-lg shadow-lg ${isFullscreen ? 'w-full h-full max-w-none max-h-none rounded-none' : 'w-full max-w-5xl max-h-[90vh]'} overflow-y-auto transition-all duration-300`}>
         <div className="sticky top-0 z-10 bg-background p-4 border-b flex justify-between items-center">
           <div className="flex items-center gap-2">
             {getShipmentIcon(shipment.type)}
             <h2 className="text-xl font-bold">{shipment.id}</h2>
             {getStatusBadge(shipment.status)}
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+              {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="overview" onValueChange={setActiveTab} className="p-6">
