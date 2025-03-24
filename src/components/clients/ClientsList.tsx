@@ -12,9 +12,9 @@ import {
   Tag, 
   Trash2, 
   UserCircle,
-  Link
+  Link,
+  Eye
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Client {
   id: string;
@@ -78,54 +87,143 @@ const ClientsList = ({
     }
   };
 
-  const handleClientCardClick = (id: string) => {
-    if (onClientClick) {
-      onClientClick(id);
-    }
-  };
-
-  const handleCardButtonClick = (e: React.MouseEvent) => {
-    // Empêcher la propagation pour éviter de déclencher le clic sur la carte
-    e.stopPropagation();
-  };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {clients.map((client) => (
-        <Card 
-          key={client.id} 
-          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => handleClientCardClick(client.id)}
-        >
-          <CardContent className="p-0">
-            <div className="flex items-center p-4 pb-2">
-              <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-medium mr-3">
-                {client.logo}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium truncate">{client.name}</h3>
+    <div className="rounded-md border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nom</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead className="hidden md:table-cell">Email</TableHead>
+            <TableHead className="hidden md:table-cell">Téléphone</TableHead>
+            <TableHead>Tags</TableHead>
+            <TableHead>Statut</TableHead>
+            <TableHead className="text-center">Devis</TableHead>
+            <TableHead className="text-center">Envois</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {clients.map((client) => (
+            <TableRow 
+              key={client.id}
+              className="hover:bg-muted/50 cursor-pointer"
+              onClick={() => onClientClick && onClientClick(client.id)}
+            >
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center font-medium text-xs">
+                    {client.logo}
+                  </div>
+                  <div>
+                    <div className="font-medium">{client.name}</div>
+                    <div className="text-xs text-muted-foreground">{client.id}</div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span>{client.contactName}</span>
+                  <span className="text-xs text-muted-foreground truncate max-w-[150px]">{client.address}</span>
+                </div>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="truncate max-w-[150px]">{client.email}</span>
+                </div>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{client.phone}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {client.tags.map((tag, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="outline" 
+                      className="text-xs cursor-pointer hover:bg-primary/10 flex items-center gap-1"
+                      onClick={(e) => handleTagClick(tag, e)}
+                    >
+                      <Link className="h-3 w-3" />
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                  {client.status === 'active' ? 'Actif' : 'Inactif'}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="font-medium">{client.quotesCount}</div>
+                <div className="text-xs text-muted-foreground">Devis</div>
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="font-medium">{client.shipmentsCount}</div>
+                <div className="text-xs text-muted-foreground">Envois</div>
+              </TableCell>
+              <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-end gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onClientClick && onClientClick(client.id);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Voir les détails</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(client.id);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Modifier</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         className="h-8 w-8"
-                        onClick={handleCardButtonClick}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(client.id);
-                      }}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Modifier
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={(e) => {
                         e.stopPropagation();
                         onDelete(client.id);
@@ -145,100 +243,11 @@ const ClientsList = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <p className="text-sm text-muted-foreground truncate">{client.id}</p>
-              </div>
-            </div>
-            
-            <div className="px-4 py-2">
-              <div className="flex flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{client.contactName}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{client.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{client.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{client.address}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="px-4 py-2">
-              <div className="flex flex-wrap gap-1 mb-3">
-                {client.tags.map((tag, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="outline" 
-                    className="text-xs cursor-pointer hover:bg-primary/10 flex items-center gap-1"
-                    onClick={(e) => handleTagClick(tag, e)}
-                  >
-                    <Link className="h-3 w-3" />
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Devis</span>
-                  <span className="font-medium">{client.quotesCount}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Envois</span>
-                  <span className="font-medium">{client.shipmentsCount}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Dernière activité</span>
-                  <span className="font-medium">{client.lastActivity}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Statut</span>
-                  <span className="font-medium flex items-center">
-                    <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                      {client.status === 'active' ? 'Actif' : 'Inactif'}
-                    </Badge>
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {client.notes && (
-              <div className="px-4 py-2 border-t text-sm">
-                <p className="text-muted-foreground">{client.notes}</p>
-              </div>
-            )}
-
-            <div className="flex border-t divide-x">
-              <Button 
-                variant="ghost" 
-                className="flex-1 rounded-none py-2 h-10" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(client.id);
-                }}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Modifier
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="flex-1 rounded-none py-2 h-10"
-                onClick={handleCardButtonClick}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Devis
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };
