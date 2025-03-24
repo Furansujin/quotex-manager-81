@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Building, 
@@ -7,6 +8,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import ShipmentTypeIcon from '@/components/shipments/ShipmentTypeIcon';
 import {
   DropdownMenu,
