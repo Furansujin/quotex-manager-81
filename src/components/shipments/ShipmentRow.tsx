@@ -5,7 +5,6 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Shipment } from './ShipmentTable';
 import ShipmentStatusBadge from './ShipmentStatusBadge';
 import ShipmentPriorityLabel from './ShipmentPriorityLabel';
-import ShipmentProgressBar from './ShipmentProgressBar';
 import ShipmentActions from './ShipmentActions';
 import ShipmentRouteInfo from './ShipmentRouteInfo';
 
@@ -35,7 +34,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
         </div>
       </TableCell>
 
-      <TableCell className="text-center">
+      <TableCell>
         <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
                                            shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
                                            'bg-amber-100 text-amber-700'}>
@@ -53,10 +52,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       </TableCell>
       
       <TableCell>
-        <div className="space-y-1">
-          <ShipmentStatusBadge status={shipment.status} />
-          <ShipmentProgressBar status={shipment.status} progress={shipment.progress} />
-        </div>
+        <ShipmentStatusBadge status={shipment.status} />
       </TableCell>
       
       <TableCell className="text-right">
