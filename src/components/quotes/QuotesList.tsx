@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,12 @@ import {
   MoreHorizontal, 
   ArrowUp,
   ArrowDown,
-  File
+  File,
+  Ship,
+  Truck,
+  PlaneTakeoff,
+  Train,
+  Bus
 } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
 import { 
@@ -70,20 +74,31 @@ const QuotesList: React.FC<QuotesListProps> = ({
     }
   };
 
-  // Helper function to get transport type badge
+  // Helper function to get transport type badge with icon
   const getTypeBadge = (type: string) => {
-    switch (type) {
-      case 'Maritime':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-700">Maritime</Badge>;
-      case 'Aérien':
-        return <Badge variant="outline" className="bg-sky-100 text-sky-700">Aérien</Badge>;
-      case 'Routier':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-700">Routier</Badge>;
-      case 'Multimodal':
-        return <Badge variant="outline" className="bg-purple-100 text-purple-700">Multimodal</Badge>;
-      default:
-        return <Badge variant="outline">{type}</Badge>;
-    }
+    const getTypeIcon = () => {
+      switch (type.toLowerCase()) {
+        case 'maritime':
+          return <Ship className="h-4 w-4 mr-1.5" />;
+        case 'aérien':
+          return <PlaneTakeoff className="h-4 w-4 mr-1.5" />;
+        case 'routier':
+          return <Truck className="h-4 w-4 mr-1.5" />;
+        case 'ferroviaire':
+          return <Train className="h-4 w-4 mr-1.5" />;
+        case 'multimodal':
+          return <Bus className="h-4 w-4 mr-1.5" />;
+        default:
+          return <Ship className="h-4 w-4 mr-1.5" />;
+      }
+    };
+
+    return (
+      <Badge variant="outline" className="flex items-center">
+        {getTypeIcon()}
+        {type}
+      </Badge>
+    );
   };
 
   // Fonction pour rendre les icônes de tri

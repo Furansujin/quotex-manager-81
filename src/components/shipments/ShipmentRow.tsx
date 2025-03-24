@@ -7,6 +7,7 @@ import ShipmentStatusBadge from './ShipmentStatusBadge';
 import ShipmentPriorityLabel from './ShipmentPriorityLabel';
 import ShipmentActions from './ShipmentActions';
 import ShipmentRouteInfo from './ShipmentRouteInfo';
+import ShipmentTypeIcon from './ShipmentTypeIcon';
 
 interface ShipmentRowProps {
   shipment: Shipment;
@@ -40,7 +41,8 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       </TableCell>
 
       <TableCell>
-        <Badge variant="outline">
+        <Badge variant="outline" className="flex items-center gap-1.5">
+          <ShipmentTypeIcon type={shipment.type} />
           {shipment.type}
         </Badge>
       </TableCell>

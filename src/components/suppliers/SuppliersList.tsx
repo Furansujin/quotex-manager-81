@@ -7,7 +7,10 @@ import {
   Trash2, 
   FileText, 
   Ship,
-  Link
+  Truck,
+  PlaneTakeoff,
+  Train,
+  Bus
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -131,6 +134,17 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
     }
   };
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'maritime': return <Ship className="h-4 w-4 text-primary" />;
+      case 'aerien': return <PlaneTakeoff className="h-4 w-4 text-primary" />;
+      case 'routier': return <Truck className="h-4 w-4 text-primary" />;
+      case 'ferroviaire': return <Train className="h-4 w-4 text-primary" />;
+      case 'multimodal': return <Bus className="h-4 w-4 text-primary" />;
+      default: return <Ship className="h-4 w-4 text-primary" />;
+    }
+  };
+
   if (suppliers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -191,8 +205,8 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                    {supplier.category === 'maritime' && <Ship className="h-3 w-3" />}
+                  <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
+                    {getCategoryIcon(supplier.category)}
                     {getCategoryDisplayName(supplier.category)}
                   </Badge>
                 </TableCell>

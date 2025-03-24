@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowRight, Clock, CheckCircle, XCircle, Ship, PlaneTakeoff, Truck, Bus } from 'lucide-react';
 
 interface Quote {
   id: string;
@@ -61,18 +60,18 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getTypeColor = (type: string) => {
+const getTypeIcon = (type: string) => {
   switch (type) {
     case 'maritime':
-      return 'bg-blue-100 text-blue-800';
+      return <Ship className="h-4 w-4 mr-1" />;
     case 'air':
-      return 'bg-sky-100 text-sky-800';
+      return <PlaneTakeoff className="h-4 w-4 mr-1" />;
     case 'road':
-      return 'bg-amber-100 text-amber-800';
+      return <Truck className="h-4 w-4 mr-1" />;
     case 'multimodal':
-      return 'bg-purple-100 text-purple-800';
+      return <Bus className="h-4 w-4 mr-1" />;
     default:
-      return 'bg-gray-100 text-gray-800';
+      return null;
   }
 };
 
@@ -89,7 +88,8 @@ const RecentQuotes: React.FC = () => {
               <div>
                 <div className="flex items-center space-x-2">
                   <h4 className="font-medium">{quote.client}</h4>
-                  <Badge variant="outline" className={getTypeColor(quote.type)}>
+                  <Badge variant="outline" className="flex items-center">
+                    {getTypeIcon(quote.type)}
                     {quote.type.charAt(0).toUpperCase() + quote.type.slice(1)}
                   </Badge>
                 </div>

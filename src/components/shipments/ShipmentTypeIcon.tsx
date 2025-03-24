@@ -1,21 +1,26 @@
 
 import React from 'react';
-import { Ship, Truck, PlaneTakeoff } from 'lucide-react';
+import { Ship, Truck, PlaneTakeoff, Train, Bus } from 'lucide-react';
 
 interface ShipmentTypeIconProps {
   type: string;
+  className?: string;
 }
 
-const ShipmentTypeIcon: React.FC<ShipmentTypeIconProps> = ({ type }) => {
+const ShipmentTypeIcon: React.FC<ShipmentTypeIconProps> = ({ type, className = "h-4 w-4" }) => {
   switch (type.toLowerCase()) {
     case 'maritime':
-      return <Ship className="h-4 w-4 text-blue-600" />;
+      return <Ship className={`${className} text-primary`} />;
     case 'routier':
-      return <Truck className="h-4 w-4 text-amber-600" />;
+      return <Truck className={`${className} text-primary`} />;
     case 'aérien':
-      return <PlaneTakeoff className="h-4 w-4 text-green-600" />;
+      return <PlaneTakeoff className={`${className} text-primary`} />;
+    case 'ferroviaire':
+      return <Train className={`${className} text-primary`} />;
+    case 'multimodal':
+      return <Bus className={`${className} text-primary`} />;
     default:
-      return <Ship className="h-4 w-4 text-primary" />;
+      return <Ship className={`${className} text-primary`} />;
   }
 };
 
