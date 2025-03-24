@@ -21,21 +21,21 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       className="cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={() => onOpenShipment(shipment.id)}
     >
-      <TableCell className="py-3">
+      <TableCell>
         <div className="flex flex-col">
           <span className="font-medium truncate">{shipment.id}</span>
           <span className="text-xs text-muted-foreground">{shipment.containers}</span>
         </div>
       </TableCell>
       
-      <TableCell className="py-3">
+      <TableCell>
         <div className="flex flex-col">
           <div className="font-medium">{shipment.client}</div>
           {shipment.priority && <ShipmentPriorityLabel priority={shipment.priority} />}
         </div>
       </TableCell>
 
-      <TableCell className="py-3 text-center">
+      <TableCell className="text-center">
         <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
                                            shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
                                            'bg-amber-100 text-amber-700'}>
@@ -43,7 +43,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
         </Badge>
       </TableCell>
       
-      <TableCell className="py-3">
+      <TableCell>
         <ShipmentRouteInfo
           origin={shipment.origin}
           destination={shipment.destination}
@@ -52,14 +52,14 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
         />
       </TableCell>
       
-      <TableCell className="py-3">
+      <TableCell>
         <div className="space-y-1">
           <ShipmentStatusBadge status={shipment.status} />
           <ShipmentProgressBar status={shipment.status} progress={shipment.progress} />
         </div>
       </TableCell>
       
-      <TableCell className="text-right py-3">
+      <TableCell className="text-right">
         <ShipmentActions shipmentId={shipment.id} onOpenShipment={onOpenShipment} />
       </TableCell>
     </TableRow>

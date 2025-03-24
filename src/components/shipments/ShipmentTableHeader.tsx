@@ -40,24 +40,24 @@ const ShipmentTableHeader: React.FC<ShipmentTableHeaderProps> = ({
   return (
     <TableHeader>
       <TableRow>
-        <TableHead className="cursor-pointer w-[150px] group">
+        <TableHead className="cursor-pointer group">
           Référence {renderSortIcon('id')}
         </TableHead>
         <TableHead className="cursor-pointer group">
           Client {renderSortIcon('client')}
         </TableHead>
-        <TableHead className="cursor-pointer w-[120px] group">
-          <div className="flex items-center justify-center">
+        <TableHead className="cursor-pointer group">
+          <div className="flex items-center">
             Transport {renderSortIcon('type')}
           </div>
         </TableHead>
         <TableHead className="cursor-pointer group">
           Trajet & Dates {renderSortIcon('departureDate')}
         </TableHead>
-        <TableHead className="cursor-pointer w-[120px] group">
+        <TableHead className="cursor-pointer group">
           Statut {renderSortIcon('status')}
         </TableHead>
-        <TableHead className="text-right w-[80px]">Actions</TableHead>
+        <TableHead className="text-right">Actions</TableHead>
       </TableRow>
     </TableHeader>
   );
