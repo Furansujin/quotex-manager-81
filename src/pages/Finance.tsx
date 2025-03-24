@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -46,7 +45,7 @@ const Finance = () => {
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isInvoiceDetailOpen, setIsInvoiceDetailOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'dashboard' | 'invoices'>('dashboard');
+  const [viewMode, setViewMode<'dashboard' | 'invoices'>('dashboard');
   const { toast } = useToast();
 
   const invoiceSummary = calculateInvoiceSummary(invoices);
@@ -305,8 +304,10 @@ const Finance = () => {
           {/* Dashboard View */}
           {viewMode === 'dashboard' && (
             <FinanceDashboard 
+              invoices={invoices}
               invoiceSummary={invoiceSummary}
               onNavigate={handleDashboardNavigation}
+              onSelectInvoice={handleSelectInvoice}
             />
           )}
 

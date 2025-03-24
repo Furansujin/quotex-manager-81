@@ -10,17 +10,25 @@ import {
   Calendar, 
   AlertTriangle, 
   CheckCircle2,
-  Clock
+  Clock,
+  BarChart
 } from 'lucide-react';
+import FinanceStatistics from './FinanceStatistics';
+import FinanceTrends from './FinanceTrends';
+import FinanceCalendar from './FinanceCalendar';
 
 interface FinanceDashboardProps {
+  invoices: Invoice[];
   invoiceSummary: InvoiceSummary;
   onNavigate: (tab: string) => void;
+  onSelectInvoice: (invoice: Invoice) => void;
 }
 
 const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ 
+  invoices,
   invoiceSummary,
-  onNavigate
+  onNavigate,
+  onSelectInvoice
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', { 
@@ -96,48 +104,38 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({
 
       <Tabs defaultValue="stats" className="w-full">
         <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
-          <TabsTrigger value="stats">Statistiques</TabsTrigger>
-          <TabsTrigger value="trends">Tendances</TabsTrigger>
-          <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+          <TabsTrigger value="stats" className="flex items-center gap-1">
+            <BarChart className="h-4 w-4" />
+            <span>Statistiques</span>
+          </TabsTrigger>
+          <TabsTrigger value="trends" className="flex items-center gap-1">
+            <TrendingUp className="h-4 w-4" />
+            <span>Tendances</span>
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            <span>Calendrier</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="stats" className="mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Aperçu financier</h3>
-                <p className="text-sm text-muted-foreground">
-                  Vue d'ensemble des performances financières récentes
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <FinanceStatistics
+            invoices={invoices}
+            invoiceSummary={invoiceSummary}
+          />
         </TabsContent>
         
         <TabsContent value="trends" className="mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Tendances des paiements</h3>
-                <p className="text-sm text-muted-foreground">
-                  Analyse des délais de paiement et des tendances clients
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <FinanceTrends
+            invoices={invoices}
+          />
         </TabsContent>
         
         <TabsContent value="calendar" className="mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Échéancier</h3>
-                <p className="text-sm text-muted-foreground">
-                  Visualisation des échéances de paiement à venir
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <FinanceCalendar 
+            invoices={invoices} 
+            onSelectInvoice={onSelectInvoice}
+          />
         </TabsContent>
       </Tabs>
     </div>
