@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Save, ChevronRight, Tag, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useToast } from '@/hooks/use-toast';
 
 interface ClientFormProps {
@@ -29,6 +33,22 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
   });
   const [newTag, setNewTag] = useState('');
   const { toast } = useToast();
+
+  // Predefined tags for the client form
+  const predefinedTags = [
+    'VIP', 
+    'International', 
+    'PME', 
+    'Entreprise', 
+    'Import', 
+    'Export', 
+    'Customs', 
+    'Tech', 
+    'Healthcare', 
+    'Perishable', 
+    'Food', 
+    'EU'
+  ];
 
   useEffect(() => {
     // Si clientId est fourni, charger les données du client pour l'édition
@@ -68,6 +88,12 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
     if (newTag.trim() && !client.tags.includes(newTag.trim())) {
       setClient(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }));
       setNewTag('');
+    }
+  };
+
+  const addPredefinedTag = (tag: string) => {
+    if (!client.tags.includes(tag)) {
+      setClient(prev => ({ ...prev, tags: [...prev.tags, tag] }));
     }
   };
 
@@ -209,13 +235,37 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
                     placeholder="Ajouter un tag..."
                     className="flex-1"
                   />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        type="button"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2">
+                      <div className="flex flex-wrap gap-1">
+                        {predefinedTags.map(tag => (
+                          <Badge 
+                            key={tag} 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary/10"
+                            onClick={() => addPredefinedTag(tag)}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button 
                     variant="outline" 
-                    size="icon"
                     onClick={addTag}
                     type="button"
                   >
-                    <Plus className="h-4 w-4" />
+                    Ajouter
                   </Button>
                 </div>
               </div>

@@ -155,6 +155,19 @@ const Clients = () => {
     return true;
   });
 
+  // Update client data when status changes in ClientDetail
+  const handleClientStatusChange = (clientId: string, newStatus: 'active' | 'inactive') => {
+    const updatedClients = clients.map(client => {
+      if (client.id === clientId) {
+        return { ...client, status: newStatus };
+      }
+      return client;
+    });
+    // This would update the client data if it were real data
+    // For now, we'll just force a re-render by setting the active tab
+    setActiveTab(newStatus === 'active' ? 'active' : 'inactive');
+  };
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };

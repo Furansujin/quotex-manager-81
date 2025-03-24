@@ -187,7 +187,7 @@ const ClientDetail = ({ clientId, onClose, onEdit }: ClientDetailProps) => {
     setClient({...client, status: newStatus});
     
     toast({
-      title: `Client ${newStatus === 'active' ? 'activé' : 'désactivé'}`,
+      title: `Client ${newStatus === 'active' ? 'activé' : 'rendu inactif'}`,
       description: `Le statut du client ${client.name} a été mis à jour.`,
     });
   };
@@ -222,7 +222,7 @@ const ClientDetail = ({ clientId, onClose, onEdit }: ClientDetailProps) => {
                   onClick={toggleClientStatus}
                 >
                   <Power className="h-4 w-4" />
-                  {client.status === 'active' ? 'Désactiver' : 'Activer'}
+                  {client.status === 'active' ? 'Inactif' : 'Actif'}
                 </Button>
                 <Button 
                   variant="outline" 
