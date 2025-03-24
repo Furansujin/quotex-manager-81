@@ -89,12 +89,22 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
     if (newTag.trim() && !client.tags.includes(newTag.trim())) {
       setClient(prev => ({ ...prev, tags: [...prev.tags, newTag.trim()] }));
       setNewTag('');
+      
+      toast({
+        title: "Tag ajouté",
+        description: `Le tag "${newTag.trim()}" a été ajouté au client.`,
+      });
     }
   };
 
   const addPredefinedTag = (tag: string) => {
     if (!client.tags.includes(tag)) {
       setClient(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+      
+      toast({
+        title: "Tag ajouté",
+        description: `Le tag "${tag}" a été ajouté au client.`,
+      });
     }
   };
 
@@ -103,6 +113,11 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
+    
+    toast({
+      title: "Tag supprimé",
+      description: `Le tag "${tagToRemove}" a été supprimé du client.`,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

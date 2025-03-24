@@ -212,7 +212,7 @@ const ClientDetail = ({ clientId, onClose, onEdit, onStatusChange }: ClientDetai
                 {client?.status === 'active' ? (
                   <Badge variant="default" className="ml-2">Actif</Badge>
                 ) : (
-                  <Badge variant="secondary" className="ml-2">Inactif</Badge>
+                  <Badge variant="destructive" className="ml-2">Inactif</Badge>
                 )}
               </h2>
               {!loading && client && <p className="text-sm text-muted-foreground">{client.id}</p>}
@@ -291,12 +291,6 @@ const ClientDetail = ({ clientId, onClose, onEdit, onStatusChange }: ClientDetai
                       <CardTitle className="text-lg">Détails du client</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground w-32">Type:</span>
-                        <span className="font-medium capitalize">
-                          {client.type === 'enterprise' ? 'Entreprise' : 'PME'}
-                        </span>
-                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground w-32">Contact principal:</span>
                         <span className="font-medium">{client.contactName}</span>
@@ -416,10 +410,6 @@ const ClientDetail = ({ clientId, onClose, onEdit, onStatusChange }: ClientDetai
                   <Button variant="outline" className="gap-2">
                     <Ship className="h-4 w-4" />
                     Créer une expédition
-                  </Button>
-                  <Button variant="default" className="gap-2">
-                    <ExternalLink className="h-4 w-4" />
-                    Actions
                   </Button>
                 </div>
               </TabsContent>

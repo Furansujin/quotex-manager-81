@@ -131,7 +131,9 @@ const ClientsList = ({
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                <Badge 
+                  variant={client.status === 'active' ? 'default' : 'destructive'} 
+                  className="text-xs">
                   {client.status === 'active' ? 'Actif' : 'Inactif'}
                 </Badge>
               </TableCell>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -25,7 +24,6 @@ const Clients = () => {
   const [editingClientId, setEditingClientId] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -147,12 +145,6 @@ const Clients = () => {
       if (!hasSelectedTag) return false;
     }
     
-    // Filtres avancés
-    if (activeFilters) {
-      // Appliquer d'autres filtres si nécessaire
-      // ...
-    }
-    
     return true;
   });
 
@@ -206,7 +198,6 @@ const Clients = () => {
   };
 
   const clearAllFilters = () => {
-    setActiveFilters(null);
     setSearchTerm('');
     setSelectedTags([]);
     
@@ -309,7 +300,7 @@ const Clients = () => {
           {showAdvancedFilters && (
             <Card className="mb-6">
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Statut</label>
                     <div className="flex flex-wrap gap-2">
@@ -328,7 +319,7 @@ const Clients = () => {
                         Actif
                       </Badge>
                       <Badge 
-                        variant={activeTab === "inactive" ? "default" : "secondary"} 
+                        variant={activeTab === "inactive" ? "destructive" : "outline"} 
                         className="cursor-pointer"
                         onClick={() => setActiveTab("inactive")}
                       >
@@ -338,32 +329,11 @@ const Clients = () => {
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Type de client</label>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">Tous</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-blue-500/10 text-blue-500">Entreprise</Badge>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-green-500/10 text-green-500">PME</Badge>
-                    </div>
-                  </div>
-                  
-                  <div>
                     <label className="text-sm font-medium mb-2 block">Dernière activité</label>
                     <div className="flex gap-2">
                       <Input type="date" className="w-full" placeholder="Date début" />
                       <Input type="date" className="w-full" placeholder="Date fin" />
                     </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Nombre min. de devis</label>
-                    <Input placeholder="Minimum" type="number" min="0" />
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Nombre max. de devis</label>
-                    <Input placeholder="Maximum" type="number" min="0" />
                   </div>
                 </div>
                 
@@ -386,7 +356,6 @@ const Clients = () => {
                 <div className="flex justify-end mt-4">
                   <Button variant="outline" className="mr-2" onClick={clearAllFilters}>Réinitialiser</Button>
                   <Button onClick={() => {
-                    // Logique simplifiée pour appliquer les filtres
                     setShowAdvancedFilters(false);
                   }}>Appliquer</Button>
                 </div>
