@@ -1,3 +1,4 @@
+
 // Vous pouvez importer DocumentManager ici pour l'utiliser dans le composant
 import DocumentManager from './DocumentManager';
 
