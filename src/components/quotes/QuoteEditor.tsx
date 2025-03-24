@@ -30,7 +30,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [showSupplierPricing, setShowSupplierPricing] = useState(false);
-  const [isDraft, setIsDraft] = useState(false);
+  const [quoteStatus, setQuoteStatus] = useState('draft');
 
   const {
     isEditing,
@@ -110,12 +110,12 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     }
   }, [origin, destination]);
 
-  // Check if the quote is a draft
+  // Check if the quote exists and set its status
   useEffect(() => {
     if (quoteId) {
       const existingQuote = quotes.find(q => q.id === quoteId);
-      if (existingQuote && existingQuote.status === 'draft') {
-        setIsDraft(true);
+      if (existingQuote) {
+        setQuoteStatus(existingQuote.status);
       }
     }
   }, [quoteId, quotes]);
@@ -125,6 +125,10 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     return !!(cargoDescription && cargoType && cargoNature && 
              (cargoWeight || (cargoLength && cargoWidth && cargoHeight)) && 
              cargoPackaging && cargoPackageCount);
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setQuoteStatus(newStatus);
   };
 
   const handleSave = async () => {
@@ -171,7 +175,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
         }),
         origin,
         destination,
-        status: isDraft ? "pending" : (isEditing ? "approved" : "pending"),
+        status: quoteStatus, // Use the selected status
         amount: `€ ${calculateTotal().toFixed(2)}`,
         type,
         commercial: "Jean Dupont", // Hardcoded for now
@@ -196,11 +200,18 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
           packaging: cargoPackaging,
           packageCount: cargoPackageCount
         }
-        // In a real app, you would include the items as well
       };
       
       // Save the quote
       await saveQuote(quoteData);
+      
+      toast({
+        title: "Devis enregistré",
+        description: `Le devis a été enregistré avec le statut "${quoteStatus === 'draft' ? 'Brouillon' : 
+                      quoteStatus === 'pending' ? 'En attente' :
+                      quoteStatus === 'approved' ? 'Approuvé' :
+                      quoteStatus === 'rejected' ? 'Rejeté' : 'Expiré'}".`
+      });
       
       // Close the editor
       onClose();
@@ -208,80 +219,6 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'enregistrement du devis.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSaveAsDraft = async () => {
-    // Basic validation - only client is required for draft
-    if (!client) {
-      toast({
-        title: "Champ requis",
-        description: "Veuillez sélectionner un client pour ce devis.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsSaving(true);
-    
-    try {
-      // Prepare quote data for draft
-      const quoteData = {
-        id: quoteId,
-        client,
-        clientId: clientDetails?.id || clientId || "UNKNOWN",
-        date: new Date().toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        origin: origin || "",
-        destination: destination || "",
-        status: "draft",
-        amount: `€ ${items.length > 0 ? calculateTotal().toFixed(2) : "0.00"}`,
-        type: type || "Maritime",
-        commercial: "Jean Dupont", // Hardcoded for now
-        validUntil: new Date(validUntil).toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        notes,
-        // Include cargo details if they exist
-        cargoDetails: cargoDescription ? {
-          description: cargoDescription,
-          type: cargoType,
-          nature: cargoNature,
-          dimensions: {
-            length: cargoLength,
-            width: cargoWidth,
-            height: cargoHeight,
-            weight: cargoWeight,
-            volume: cargoVolume
-          },
-          packaging: cargoPackaging,
-          packageCount: cargoPackageCount
-        } : undefined
-      };
-      
-      // Save the quote as draft
-      await saveQuote(quoteData);
-      
-      toast({
-        title: "Brouillon enregistré",
-        description: "Le devis a été sauvegardé comme brouillon.",
-      });
-      
-      // Close the editor
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement du brouillon.",
         variant: "destructive"
       });
     } finally {
@@ -304,7 +241,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
     setIsSaving(true);
     
     try {
-      // Prepare quote data (same as in handleSave)
+      // Prepare quote data with status "pending"
       const quoteData = {
         id: quoteId,
         client,
@@ -316,7 +253,7 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
         }),
         origin,
         destination,
-        status: "pending",
+        status: "pending", // Envoyer = mettre en attente
         amount: `€ ${calculateTotal().toFixed(2)}`,
         type,
         commercial: "Jean Dupont",
@@ -525,7 +462,8 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
 
   return (
     <QuoteEditorLayout 
-      title={isDraft ? 'Modifier le brouillon' : (isEditing ? 'Modifier le devis' : 'Nouveau devis')} 
+      title={quoteStatus === 'draft' ? 'Brouillon' : 
+            isEditing ? 'Modifier le devis' : 'Nouveau devis'} 
       onClose={onClose}
     >
       <div className="p-6 space-y-6">
@@ -660,15 +598,15 @@ const QuoteEditor: React.FC<QuoteEditorProps> = ({ quoteId, clientId, onClose })
           handlePrint={handlePrint}
           handleSend={handleSend}
           handleSave={handleSave}
-          handleSaveAsDraft={handleSaveAsDraft}
           handleFollowUp={handleFollowUp}
           isGeneratingPdf={isGeneratingPdf}
           isPrinting={isPrinting}
           isSaving={isSaving}
           itemsExist={items.length > 0}
-          showFollowUp={isEditing && quoteId !== undefined && !isDraft}
+          showFollowUp={isEditing && quoteId !== undefined && quoteStatus !== 'draft'}
           hasCargoDetails={hasCargoDetails()}
-          isDraft={isDraft}
+          status={quoteStatus}
+          onStatusChange={handleStatusChange}
         />
       </div>
 

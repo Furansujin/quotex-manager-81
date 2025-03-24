@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -149,7 +148,7 @@ export const useQuotesData = () => {
     },
   ]);
 
-  // Add a new quote to the list
+  // Add a new quote to the list or update an existing one
   const addQuote = (quote: Quote) => {
     setQuotes(prevQuotes => {
       // Check if the quote already exists (for editing)
@@ -164,6 +163,22 @@ export const useQuotesData = () => {
         // Add the new quote at the beginning of the array
         return [quote, ...prevQuotes];
       }
+    });
+  };
+
+  // Update the status of a quote
+  const updateQuoteStatus = (id: string, newStatus: string) => {
+    setQuotes(prevQuotes => {
+      return prevQuotes.map(quote => {
+        if (quote.id === id) {
+          return { ...quote, status: newStatus, lastModified: new Date().toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }) };
+        }
+        return quote;
+      });
     });
   };
 
@@ -329,6 +344,7 @@ export const useQuotesData = () => {
     filteredQuotes,
     quotes,
     addQuote,
+    updateQuoteStatus,
     handleApplyFilters,
     clearAllFilters
   };

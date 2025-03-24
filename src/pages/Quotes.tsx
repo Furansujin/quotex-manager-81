@@ -28,7 +28,8 @@ const Quotes = () => {
     filteredQuotes, 
     addQuote,
     handleApplyFilters, 
-    clearAllFilters 
+    clearAllFilters,
+    updateQuoteStatus 
   } = useQuotesData();
   
   // Get quote action handlers
@@ -179,6 +180,20 @@ const Quotes = () => {
     }
   }, [activeFilters]);
 
+  // Handle quote status change in the list
+  const handleQuoteStatusChange = (id: string, newStatus: string) => {
+    updateQuoteStatus(id, newStatus);
+    
+    // Optionally refresh the view or show a toast
+    toast({
+      title: "Statut mis à jour",
+      description: `Le statut du devis a été changé.`,
+    });
+    
+    // Update active tab if needed
+    setActiveTab(newStatus);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar toggleSidebar={toggleSidebar} />
@@ -223,6 +238,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
             
@@ -235,6 +251,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
             
@@ -248,6 +265,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
             
@@ -263,6 +281,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
             
@@ -278,6 +297,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
             
@@ -293,6 +313,7 @@ const Quotes = () => {
                 onSort={handleSortToggle}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                onStatusChange={handleQuoteStatusChange}
               />
             </TabsContent>
           </Tabs>

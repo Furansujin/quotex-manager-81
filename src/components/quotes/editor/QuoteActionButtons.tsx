@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, SendHorizontal, Printer, FileText, ArrowRight, AlertCircle, File } from 'lucide-react';
+import { Save, SendHorizontal, Printer, FileText, ArrowRight, AlertCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface QuoteActionButtonsProps {
   onClose: () => void;
@@ -9,7 +10,6 @@ interface QuoteActionButtonsProps {
   handlePrint: () => Promise<void>;
   handleSend: () => Promise<void>;
   handleSave: () => Promise<void>;
-  handleSaveAsDraft?: () => Promise<void>;
   handleFollowUp?: () => void;
   isGeneratingPdf: boolean;
   isPrinting: boolean;
@@ -17,7 +17,8 @@ interface QuoteActionButtonsProps {
   itemsExist: boolean;
   showFollowUp?: boolean;
   hasCargoDetails?: boolean;
-  isDraft?: boolean;
+  status: string;
+  onStatusChange: (status: string) => void;
 }
 
 const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
@@ -26,7 +27,6 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
   handlePrint,
   handleSend,
   handleSave,
-  handleSaveAsDraft,
   handleFollowUp,
   isGeneratingPdf,
   isPrinting,
@@ -34,7 +34,8 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
   itemsExist,
   showFollowUp = false,
   hasCargoDetails = false,
-  isDraft = false
+  status,
+  onStatusChange
 }) => {
   return (
     <div className="flex justify-between">
@@ -53,7 +54,8 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
           </Button>
         )}
       </div>
-      <div className="flex gap-2">
+      
+      <div className="flex gap-2 items-center">
         {!hasCargoDetails && (
           <div className="flex items-center text-yellow-600 text-sm mr-2">
             <AlertCircle className="h-4 w-4 mr-1" />
@@ -61,17 +63,21 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
           </div>
         )}
         
-        {handleSaveAsDraft && (
-          <Button 
-            variant="outline" 
-            onClick={handleSaveAsDraft}
-            disabled={isSaving}
-            className="gap-2"
-          >
-            <File className="h-4 w-4" />
-            {isSaving ? 'Sauvegarde...' : (isDraft ? 'Mettre à jour' : 'Enregistrer brouillon')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2 mr-2">
+          <span className="text-sm text-muted-foreground">Statut:</span>
+          <Select value={status} onValueChange={onStatusChange}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Brouillon</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="approved">Approuvé</SelectItem>
+              <SelectItem value="rejected">Rejeté</SelectItem>
+              <SelectItem value="expired">Expiré</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         
         <Button 
           variant="outline" 
@@ -109,7 +115,7 @@ const QuoteActionButtons: React.FC<QuoteActionButtonsProps> = ({
           className="gap-2"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? 'Sauvegarde...' : (isDraft ? 'Finaliser' : 'Sauvegarder')}
+          {isSaving ? 'Sauvegarde...' : 'Enregistrer'}
         </Button>
       </div>
     </div>

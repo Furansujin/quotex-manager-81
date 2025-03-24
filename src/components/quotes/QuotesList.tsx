@@ -36,6 +36,7 @@ interface QuotesListProps {
   onSort?: (field: string) => void;
   sortField?: string | null;
   sortDirection?: 'asc' | 'desc' | null;
+  onStatusChange?: (id: string, newStatus: string) => void;
 }
 
 const QuotesList: React.FC<QuotesListProps> = ({ 
@@ -46,7 +47,8 @@ const QuotesList: React.FC<QuotesListProps> = ({
   renderFollowUpButton,
   onSort,
   sortField,
-  sortDirection
+  sortDirection,
+  onStatusChange
 }) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
@@ -176,7 +178,22 @@ const QuotesList: React.FC<QuotesListProps> = ({
                 <TableCell>{getTypeBadge(quote.type)}</TableCell>
                 <TableCell>{quote.destination}</TableCell>
                 <TableCell>{quote.amount}</TableCell>
-                <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                <TableCell>
+                  {onStatusChange ? (
+                    <div 
+                      className="cursor-pointer" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        onEdit(quote.id);
+                      }}
+                    >
+                      {getStatusBadge(quote.status)}
+                    </div>
+                  ) : (
+                    getStatusBadge(quote.status)
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-1" onClick={(e) => e.stopPropagation()}>
                     {quote.status === 'pending' && renderFollowUpButton && (
