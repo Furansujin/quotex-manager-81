@@ -40,9 +40,7 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
       </TableCell>
 
       <TableCell>
-        <Badge variant="outline" className={shipment.type === 'Maritime' ? 'bg-blue-100 text-blue-700' : 
-                                           shipment.type === 'Aérien' ? 'bg-sky-100 text-sky-700' : 
-                                           'bg-amber-100 text-amber-700'}>
+        <Badge variant="outline">
           {shipment.type}
         </Badge>
       </TableCell>
