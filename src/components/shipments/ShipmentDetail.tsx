@@ -31,6 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ShipmentDetailProps {
   shipmentId: string;
@@ -100,6 +101,12 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
   const [newStop, setNewStop] = useState({ location: '', date: '', status: 'upcoming' });
   const [showAddDocumentDialog, setShowAddDocumentDialog] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showReportIssueForm, setShowReportIssueForm] = useState(false);
+  const [issueForm, setIssueForm] = useState({ 
+    title: '', 
+    description: '', 
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent' 
+  });
 
   // Données factices pour la démonstration
   const shipment = {
@@ -189,13 +196,6 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     });
   };
 
-  const handleReportIssue = () => {
-    toast({
-      title: "Problème signalé",
-      description: "Le problème a été signalé à l'équipe responsable."
-    });
-  };
-
   const handleAddStop = () => {
     if (newStop.location && newStop.date) {
       setTrackerStops([...trackerStops, { ...newStop, status: newStop.status as any }]);
@@ -242,6 +242,30 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+  };
+
+  const handleReportIssue = () => {
+    if (issueForm.title.trim() && issueForm.description.trim()) {
+      toast({
+        title: "Problème signalé",
+        description: "Le problème a été signalé à l'équipe responsable."
+      });
+      
+      // Dans une vraie application, nous enregistrerions le problème dans la base de données
+      
+      setShowReportIssueForm(false);
+      setIssueForm({ 
+        title: '', 
+        description: '', 
+        priority: 'medium' 
+      });
+    } else {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs requis",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -590,17 +614,64 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Textarea placeholder="Décrivez le problème rencontré..." className="min-h-32" />
-                    <div className="flex justify-end">
-                      <Button variant="destructive" className="gap-1" onClick={handleReportIssue}>
+                  <Dialog open={showReportIssueForm} onOpenChange={setShowReportIssueForm}>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" className="gap-1 w-full md:w-auto">
                         <AlertTriangle className="h-4 w-4" />
                         Signaler un problème
                       </Button>
-                    </div>
-                  </div>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Signaler un problème</DialogTitle>
+                        <DialogDescription>
+                          Décrivez le problème rencontré avec cette expédition
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Titre</label>
+                          <Input 
+                            placeholder="Ex: Retard de livraison" 
+                            value={issueForm.title}
+                            onChange={(e) => setIssueForm({...issueForm, title: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Description</label>
+                          <Textarea 
+                            placeholder="Décrivez le problème rencontré..." 
+                            className="min-h-24"
+                            value={issueForm.description}
+                            onChange={(e) => setIssueForm({...issueForm, description: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Priorité</label>
+                          <Select 
+                            value={issueForm.priority}
+                            onValueChange={(value) => setIssueForm({...issueForm, priority: value as any})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionnez un niveau de priorité" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="low">Faible</SelectItem>
+                              <SelectItem value="medium">Moyenne</SelectItem>
+                              <SelectItem value="high">Élevée</SelectItem>
+                              <SelectItem value="urgent">Urgente</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowReportIssueForm(false)}>Annuler</Button>
+                        <Button variant="destructive" onClick={handleReportIssue}>Signaler</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-4 pt-4">
                     <div className="p-3 border border-amber-200 bg-amber-50 rounded-md">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -612,7 +683,6 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
                       <p className="text-sm text-amber-700 mb-2">Contrôles douaniers supplémentaires au port de Shanghai. Retard estimé de 2 jours.</p>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-amber-600">Signalé par: Marie Martin - 24/05/2023</p>
-                        <Button variant="outline" size="sm" className="h-7 text-xs">Voir détails</Button>
                       </div>
                     </div>
                   </div>
