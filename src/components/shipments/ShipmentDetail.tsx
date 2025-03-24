@@ -151,21 +151,19 @@ const ShipmentDetail: React.FC<ShipmentDetailProps> = ({ shipmentId, onClose }) 
     }
   ]);
 
+  // Modification des événements pour supprimer le champ type
   const [trackerEvents, setTrackerEvents] = useState([
     {
       date: "05/06/2023",
-      description: "Passage du Canal de Suez en cours",
-      type: "info" as const
+      description: "Passage du Canal de Suez en cours"
     },
     {
       date: "29/05/2023",
-      description: "Transbordement effectué à Singapour",
-      type: "success" as const
+      description: "Transbordement effectué à Singapour"
     },
     {
       date: "22/05/2023",
-      description: "Départ du port de Shanghai",
-      type: "success" as const
+      description: "Départ du port de Shanghai"
     }
   ]);
 

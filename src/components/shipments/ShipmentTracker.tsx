@@ -63,7 +63,6 @@ interface ShipmentTrackerProps {
   events?: {
     date: string;
     description: string;
-    type: 'info' | 'warning' | 'success';
   }[];
 }
 
@@ -98,7 +97,7 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
   const [showEditStopDialog, setShowEditStopDialog] = useState(false);
   const [editingStop, setEditingStop] = useState<{index: number, data: any} | null>(null);
   const [showAddEventDialog, setShowAddEventDialog] = useState(false);
-  const [newEvent, setNewEvent] = useState({ date: '', description: '', type: 'info' });
+  const [newEvent, setNewEvent] = useState({ date: '', description: '' });
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [trackingNumber, setTrackingNumber] = useState('');
@@ -158,17 +157,8 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
     }
   };
 
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case 'info':
-        return <Clock className="h-5 w-5 text-blue-600" />;
-      case 'warning':
-        return <AlertCircle className="h-5 w-5 text-amber-600" />;
-      case 'success':
-        return <CircleCheck className="h-5 w-5 text-green-600" />;
-      default:
-        return <Clock className="h-5 w-5 text-blue-600" />;
-    }
+  const getEventIcon = () => {
+    return <Clock className="h-5 w-5 text-blue-600" />;
   };
 
   const getProgressBarColor = () => {
@@ -209,7 +199,7 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
       });
       
       setShowAddEventDialog(false);
-      setNewEvent({ date: '', description: '', type: 'info' });
+      setNewEvent({ date: '', description: '' });
     }
   };
   
@@ -272,13 +262,6 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
         description: "Les informations de suivi ont été mises à jour."
       });
     }, 1500);
-  };
-  
-  const handleOptimizeRoute = () => {
-    toast({
-      title: "Itinéraire optimisé",
-      description: "L'itinéraire a été recalculé pour un trajet optimal."
-    });
   };
 
   return (
@@ -514,15 +497,6 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium">Parcours de l'expédition</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleOptimizeRoute}
-            className="text-xs"
-          >
-            <MapPin className="h-3 w-3 mr-1" />
-            Optimiser le parcours
-          </Button>
         </div>
         
         <div className="relative">
@@ -609,18 +583,6 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
                       onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Type</label>
-                    <select 
-                      className="w-full p-2 border rounded-md"
-                      value={newEvent.type}
-                      onChange={(e) => setNewEvent({...newEvent, type: e.target.value as any})}
-                    >
-                      <option value="info">Information</option>
-                      <option value="warning">Avertissement</option>
-                      <option value="success">Succès</option>
-                    </select>
-                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowAddEventDialog(false)}>Annuler</Button>
@@ -633,7 +595,7 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
           <div className="space-y-4">
             {events.map((event, index) => (
               <div key={index} className="flex items-start gap-3 p-3 rounded-md bg-gray-50">
-                {getEventIcon(event.type)}
+                {getEventIcon()}
                 <div className="flex-1">
                   <p className="font-medium">{event.description}</p>
                   <p className="text-sm text-muted-foreground">{event.date}</p>
@@ -723,18 +685,6 @@ const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
                 value={newEvent.description}
                 onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
               />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Type</label>
-              <select 
-                className="w-full p-2 border rounded-md"
-                value={newEvent.type}
-                onChange={(e) => setNewEvent({...newEvent, type: e.target.value as any})}
-              >
-                <option value="info">Information</option>
-                <option value="warning">Avertissement</option>
-                <option value="success">Succès</option>
-              </select>
             </div>
           </div>
           <DialogFooter>
