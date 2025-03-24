@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
@@ -27,7 +28,7 @@ export const isPriceExpired = (date: string | Date): boolean => {
 };
 
 // Get a badge component for a service level
-export const getServiceLevelBadge = (serviceLevel: string) => {
+export const getServiceLevelBadge = (serviceLevel: string): React.ReactNode => {
   switch (serviceLevel) {
     case 'express':
       return <Badge variant="destructive">Express</Badge>;
@@ -46,4 +47,26 @@ export const getTransportTypeLabel = (
   transportTypeLabels: Record<string, string>
 ): string => {
   return transportTypeLabels[transportType] || transportType;
+};
+
+// Filter prices based on search criteria
+export const filterPrices = (
+  prices: any[],
+  searchTerm: string,
+  selectedOrigin: string,
+  selectedDestination: string,
+  selectedType: string
+) => {
+  return prices.filter(price => {
+    const matchesSearch = !searchTerm || 
+      price.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      price.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      price.destination.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesOrigin = !selectedOrigin || price.origin === selectedOrigin;
+    const matchesDestination = !selectedDestination || price.destination === selectedDestination;
+    const matchesType = !selectedType || price.transportType === selectedType;
+    
+    return matchesSearch && matchesOrigin && matchesDestination && matchesType;
+  });
 };
