@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface Quote {
   id: string;
@@ -38,6 +40,8 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
   const [client, setClient] = useState<any>(null);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Simulation de chargement des données du client
@@ -136,6 +140,24 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const handleQuoteClick = (quoteId: string) => {
+    toast({
+      title: "Navigation vers le devis",
+      description: `Redirection vers le devis ${quoteId}`,
+    });
+    onClose();
+    navigate(`/quotes/${quoteId}`);
+  };
+
+  const handleShipmentClick = (shipmentId: string) => {
+    toast({
+      title: "Navigation vers l'expédition",
+      description: `Redirection vers l'expédition ${shipmentId}`,
+    });
+    onClose();
+    navigate(`/shipments/${shipmentId}`);
   };
 
   return (
@@ -259,7 +281,11 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
                       {quotes.length > 0 ? (
                         <div className="space-y-2">
                           {quotes.slice(0, 3).map((quote) => (
-                            <div key={quote.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted cursor-pointer">
+                            <div 
+                              key={quote.id} 
+                              className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted cursor-pointer"
+                              onClick={() => handleQuoteClick(quote.id)}
+                            >
                               <div>
                                 <p className="font-medium">{quote.reference}</p>
                                 <p className="text-sm text-muted-foreground">{quote.date}</p>
@@ -293,7 +319,11 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
                       {shipments.length > 0 ? (
                         <div className="space-y-2">
                           {shipments.slice(0, 3).map((shipment) => (
-                            <div key={shipment.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted cursor-pointer">
+                            <div 
+                              key={shipment.id} 
+                              className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted cursor-pointer"
+                              onClick={() => handleShipmentClick(shipment.id)}
+                            >
                               <div>
                                 <p className="font-medium">{shipment.reference}</p>
                                 <p className="text-sm text-muted-foreground">{shipment.date}</p>
@@ -347,13 +377,24 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
                     <tbody>
                       {quotes.length > 0 ? (
                         quotes.map((quote) => (
-                          <tr key={quote.id} className="border-b hover:bg-muted/50">
+                          <tr 
+                            key={quote.id} 
+                            className="border-b hover:bg-muted/50 cursor-pointer"
+                            onClick={() => handleQuoteClick(quote.id)}
+                          >
                             <td className="p-3 font-medium">{quote.reference}</td>
                             <td className="p-3">{quote.date}</td>
                             <td className="p-3">{getStatusBadge(quote.status)}</td>
                             <td className="p-3 font-medium">{quote.amount}</td>
                             <td className="p-3 text-right">
-                              <Button variant="ghost" size="sm">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuoteClick(quote.id);
+                                }}
+                              >
                                 Voir
                               </Button>
                             </td>
@@ -394,7 +435,11 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
                     <tbody>
                       {shipments.length > 0 ? (
                         shipments.map((shipment) => (
-                          <tr key={shipment.id} className="border-b hover:bg-muted/50">
+                          <tr 
+                            key={shipment.id} 
+                            className="border-b hover:bg-muted/50 cursor-pointer"
+                            onClick={() => handleShipmentClick(shipment.id)}
+                          >
                             <td className="p-3 font-medium">{shipment.reference}</td>
                             <td className="p-3">{shipment.date}</td>
                             <td className="p-3">
@@ -410,7 +455,14 @@ const ClientDetail = ({ clientId, onClose }: ClientDetailProps) => {
                             </td>
                             <td className="p-3">{getStatusBadge(shipment.status)}</td>
                             <td className="p-3 text-right">
-                              <Button variant="ghost" size="sm">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleShipmentClick(shipment.id);
+                                }}
+                              >
                                 Voir
                               </Button>
                             </td>
