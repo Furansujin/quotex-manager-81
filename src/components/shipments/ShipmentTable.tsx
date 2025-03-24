@@ -104,6 +104,44 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
     }
   };
 
+  // Render alerts alongside the status information
+  const renderAlerts = (shipment: Shipment) => {
+    if (!shipment.hasDocumentIssues && !shipment.isWatched) return null;
+    
+    return (
+      <div className="flex items-center gap-1.5 mt-2">
+        {shipment.hasDocumentIssues && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="p-1 bg-amber-100 rounded-full inline-flex">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Documents manquants</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {shipment.isWatched && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="p-1 bg-blue-100 rounded-full inline-flex">
+                  <BellRing className="h-3.5 w-3.5 text-blue-600" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Notifications activées</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+    );
+  };
+
   const handleEditShipment = (id: string) => {
     onOpenShipment(id);
   };
@@ -194,14 +232,13 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
               <TableHead className="cursor-pointer w-[120px] group">
                 Statut {renderSortIcon('status')}
               </TableHead>
-              <TableHead className="cursor-pointer w-[100px]">Alerte</TableHead>
               <TableHead className="text-right w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shipments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center">
+                <TableCell colSpan={6} className="h-32 text-center">
                   <div className="flex flex-col items-center justify-center text-center">
                     <FileText className="h-10 w-10 text-muted-foreground mb-3" />
                     <p className="text-muted-foreground text-base">Aucune expédition trouvée</p>
@@ -262,6 +299,7 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                   <TableCell className="py-4">
                     <div className="space-y-1.5">
                       {getStatusBadge(shipment.status)}
+                      {renderAlerts(shipment)}
                       <div className="w-full h-1.5 rounded-full bg-gray-100 mt-2">
                         <div 
                           className={`h-full rounded-full ${
@@ -273,39 +311,6 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({
                           style={{ width: `${shipment.progress}%` }}
                         ></div>
                       </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-2">
-                      {shipment.hasDocumentIssues && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="p-1 bg-amber-100 rounded-full">
-                                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Documents manquants</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      {shipment.isWatched && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="p-1 bg-blue-100 rounded-full">
-                                <BellRing className="h-4 w-4 text-blue-600" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Notifications activées</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
                     </div>
                   </TableCell>
                   
