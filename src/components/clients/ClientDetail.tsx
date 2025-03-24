@@ -45,9 +45,10 @@ interface ClientDetailProps {
   clientId: string;
   onClose: () => void;
   onEdit?: (clientId: string) => void;
+  onStatusChange?: (clientId: string, newStatus: "active" | "inactive") => void;
 }
 
-const ClientDetail = ({ clientId, onClose, onEdit }: ClientDetailProps) => {
+const ClientDetail = ({ clientId, onClose, onEdit, onStatusChange }: ClientDetailProps) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [client, setClient] = useState<any>(null);
@@ -190,6 +191,11 @@ const ClientDetail = ({ clientId, onClose, onEdit }: ClientDetailProps) => {
       title: `Client ${newStatus === 'active' ? 'activé' : 'rendu inactif'}`,
       description: `Le statut du client ${client.name} a été mis à jour.`,
     });
+    
+    // Call the onStatusChange callback if it exists
+    if (onStatusChange) {
+      onStatusChange(clientId, newStatus as "active" | "inactive");
+    }
   };
 
   return (
