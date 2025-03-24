@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -15,13 +15,21 @@ import {
   FileText,
   Plus,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Receipt,
+  Calculator
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import FinanceFilters from '@/components/finance/FinanceFilters';
+import FinanceStats from '@/components/finance/FinanceStats';
+import FinanceCharts from '@/components/finance/FinanceCharts';
+import InvoiceTable from '@/components/finance/InvoiceTable';
+import NewInvoiceDialog from '@/components/finance/NewInvoiceDialog';
+import { Invoice, InvoiceStatus } from '@/components/finance/types/financeTypes';
+import { mockInvoices } from '@/components/finance/data/mockData';
 
 interface FinanceFilterValues {
   status: string[];
@@ -40,7 +48,10 @@ const Finance = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState<FinanceFilterValues | null>(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState<InvoiceStatus | 'all'>('all');
+  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>(mockInvoices);
+  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const { toast } = useToast();
 
   const toggleSidebar = () => {
@@ -52,7 +63,7 @@ const Finance = () => {
     
     // Si des filtres de statut sont appliqués, on peut basculer sur l'onglet correspondant
     if (filters.status && filters.status.length === 1) {
-      setActiveTab(filters.status[0]);
+      setActiveTab(filters.status[0] as InvoiceStatus | 'all');
     } else if (filters.status && filters.status.length === 0) {
       setActiveTab('all');
     }
@@ -61,11 +72,15 @@ const Finance = () => {
       title: "Filtres appliqués",
       description: "Les factures ont été filtrées selon vos critères.",
     });
+
+    // Filter invoices based on applied filters
+    filterInvoices(filters);
   };
   
   const clearAllFilters = () => {
     setActiveFilters(null);
     setSearchTerm('');
+    setFilteredInvoices(invoices);
     
     toast({
       title: "Filtres réinitialisés",
@@ -98,6 +113,128 @@ const Finance = () => {
     
     handleApplyFilters(newFilters);
   };
+
+  // Filter invoices based on applied filters and search term
+  const filterInvoices = (filters: FinanceFilterValues | null) => {
+    if (!filters && !searchTerm) {
+      setFilteredInvoices(invoices);
+      return;
+    }
+
+    let filtered = [...invoices];
+
+    // Apply search term filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(invoice => 
+        invoice.id.toLowerCase().includes(search) ||
+        invoice.client.toLowerCase().includes(search)
+      );
+    }
+
+    // Apply status filter
+    if (filters?.status && filters.status.length > 0) {
+      filtered = filtered.filter(invoice => filters.status.includes(invoice.status));
+    }
+
+    // Apply client type filter
+    if (filters?.clientTypes && filters.clientTypes.length > 0) {
+      filtered = filtered.filter(invoice => filters.clientTypes.includes(invoice.clientType || ''));
+    }
+
+    // Apply date filters
+    if (filters?.startDate) {
+      filtered = filtered.filter(invoice => {
+        const invoiceDate = new Date(invoice.issueDate);
+        return invoiceDate >= filters.startDate!;
+      });
+    }
+
+    if (filters?.endDate) {
+      filtered = filtered.filter(invoice => {
+        const invoiceDate = new Date(invoice.issueDate);
+        return invoiceDate <= filters.endDate!;
+      });
+    }
+
+    // Apply amount filters
+    if (filters?.minAmount !== undefined) {
+      filtered = filtered.filter(invoice => invoice.amount >= filters.minAmount!);
+    }
+
+    if (filters?.maxAmount !== undefined) {
+      filtered = filtered.filter(invoice => invoice.amount <= filters.maxAmount!);
+    }
+
+    // Apply commercial filter
+    if (filters?.commercial) {
+      filtered = filtered.filter(invoice => 
+        invoice.commercial?.toLowerCase().includes(filters.commercial!.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    if (filters?.sortField && filters?.sortDirection) {
+      filtered.sort((a, b) => {
+        const field = filters.sortField as keyof Invoice;
+        
+        let valueA = a[field];
+        let valueB = b[field];
+        
+        // Handle special cases for date fields
+        if (field === 'issueDate' || field === 'dueDate') {
+          valueA = new Date(valueA as string).getTime();
+          valueB = new Date(valueB as string).getTime();
+        }
+        
+        if (valueA < valueB) {
+          return filters.sortDirection === 'asc' ? -1 : 1;
+        }
+        if (valueA > valueB) {
+          return filters.sortDirection === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    setFilteredInvoices(filtered);
+  };
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as InvoiceStatus | 'all');
+    
+    // Update filters to reflect tab change
+    const newFilters = { 
+      ...activeFilters || { clientTypes: [] },
+      status: value === 'all' ? [] : [value]
+    };
+    
+    handleApplyFilters(newFilters);
+  };
+
+  // Add new invoice
+  const handleAddInvoice = (invoice: Invoice) => {
+    const newInvoice = {
+      ...invoice,
+      id: `INV-${new Date().getFullYear()}-${(invoices.length + 1).toString().padStart(4, '0')}`
+    };
+    
+    setInvoices([newInvoice, ...invoices]);
+    setFilteredInvoices([newInvoice, ...filteredInvoices]);
+    
+    toast({
+      title: "Facture créée",
+      description: `La facture ${newInvoice.id} a été créée avec succès.`,
+    });
+    
+    setIsNewInvoiceOpen(false);
+  };
+
+  // Update invoices when filters change
+  useEffect(() => {
+    filterInvoices(activeFilters);
+  }, [searchTerm, activeFilters]);
 
   // Rendu des icônes de tri
   const renderSortIcon = (field: string) => {
@@ -132,152 +269,16 @@ const Finance = () => {
                 <FileSpreadsheet className="h-4 w-4" />
                 Rapports
               </Button>
-              <Button className="gap-2">
+              <Button className="gap-2" onClick={() => setIsNewInvoiceOpen(true)}>
                 <Plus className="h-4 w-4" />
                 Nouvelle Facture
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Card className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground">Chiffre d'affaires</p>
-                    <h3 className="text-2xl font-bold">€248,500</h3>
-                    <p className="flex items-center gap-1 text-sm text-green-600 mt-1">
-                      <TrendingUp className="h-3 w-3" />
-                      +12.5% vs période précédente
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <Euro className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground">Factures impayées</p>
-                    <h3 className="text-2xl font-bold">€54,320</h3>
-                    <p className="flex items-center gap-1 text-sm text-red-600 mt-1">
-                      <TrendingUp className="h-3 w-3" />
-                      +4.8% vs période précédente
-                    </p>
-                  </div>
-                  <div className="p-3 bg-red-100 rounded-full">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground">Marge brute</p>
-                    <h3 className="text-2xl font-bold">32.4%</h3>
-                    <p className="flex items-center gap-1 text-sm text-green-600 mt-1">
-                      <TrendingUp className="h-3 w-3" />
-                      +1.2 points vs période précédente
-                    </p>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <PieChart className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="animate-fade-in" style={{ animationDelay: '400ms' }}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground">Factures ce mois</p>
-                    <h3 className="text-2xl font-bold">42</h3>
-                    <p className="flex items-center gap-1 text-sm text-green-600 mt-1">
-                      <TrendingUp className="h-3 w-3" />
-                      +8 vs mois précédent
-                    </p>
-                  </div>
-                  <div className="p-3 bg-amber-100 rounded-full">
-                    <FileText className="h-6 w-6 text-amber-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <FinanceStats />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-2">
-              <Card className="h-full">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-medium">Évolution du CA</CardTitle>
-                    <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                      <CalendarRange className="h-3 w-3" />
-                      Cette année
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-72 flex items-center justify-center bg-muted/30 rounded-md">
-                    <BarChart4 className="h-8 w-8 text-muted-foreground" />
-                    <p className="ml-2 text-muted-foreground">Graphique d'évolution du CA</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="lg:col-span-1">
-              <Card className="h-full">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-medium">Répartition des revenus</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-40 flex items-center justify-center bg-muted/30 rounded-md mb-4">
-                    <PieChart className="h-8 w-8 text-muted-foreground" />
-                    <p className="ml-2 text-muted-foreground">Graphique de répartition</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Maritime</span>
-                        <span className="text-sm text-muted-foreground">€145,230</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '58%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Aérien</span>
-                        <span className="text-sm text-muted-foreground">€68,450</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '28%' }}></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Routier</span>
-                        <span className="text-sm text-muted-foreground">€34,820</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-amber-500 h-2 rounded-full" style={{ width: '14%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <FinanceCharts />
 
           <FinanceFilters
             searchTerm={searchTerm}
@@ -296,7 +297,7 @@ const Finance = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">Toutes</TabsTrigger>
                   <TabsTrigger value="paid">Payées</TabsTrigger>
@@ -304,107 +305,24 @@ const Finance = () => {
                   <TabsTrigger value="overdue">En retard</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="all" className="space-y-4">
-                  <div className="rounded-md border">
-                    <div className="grid grid-cols-6 gap-4 p-3 bg-muted/30 text-sm font-medium border-b">
-                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('id')}>
-                        N° Facture {renderSortIcon('id')}
-                      </div>
-                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('client')}>
-                        Client {renderSortIcon('client')}
-                      </div>
-                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('issueDate')}>
-                        Émission {renderSortIcon('issueDate')}
-                      </div>
-                      <div className="flex items-center group cursor-pointer" onClick={() => handleSortToggle('dueDate')}>
-                        Échéance {renderSortIcon('dueDate')}
-                      </div>
-                      <div className="flex items-center justify-end group cursor-pointer" onClick={() => handleSortToggle('amount')}>
-                        Montant {renderSortIcon('amount')}
-                      </div>
-                      <div className="flex items-center justify-end group cursor-pointer" onClick={() => handleSortToggle('status')}>
-                        Statut {renderSortIcon('status')}
-                      </div>
-                    </div>
-                    {[
-                      { 
-                        id: "INV-2023-0045", 
-                        client: "Tech Supplies Inc", 
-                        issueDate: "05/06/2023", 
-                        dueDate: "05/07/2023",
-                        amount: "€4,250.00",
-                        status: "pending"
-                      },
-                      { 
-                        id: "INV-2023-0044", 
-                        client: "Pharma Solutions", 
-                        issueDate: "02/06/2023", 
-                        dueDate: "02/07/2023",
-                        amount: "€2,840.50",
-                        status: "pending"
-                      },
-                      { 
-                        id: "INV-2023-0043", 
-                        client: "Global Imports Ltd", 
-                        issueDate: "28/05/2023", 
-                        dueDate: "27/06/2023",
-                        amount: "€3,620.75",
-                        status: "paid"
-                      },
-                      { 
-                        id: "INV-2023-0042", 
-                        client: "Eurotech GmbH", 
-                        issueDate: "25/05/2023", 
-                        dueDate: "24/06/2023",
-                        amount: "€1,480.00",
-                        status: "paid"
-                      },
-                      { 
-                        id: "INV-2023-0041", 
-                        client: "Tech Supplies Inc", 
-                        issueDate: "20/05/2023", 
-                        dueDate: "19/06/2023",
-                        amount: "€2,980.25",
-                        status: "overdue"
-                      },
-                    ].map((invoice, index) => (
-                      <div key={invoice.id} className={`grid grid-cols-6 gap-4 p-3 text-sm hover:bg-muted/30 ${index !== 4 ? 'border-b' : ''}`}>
-                        <div className="font-medium">{invoice.id}</div>
-                        <div>{invoice.client}</div>
-                        <div>{invoice.issueDate}</div>
-                        <div>{invoice.dueDate}</div>
-                        <div className="text-right font-medium">{invoice.amount}</div>
-                        <div className="text-right">
-                          <Badge variant={
-                            invoice.status === "paid" ? "success" : 
-                            invoice.status === "pending" ? "outline" :
-                            "destructive"
-                          }>
-                            {invoice.status === "paid" ? "Payée" : 
-                             invoice.status === "pending" ? "En attente" : 
-                             "En retard"}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                {/* Autres onglets */}
-                <TabsContent value="paid">
-                  <p className="text-center text-muted-foreground p-4">Liste des factures payées</p>
-                </TabsContent>
-                <TabsContent value="pending">
-                  <p className="text-center text-muted-foreground p-4">Liste des factures impayées</p>
-                </TabsContent>
-                <TabsContent value="overdue">
-                  <p className="text-center text-muted-foreground p-4">Liste des factures en retard</p>
+                <TabsContent value={activeTab} className="space-y-4">
+                  <InvoiceTable 
+                    invoices={filteredInvoices} 
+                    renderSortIcon={renderSortIcon} 
+                    handleSortToggle={handleSortToggle} 
+                  />
                 </TabsContent>
               </Tabs>
             </CardContent>
           </Card>
         </div>
       </main>
+
+      <NewInvoiceDialog
+        isOpen={isNewInvoiceOpen}
+        onClose={() => setIsNewInvoiceOpen(false)}
+        onSubmit={handleAddInvoice}
+      />
     </div>
   );
 };

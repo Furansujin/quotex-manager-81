@@ -1,62 +1,49 @@
 
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { SupplierPrice } from '../types/supplierPricing';
+import { format } from 'date-fns';
 
-export const formatDate = (dateString: string | Date) => {
+// Format a date for display
+export const formatDate = (date: string | Date): string => {
+  if (!date) return '';
+  
   try {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return format(date, 'dd/MM/yyyy', { locale: fr });
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format(dateObj, 'dd/MM/yyyy');
   } catch (error) {
-    return 'Date invalide';
+    return String(date);
   }
 };
 
-export const isPriceExpired = (dateString: string | Date) => {
+// Check if a price has expired
+export const isPriceExpired = (date: string | Date): boolean => {
+  if (!date) return false;
+  
   try {
-    const validUntil = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return validUntil < new Date();
-  } catch {
+    const expiryDate = typeof date === 'string' ? new Date(date) : date;
+    return expiryDate < new Date();
+  } catch (error) {
     return false;
   }
 };
 
-export const getServiceLevelBadge = (level: string) => {
-  switch (level) {
+// Get a badge component for a service level
+export const getServiceLevelBadge = (serviceLevel: string) => {
+  switch (serviceLevel) {
     case 'express':
       return <Badge variant="destructive">Express</Badge>;
     case 'standard':
       return <Badge variant="default">Standard</Badge>;
     case 'economy':
-      return <Badge variant="outline">Économique</Badge>;
+      return <Badge variant="outline">Economy</Badge>;
     default:
-      return <Badge variant="secondary">{level}</Badge>;
+      return <Badge variant="secondary">{serviceLevel}</Badge>;
   }
 };
 
-export const getTransportTypeLabel = (type: string, transportTypeLabels: Record<string, string>) => {
-  return transportTypeLabels[type] || type;
-};
-
-export const filterPrices = (
-  prices: SupplierPrice[],
-  searchTerm: string,
-  selectedOrigin: string,
-  selectedDestination: string,
-  selectedType: string
-) => {
-  return prices.filter(price => {
-    const matchesSearch = 
-      price.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      price.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      price.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (price.contractRef && price.contractRef.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesOrigin = !selectedOrigin || price.origin.includes(selectedOrigin);
-    const matchesDestination = !selectedDestination || price.destination.includes(selectedDestination);
-    const matchesType = !selectedType || price.transportType === selectedType;
-    
-    return matchesSearch && matchesOrigin && matchesDestination && matchesType;
-  });
+// Get a transport type label
+export const getTransportTypeLabel = (
+  transportType: string,
+  transportTypeLabels: Record<string, string>
+): string => {
+  return transportTypeLabels[transportType] || transportType;
 };
