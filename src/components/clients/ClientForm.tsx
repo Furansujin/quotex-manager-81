@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,41 +94,44 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
   };
 
   return (
-    <Sheet open={true} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto">
-        <SheetHeader className="mb-5">
-          <SheetTitle>{clientId ? 'Modifier le client' : 'Nouveau client'}</SheetTitle>
-          <SheetDescription>
-            {clientId ? "Modifiez les informations du client" : "Ajoutez un nouveau client à votre base de données"}
-          </SheetDescription>
-        </SheetHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom du client</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                value={client.name} 
-                onChange={handleChange} 
-                placeholder="Ex: Tech Supplies Inc" 
-                required 
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Nom du contact principal</Label>
-              <Input 
-                id="contactName" 
-                name="contactName" 
-                value={client.contactName} 
-                onChange={handleChange} 
-                placeholder="Ex: John Smith" 
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-background rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 z-10 bg-background p-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-bold">{clientId ? 'Modifier le client' : 'Nouveau client'}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Informations principales</h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom du client</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={client.name} 
+                  onChange={handleChange} 
+                  placeholder="Ex: Tech Supplies Inc" 
+                  required 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="contactName">Nom du contact principal</Label>
+                <Input 
+                  id="contactName" 
+                  name="contactName" 
+                  value={client.contactName} 
+                  onChange={handleChange} 
+                  placeholder="Ex: John Smith" 
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -152,95 +154,99 @@ const ClientForm = ({ clientId, onClose }: ClientFormProps) => {
                   placeholder="Ex: +33 1 23 45 67 89" 
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Input 
-                id="address" 
-                name="address" 
-                value={client.address} 
-                onChange={handleChange} 
-                placeholder="Ex: 123 Business St, Paris, FR" 
-              />
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="status">Statut du client</Label>
-                <Switch 
-                  id="status" 
-                  checked={client.status === 'active'} 
-                  onCheckedChange={handleSwitchChange} 
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {client.status === 'active' ? 'Client actif' : 'Client inactif'}
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <div className="flex gap-2 mb-2 flex-wrap">
-                {client.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="gap-1">
-                    {tag}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1" 
-                      onClick={() => removeTag(tag)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
+              
+              <div className="space-y-2">
+                <Label htmlFor="address">Adresse</Label>
                 <Input 
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Ajouter un tag..."
-                  className="flex-1"
+                  id="address" 
+                  name="address" 
+                  value={client.address} 
+                  onChange={handleChange} 
+                  placeholder="Ex: 123 Business St, Paris, FR" 
                 />
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={addTag}
-                  type="button"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea 
-                id="notes" 
-                name="notes" 
-                value={client.notes} 
-                onChange={handleChange} 
-                placeholder="Notes supplémentaires sur le client..." 
-                rows={3}
-              />
+
+            {/* Right column */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Détails additionnels</h3>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="status">Statut du client</Label>
+                  <Switch 
+                    id="status" 
+                    checked={client.status === 'active'} 
+                    onCheckedChange={handleSwitchChange} 
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {client.status === 'active' ? 'Client actif' : 'Client inactif'}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  {client.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="gap-1">
+                      {tag}
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-4 w-4 ml-1" 
+                        onClick={() => removeTag(tag)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input 
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Ajouter un tag..."
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={addTag}
+                    type="button"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea 
+                  id="notes" 
+                  name="notes" 
+                  value={client.notes} 
+                  onChange={handleChange} 
+                  placeholder="Notes supplémentaires sur le client..." 
+                  rows={5}
+                />
+              </div>
             </div>
           </div>
           
-          <SheetFooter className="mt-6">
-            <Button variant="outline" type="button" onClick={onClose}>
+          <div className="pt-4 border-t flex justify-between">
+            <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Enregistrement...' : clientId ? 'Mettre à jour' : 'Créer le client'}
+            <Button type="submit" disabled={loading} className="gap-2">
+              {loading && <span className="animate-spin">...</span>}
+              {clientId ? 'Mettre à jour' : 'Créer le client'}
               {!loading && <ChevronRight className="ml-2 h-4 w-4" />}
             </Button>
-          </SheetFooter>
+          </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </div>
   );
 };
 
