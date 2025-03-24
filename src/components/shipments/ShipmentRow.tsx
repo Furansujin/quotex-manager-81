@@ -40,11 +40,10 @@ const ShipmentRow: React.FC<ShipmentRowProps> = ({ shipment, onOpenShipment }) =
         </div>
       </TableCell>
 
-      <TableCell>
-        <Badge variant="outline" className="flex items-center gap-1.5">
+      <TableCell className="text-center">
+        <div className="flex justify-center">
           <ShipmentTypeIcon type={shipment.type} />
-          {shipment.type}
-        </Badge>
+        </div>
       </TableCell>
       
       <TableCell>

@@ -7,7 +7,35 @@ interface ShipmentStatusBadgeProps {
 }
 
 const ShipmentStatusBadge: React.FC<ShipmentStatusBadgeProps> = ({ status }) => {
-  return <Badge variant="outline">{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
+  // Define color classes based on status
+  const getStatusClass = () => {
+    switch (status.toLowerCase()) {
+      case 'en cours':
+        return 'bg-blue-100 text-blue-700 hover:bg-blue-200';
+      case 'complété':
+      case 'livré':
+        return 'bg-green-100 text-green-700 hover:bg-green-200';
+      case 'retardé':
+        return 'bg-amber-100 text-amber-700 hover:bg-amber-200';
+      case 'problème':
+        return 'bg-red-100 text-red-700 hover:bg-red-200';
+      case 'annulé':
+        return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+      case 'planifié':
+        return 'bg-purple-100 text-purple-700 hover:bg-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+    }
+  };
+
+  return (
+    <Badge
+      variant="outline"
+      className={getStatusClass()}
+    >
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  );
 };
 
 export default ShipmentStatusBadge;

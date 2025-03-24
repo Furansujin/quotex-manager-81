@@ -1,7 +1,8 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Clock, CheckCircle, XCircle, Ship, PlaneTakeoff, Truck, Bus } from 'lucide-react';
+import { ArrowRight, Clock, CheckCircle, XCircle } from 'lucide-react';
+import ShipmentTypeIcon from '@/components/shipments/ShipmentTypeIcon';
 
 interface Quote {
   id: string;
@@ -60,21 +61,6 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getTypeIcon = (type: string) => {
-  switch (type) {
-    case 'maritime':
-      return <Ship className="h-4 w-4 mr-1" />;
-    case 'air':
-      return <PlaneTakeoff className="h-4 w-4 mr-1" />;
-    case 'road':
-      return <Truck className="h-4 w-4 mr-1" />;
-    case 'multimodal':
-      return <Bus className="h-4 w-4 mr-1" />;
-    default:
-      return null;
-  }
-};
-
 const RecentQuotes: React.FC = () => {
   return (
     <div className="space-y-4">
@@ -88,10 +74,14 @@ const RecentQuotes: React.FC = () => {
               <div>
                 <div className="flex items-center space-x-2">
                   <h4 className="font-medium">{quote.client}</h4>
-                  <Badge variant="outline" className="flex items-center">
-                    {getTypeIcon(quote.type)}
-                    {quote.type.charAt(0).toUpperCase() + quote.type.slice(1)}
-                  </Badge>
+                  <div className="flex items-center">
+                    <ShipmentTypeIcon type={
+                      quote.type === 'air' ? 'aérien' : 
+                      quote.type === 'road' ? 'routier' : 
+                      quote.type === 'multimodal' ? 'multimodal' : 
+                      'maritime'
+                    } className="h-4 w-4" />
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">{quote.id}</p>
               </div>

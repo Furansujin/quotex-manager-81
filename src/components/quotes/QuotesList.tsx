@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   Edit, 
   Copy, 
@@ -12,13 +11,9 @@ import {
   ArrowUp,
   ArrowDown,
   File,
-  Ship,
-  Truck,
-  PlaneTakeoff,
-  Train,
-  Bus
 } from 'lucide-react';
 import { Quote } from '@/hooks/useQuotesData';
+import ShipmentTypeIcon from '@/components/shipments/ShipmentTypeIcon';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -74,30 +69,12 @@ const QuotesList: React.FC<QuotesListProps> = ({
     }
   };
 
-  // Helper function to get transport type badge with icon
-  const getTypeBadge = (type: string) => {
-    const getTypeIcon = () => {
-      switch (type.toLowerCase()) {
-        case 'maritime':
-          return <Ship className="h-4 w-4 mr-1.5" />;
-        case 'aérien':
-          return <PlaneTakeoff className="h-4 w-4 mr-1.5" />;
-        case 'routier':
-          return <Truck className="h-4 w-4 mr-1.5" />;
-        case 'ferroviaire':
-          return <Train className="h-4 w-4 mr-1.5" />;
-        case 'multimodal':
-          return <Bus className="h-4 w-4 mr-1.5" />;
-        default:
-          return <Ship className="h-4 w-4 mr-1.5" />;
-      }
-    };
-
+  // Helper function to get transport type icon
+  const getTypeIcon = (type: string) => {
     return (
-      <Badge variant="outline" className="flex items-center">
-        {getTypeIcon()}
-        {type}
-      </Badge>
+      <div className="flex justify-center">
+        <ShipmentTypeIcon type={type} />
+      </div>
     );
   };
 
@@ -154,7 +131,7 @@ const QuotesList: React.FC<QuotesListProps> = ({
                 Date
                 {renderSortIcon('date')}
               </TableHead>
-              <TableHead className="group">
+              <TableHead className="group text-center">
                 Type
                 {renderSortIcon('type')}
               </TableHead>
@@ -190,7 +167,9 @@ const QuotesList: React.FC<QuotesListProps> = ({
                 </TableCell>
                 <TableCell>{quote.client}</TableCell>
                 <TableCell>{quote.date}</TableCell>
-                <TableCell>{getTypeBadge(quote.type)}</TableCell>
+                <TableCell className="text-center">
+                  {getTypeIcon(quote.type)}
+                </TableCell>
                 <TableCell>{quote.destination}</TableCell>
                 <TableCell>{quote.amount}</TableCell>
                 <TableCell>

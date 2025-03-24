@@ -1,19 +1,13 @@
-
 import React, { useState } from 'react';
 import { 
   Building, 
   MoreHorizontal, 
   Phone, 
   Trash2, 
-  FileText, 
-  Ship,
-  Truck,
-  PlaneTakeoff,
-  Train,
-  Bus
+  FileText
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import ShipmentTypeIcon from '@/components/shipments/ShipmentTypeIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,6 +117,18 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
     }
   };
 
+  // Convert our category to a type for the ShipmentTypeIcon
+  const getCategoryToTypeMapping = (category: string) => {
+    switch (category) {
+      case 'maritime': return 'maritime';
+      case 'aerien': return 'aérien';
+      case 'routier': return 'routier';
+      case 'ferroviaire': return 'ferroviaire';
+      case 'multimodal': return 'multimodal';
+      default: return category;
+    }
+  };
+
   const getCategoryDisplayName = (category: string) => {
     switch (category) {
       case 'maritime': return 'Maritime';
@@ -131,17 +137,6 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
       case 'ferroviaire': return 'Ferroviaire';
       case 'multimodal': return 'Multimodal';
       default: return category;
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'maritime': return <Ship className="h-4 w-4 text-primary" />;
-      case 'aerien': return <PlaneTakeoff className="h-4 w-4 text-primary" />;
-      case 'routier': return <Truck className="h-4 w-4 text-primary" />;
-      case 'ferroviaire': return <Train className="h-4 w-4 text-primary" />;
-      case 'multimodal': return <Bus className="h-4 w-4 text-primary" />;
-      default: return <Ship className="h-4 w-4 text-primary" />;
     }
   };
 
@@ -177,7 +172,7 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
               </TableHead>
               <TableHead>Contact</TableHead>
               <TableHead className="hidden md:table-cell">Téléphone</TableHead>
-              <TableHead>Catégorie</TableHead>
+              <TableHead className="text-center">Catégorie</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -204,11 +199,10 @@ const SuppliersList: React.FC<SuppliersListProps> = ({
                     <span>{supplier.phone}</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
-                    {getCategoryIcon(supplier.category)}
-                    {getCategoryDisplayName(supplier.category)}
-                  </Badge>
+                <TableCell className="text-center">
+                  <div className="flex justify-center">
+                    <ShipmentTypeIcon type={getCategoryToTypeMapping(supplier.category)} />
+                  </div>
                 </TableCell>
                 <TableCell>
                   <Badge 

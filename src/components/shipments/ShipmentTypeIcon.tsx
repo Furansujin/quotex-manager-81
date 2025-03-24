@@ -7,20 +7,20 @@ interface ShipmentTypeIconProps {
   className?: string;
 }
 
-const ShipmentTypeIcon: React.FC<ShipmentTypeIconProps> = ({ type, className = "h-4 w-4" }) => {
+const ShipmentTypeIcon: React.FC<ShipmentTypeIconProps> = ({ type, className = "h-5 w-5" }) => {
   switch (type.toLowerCase()) {
     case 'maritime':
-      return <Ship className={`${className} text-primary`} />;
+      return <Ship className={className} />;
     case 'routier':
-      return <Truck className={`${className} text-primary`} />;
+      return <Truck className={className} />;
     case 'aérien':
-      return <PlaneTakeoff className={`${className} text-primary`} />;
+      return <PlaneTakeoff className={className} />;
     case 'ferroviaire':
-      return <Train className={`${className} text-primary`} />;
+      return <Train className={className} />;
     case 'multimodal':
-      return <Bus className={`${className} text-primary`} />;
+      return <Bus className={className} />;
     default:
-      return <Ship className={`${className} text-primary`} />;
+      return <Ship className={className} />;
   }
 };
 
